@@ -1,0 +1,17 @@
+
+# Do not track local database changes, if using sqlite.
+*.sqlite3
+
+
+# Do not track DEBUG file.
+DEBUG
+
+
+# Do not track local environment settings.
+settings/local_env/*
+.venv/
+
+
+# Do not track cae_home app files.
+settings/
+cae_home/

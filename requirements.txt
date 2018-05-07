@@ -1,0 +1,6 @@
+
+# Run via "pip install -r requirements.txt" while in the base project directory.
+
+django==1.11        # Core Django framework.
+# mysqlclient         # For connecting to mysql. Not necessary if using sqlite during development.
+# django-auth-ldap    # For ldap connection. Needs testing. Likely to be mandatory upon implementation.
