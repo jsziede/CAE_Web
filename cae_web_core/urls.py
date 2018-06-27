@@ -9,5 +9,6 @@ from . import views
 
 app_name = 'cae_web_core'
 urlpatterns = [
-
+# Home page.
+    url(r'^$', views.index, name='index')
 ]
