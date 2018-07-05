@@ -2,16 +2,16 @@
 # Do not track local database changes, if using sqlite.
 *.sqlite3
 
-
 # Do not track DEBUG file.
 DEBUG
-
 
 # Do not track local environment settings.
 settings/local_env/*
 .venv/
+.vscode
 
+# Do not track migrations for now
+*/migrations/0*.py
 
-# Do not track cae_home app files.
-settings/
-cae_home/
+# Do not track python cache files
+*.pyc
