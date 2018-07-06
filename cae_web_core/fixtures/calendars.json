@@ -1,0 +1,27 @@
+[
+  {
+    "model": "schedule.calendar",
+    "pk": 1,
+    "fields": {
+      "name": "Test",
+      "slug": "test"
+    }
+  },
+  {
+    "model": "schedule.event",
+    "pk": 1,
+    "fields": {
+      "start": "2018-07-06T03:08:42Z",
+      "end": "2018-07-13T03:08:44Z",
+      "title": "Test Event",
+      "description": "This is a test event.",
+      "creator": 1,
+      "created_on": "2018-07-06T03:08:56.640Z",
+      "updated_on": "2018-07-06T03:08:56.640Z",
+      "rule": null,
+      "end_recurring_period": null,
+      "calendar": 1,
+      "color_event": "#dc0000"
+    }
+  }
+]
