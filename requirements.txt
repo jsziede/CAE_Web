@@ -1,7 +1,16 @@
 
 # Run via "pip install -r requirements.txt" while in the base project directory.
 
+
+# Python Libraries.
 django==1.11        # Core Django framework.
+faker               # Faker library for automatic model seeding.
+
+
+# Third Party Django Apps.
+django-scheduler==0.8.8 # Third party Django app for calendar scheduling.
+
+
+# Optional imports.
 # mysqlclient         # For connecting to mysql. Not necessary if using sqlite during development.
 # django-auth-ldap    # For ldap connection. Needs testing. Likely to be mandatory upon implementation.
-django-scheduler==0.8.8

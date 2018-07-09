@@ -6,12 +6,12 @@
 DEBUG
 
 # Do not track local environment settings.
-settings/local_env/*
 .venv/
-.vscode
+.vscode/
+.idea/
 
-# Do not track migrations for now
+# Do not track migrations for now.
 */migrations/0*.py
 
-# Do not track python cache files
+# Do not track python cache files.
 *.pyc
