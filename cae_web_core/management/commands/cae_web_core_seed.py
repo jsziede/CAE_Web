@@ -65,7 +65,6 @@ class Command(BaseCommand):
 
         for i in range(model_count):
             models.Department.objects.create(name=faker_factory.job())
-
         print('Populated department models.')
 
     def create_rooms(self, model_count):
@@ -97,5 +96,4 @@ class Command(BaseCommand):
                 room_type=room_type,
                 department=department,
             )
-
-        print('Populated department models.')
+        print('Populated room models.')
