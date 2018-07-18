@@ -4,7 +4,7 @@ Admin views for CAE Web Core app.
 
 from django.contrib import admin
 
-from . import forms, models
+from . import models
 
 
 class DepartmentAdmin(admin.ModelAdmin):
