@@ -1,4 +1,5 @@
 {% extends 'cae_web_core/main.html' %}
+{% load static %}
 
 
 {% block title_page_name %}Calendar Test |{% endblock title_page_name %}
@@ -6,27 +7,135 @@
 {# django-scheduler requires bootstrap #}
 
 {% block extra_styles %}
+<!--
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.css" crossorigin="anonymous">
+-->
+<style>
+.schedule-container {
+  display: grid;
+  grid-template-columns: 70px;
+  grid-template-rows: 45px;
+  grid-auto-columns: 1fr;
+  grid-auto-rows: 15px;
+  border: 1px solid gray;
+  max-width: 100%;
+  overflow-x: scroll;
+}
+
+.schedule-header-spacer {
+  grid-row: 1;
+  grid-column: 1;
+}
+
+.schedule-grid-line {
+  border-color: #DDD;
+  border-style: solid;
+  border-right-width: 1px;
+  border-bottom-width: 1px;
+}
+
+.schedule-resource {
+  grid-row: 1;
+  border: 1px solid black;
+  text-align: center;
+}
+
+.schedule-time {
+  grid-column: 1;
+  grid-row-end: span 4;
+  border: 1px solid black;
+  text-align: center;
+}
+
+.schedule-event {
+  border: 1px solid orange;
+  background-color: lightgoldenrodyellow;
+  border-radius: 5px;
+  padding: 2px;
+}
+
+</style>
 {% endblock %}
 
 {% block extra_scripts %}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.21/moment-timezone.min.js" crossorigin="anonymous"></script>
+  <script src="{% static '/caeweb/js/schedule.js' %}"></script>
+<!--
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.js" crossorigin="anonymous"></script>
+-->
 {% endblock %}
 
 {% block content %}
   <article id="content">
     <h1>CAE Web Calendar Test Page</h1>
+    <div id="schedule">
+    </div>
+    <script>
+      $('#schedule').schedule({
+        startHour: 8,
+        endHour: 22,
+        resources: [
+          {
+            id: 1,
+            html: 'C-122<br>36'
+          },
+          {
+            id: 2,
+            html: 'C-123<br>36'
+          },
+          {
+            id: 3,
+            html: 'C-124<br>36'
+          },
+          {
+            id: 4,
+            html: 'C-125<br>36'
+          },
+          {
+            id: 5,
+            html: 'C-126<br>36'
+          },
+          {
+            id: 6,
+            html: 'C-127<br>36'
+          },
+          {
+            id: 47,
+            html: 'E-124<br>24'
+          },
+        ],
+        events: [
+          {
+            start: '2018-07-21T16:00Z',
+            end:   '2018-07-21T17:50Z',
+            title: 'Test Event',
+            description: 'Hello',
+            resource: 1,
+          },
+          {
+            start: '2018-07-21T20:00Z',
+            end:   '2018-07-22T00:50Z',
+            title: 'CS 3500',
+            description: 'Databases',
+            resource: 47,
+          }
+        ],
+        timezone: 'America/Detroit',
+      });
+    </script>
+    <!--
     <div id="calendar"></div>
     <script type="text/javascript">
       $('#calendar').fullCalendar({
-        events: '{% url "cae_web_core:schedule:api_occurrences" %}?calendar_slug=test&timezone={% if request.user.profile %}{{ request.user.profile.user_timezone }}{% else %}America/Detroit{% endif %}',
+        events: '{% url "cae_web_core:schedule:api_occurrences" %}?calendar_slug=c-122&timezone={% if request.user.profile %}{{ request.user.profile.user_timezone }}{% else %}America/Detroit{% endif %}',
         defaultDate: "2018-07-01",
       })
     </script>
+    -->
   </article>
 {% endblock content %}
