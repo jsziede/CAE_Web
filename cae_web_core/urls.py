@@ -13,5 +13,6 @@ urlpatterns = [
     url(r'^$', views.index, name='index'),
     # TODO: Note, these schedule api urls are public. Should they be permission based?
     url(r'^schedule/', include('schedule.urls', namespace='schedule')),
+    url(r'^room-schedule/api/$', views.api_room_schedule, name='api_room_schedule'),
     url(r'^calendar-test/$', views.calendar_test, name='calendar_test'),
 ]

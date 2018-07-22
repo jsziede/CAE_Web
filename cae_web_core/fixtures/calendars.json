@@ -3,8 +3,8 @@
     "model": "schedule.calendar",
     "pk": 1,
     "fields": {
-      "name": "Test",
-      "slug": "test"
+      "name": "C-122",
+      "slug": "c-122"
     }
   },
   {

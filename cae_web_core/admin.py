@@ -50,6 +50,9 @@ class RoomTypeAdmin(admin.ModelAdmin):
         }),
     )
 
+class RoomEventInline(admin.TabularInline):
+    model = models.RoomEvent
+
 class RoomAdmin(admin.ModelAdmin):
     # Fields to display in admin list view.
     list_display = ('name', 'capacity', 'room_type',)
@@ -66,7 +69,9 @@ class RoomAdmin(admin.ModelAdmin):
     # Organize fieldsets for admin detail view.
     fieldsets = (
         (None, {
-            'fields': ('name', 'room_type', 'department', 'capacity',)
+            'fields': (
+                'name', 'room_type', 'department', 'capacity',
+            )
         }),
         ('Advanced', {
             'classes': ('collapse',),
@@ -74,7 +79,10 @@ class RoomAdmin(admin.ModelAdmin):
         }),
     )
 
+    inlines = [RoomEventInline]
+
 
 admin.site.register(models.Department, DepartmentAdmin)
 admin.site.register(models.RoomType, RoomTypeAdmin)
 admin.site.register(models.Room, RoomAdmin)
+admin.site.register(models.RoomEvent)

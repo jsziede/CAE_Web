@@ -12,22 +12,11 @@ class RoomType(models.Model):
     """
     Room types.
     """
-    # Preset field choices.
-    CLASS = 0
-    COMPUTER = 1
-    BREAKOUT = 2
-    SPECIAL = 3
-    ROOM_CHOICES = (
-        (CLASS, "Classroom"),
-        (COMPUTER, "Computer Classroom"),
-        (BREAKOUT, "Breakout Room"),
-        (SPECIAL, "Special Room"),
+    # Model fields.
+    name = models.CharField(
+        max_length=MAX_LENGTH,
     )
 
-    # Model fields.
-    name = models.PositiveSmallIntegerField(
-        choices=ROOM_CHOICES,
-    )
     # Self-setting/Non-user-editable fields.
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
@@ -37,7 +26,7 @@ class RoomType(models.Model):
         verbose_name_plural = "Room Types"
 
     def __str__(self):
-        return '{0}'.format(self.ROOM_CHOICES[self.name][1])
+        return self.name
 
     def save(self, *args, **kwargs):
         """
@@ -81,8 +70,8 @@ class Room(models.Model):
     A standard university room.
     """
     # Relationship keys.
-    room_type = models.ForeignKey('RoomType', on_delete=models.CASCADE)
-    department = models.ForeignKey('Department', on_delete=models.CASCADE, blank=True, null=True)
+    room_type = models.ForeignKey(RoomType, on_delete=models.CASCADE)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, blank=True, null=True)
 
     # Model fields.
     name = models.CharField(max_length=MAX_LENGTH)
@@ -107,3 +96,28 @@ class Room(models.Model):
         # Save model.
         self.full_clean()
         super(Room, self).save(*args, **kwargs)
+
+
+class RoomEvent(models.Model):
+    TYPE_CLASS = 1
+    TYPE_EVENT = 2
+    TYPE_CHOICES = (
+        (TYPE_CLASS, "Class"),
+        (TYPE_EVENT, "Event"),
+    )
+    room = models.ForeignKey(Room, on_delete=models.CASCADE)
+    event_type = models.PositiveSmallIntegerField(
+        choices=TYPE_CHOICES,
+        default=TYPE_CLASS,
+    )
+    start = models.DateTimeField()
+    end = models.DateTimeField(blank=True, null=True)
+    title = models.CharField(max_length=MAX_LENGTH)
+    description = models.TextField(blank=True)
+    rrule = models.TextField(
+        blank=True,
+    )
+
+    # Self-setting/Non-user-editable fields.
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_modified = models.DateTimeField(auto_now=True)

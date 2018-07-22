@@ -1,0 +1,38 @@
+[
+    {
+      "model": "cae_web_core.roomtype",
+      "pk": 1,
+      "fields": {
+        "name": "Classroom",
+        "date_created": "2018-07-21T05:00:0Z",
+        "date_modified": "2018-07-21T05:00:0Z"
+      }
+    },
+    {
+      "model": "cae_web_core.roomtype",
+      "pk": 2,
+      "fields": {
+        "name": "Computer Classroom",
+        "date_created": "2018-07-21T05:00:0Z",
+        "date_modified": "2018-07-21T05:00:0Z"
+      }
+    },
+    {
+      "model": "cae_web_core.roomtype",
+      "pk": 3,
+      "fields": {
+        "name": "Breakout Classroom",
+        "date_created": "2018-07-21T05:00:0Z",
+        "date_modified": "2018-07-21T05:00:0Z"
+      }
+    },
+    {
+      "model": "cae_web_core.roomtype",
+      "pk": 4,
+      "fields": {
+        "name": "Special Room",
+        "date_created": "2018-07-21T05:00:0Z",
+        "date_modified": "2018-07-21T05:00:0Z"
+      }
+    }
+]

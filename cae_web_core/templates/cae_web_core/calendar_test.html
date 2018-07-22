@@ -1,5 +1,5 @@
 {% extends 'cae_web_core/main.html' %}
-{% load static %}
+{% load static tz %}
 
 
 {% block title_page_name %}Calendar Test |{% endblock title_page_name %}
@@ -98,6 +98,9 @@
 {% block content %}
   <article id="content">
     <h1>CAE Web Calendar Test Page</h1>
+    {% if request.user.is_anonymous %}
+    <h1 style="color: red">You need to login for this work.</h1>
+    {% endif %}
     <div class="schedule-responsive">
       <div id="schedule"></div>
     </div>
@@ -105,70 +108,8 @@
       $('#schedule').schedule({
         startHour: 8,
         endHour: 22,
-        resources: [
-          {
-            id: 1,
-            html: 'C-122<br>36'
-          },
-          {
-            id: 2,
-            html: 'C-123<br>36'
-          },
-          {
-            id: 3,
-            html: 'C-124<br>36'
-          },
-          {
-            id: 4,
-            html: 'C-125<br>36'
-          },
-          {
-            id: 5,
-            html: 'C-126<br>36'
-          },
-          {
-            id: 6,
-            html: 'C-127<br>36'
-          },
-          {
-            id: 47,
-            html: 'E-124<br>24'
-          },
-        ],
-        events: [
-          {
-            id: 45,
-            start: '2018-07-21T13:00Z',
-            end:   '2018-07-21T17:00Z',
-            title: 'CS 3500',
-            description: 'Databases',
-            resource: 1,
-          },
-          {
-            id: 1,
-            start: '2018-07-21T16:00Z',
-            end:   '2018-07-21T17:50Z',
-            title: 'Test Event',
-            description: 'Hello',
-            resource: 1,
-          },
-          {
-            id: 2,
-            start: '2018-07-21T20:00Z',
-            end:   '2018-07-22T00:50Z',
-            title: 'CS 3500',
-            description: 'Databases',
-            resource: 47,
-          },
-          {
-            id: 46,
-            start: '2018-07-21T14:00Z',
-            end:   '2018-07-21T15:50Z',
-            title: 'Test Event 2',
-            description: 'Hello 2',
-            resource: 1,
-          },
-        ],
+        resources: {{ rooms_json|safe }},
+        eventsURL: "{% url 'cae_web_core:api_room_schedule' %}",
         timezone: 'America/Detroit',
       });
     </script>
