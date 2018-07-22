@@ -12,15 +12,19 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.css" crossorigin="anonymous">
 -->
 <style>
+.schedule-responsive {
+  max-width: 95vw;
+  overflow-x: scroll;
+  margin: auto;
+  border: 1px solid #EEE;
+}
+
 .schedule-container {
   display: grid;
   grid-template-columns: 70px;
   grid-template-rows: 45px;
-  grid-auto-columns: 1fr;
+  grid-auto-columns: minmax(70px, 1fr);
   grid-auto-rows: 15px;
-  border: 1px solid gray;
-  max-width: 100%;
-  overflow-x: scroll;
 }
 
 .schedule-header-spacer {
@@ -37,6 +41,7 @@
 
 .schedule-resource {
   grid-row: 1;
+  grid-column-end: span 2;
   border: 1px solid black;
   text-align: center;
 }
@@ -46,6 +51,9 @@
   grid-row-end: span 4;
   border: 1px solid black;
   text-align: center;
+  position: sticky;
+  left: 0;
+  background: white;
 }
 
 .schedule-event {
@@ -53,6 +61,23 @@
   background-color: lightgoldenrodyellow;
   border-radius: 5px;
   padding: 2px;
+  overflow: hidden;
+}
+
+.schedule-event-toolbar {
+  float: right;
+}
+
+.schedule-event-toolbar > button {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.schedule-event-toolbar > button:hover {
+  background: white;
+  border: 1px solid black;
+  border-radius: 3px;
 }
 
 </style>
@@ -73,7 +98,8 @@
 {% block content %}
   <article id="content">
     <h1>CAE Web Calendar Test Page</h1>
-    <div id="schedule">
+    <div class="schedule-responsive">
+      <div id="schedule"></div>
     </div>
     <script>
       $('#schedule').schedule({
@@ -111,6 +137,15 @@
         ],
         events: [
           {
+            id: 45,
+            start: '2018-07-21T13:00Z',
+            end:   '2018-07-21T17:00Z',
+            title: 'CS 3500',
+            description: 'Databases',
+            resource: 1,
+          },
+          {
+            id: 1,
             start: '2018-07-21T16:00Z',
             end:   '2018-07-21T17:50Z',
             title: 'Test Event',
@@ -118,12 +153,21 @@
             resource: 1,
           },
           {
+            id: 2,
             start: '2018-07-21T20:00Z',
             end:   '2018-07-22T00:50Z',
             title: 'CS 3500',
             description: 'Databases',
             resource: 47,
-          }
+          },
+          {
+            id: 46,
+            start: '2018-07-21T14:00Z',
+            end:   '2018-07-21T15:50Z',
+            title: 'Test Event 2',
+            description: 'Hello 2',
+            resource: 1,
+          },
         ],
         timezone: 'America/Detroit',
       });

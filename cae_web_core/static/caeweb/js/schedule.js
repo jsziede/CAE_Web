@@ -17,7 +17,7 @@ jQuery.fn.schedule = function(args) {
         });
         container.append(resourceDiv);
 
-        resourceIdToColumn[resource.id] = i + 2;
+        resourceIdToColumn[resource.id] = i * 2 + 2;
     }
 
     // Add time headers
@@ -38,19 +38,22 @@ jQuery.fn.schedule = function(args) {
 
     // Add grid lines
     for (var i = 0; i < resources.length; ++i) {
-        var column = i + 2;
+        var column = i * 2 + 2;
         for (var j = 0; j < totalHours * 4; ++j) {
             var row = j + 2;
             var gridLineDiv = $('<div>', {
                 'class': 'schedule-grid-line',
-                'style': 'grid-column: ' + column + '; ' +
+                'style': 'grid-column: ' + column + '/ span 2; ' +
                     'grid-row: ' + row + ';',
             });
             container.append(gridLineDiv);
         }
     }
 
+    var resourceIdToEvents = {};
+
     // Add events
+    // NOTE: Events must be sorted by start times to handle overlapping events
     var events = args.events || {};
     for (var i = 0; i < events.length; ++i) {
         var event = events[i];
@@ -58,17 +61,52 @@ jQuery.fn.schedule = function(args) {
         var end = moment(event.end);
         var column = resourceIdToColumn[event.resource];
         var rowStart = (start.hours() - startHour) * 4 + 2;
-
         var spanHours = end.diff(start, 'minute') / 60;
         var span15Min = Math.round(spanHours * 4);
+        var eventDivId = 'id_schedule_event_' + event.id;
+
+        var resourceEvents = resourceIdToEvents[event.resource] || {};
+        var hasEventConflict = false;
+        for (var eventId in resourceEvents) {
+            if (!resourceEvents.hasOwnProperty(eventId)) {
+                continue;
+            }
+            var resourceEvent = resourceEvents[eventId];
+            if (!start.isAfter(resourceEvent.end) &&
+                !end.isBefore(resourceEvent.start)) {
+                hasEventConflict = true;
+                // shrink event to span only 1 column
+                $('#' + resourceEvent.divId).css({ 'grid-column': '' + column });
+            }
+        }
+
+        var columnSpan = 2;
+        if (hasEventConflict) {
+            ++column;
+            columnSpan = 1;
+        } else {
+            resourceEvents[event.id] = {
+                'divId': eventDivId,
+                'start': start,
+                'end': end,
+            }
+            resourceIdToEvents[event.resource] = resourceEvents;
+        }
+
+        var eventToolbar = $('<div>', {
+            'class': 'schedule-event-toolbar',
+            'html': '<button type="button" title="Edit">&#9881;</button>',
+        });
 
         var eventDiv = $('<div>', {
+            'id': eventDivId,
             'class': 'schedule-event',
             'html': start.format('LT') + '<br>' + event.title + '<br>' +
                 end.format('LT'),
             'title': event.description, // hover text
-            'style': 'grid-column: ' + column + '; grid-row: ' + rowStart + ' / span ' + span15Min + ';',
+            'style': 'grid-column: ' + column + ' / span ' + columnSpan + '; grid-row: ' + rowStart + ' / span ' + span15Min + ';',
         });
+        eventDiv.prepend(eventToolbar);
         container.append(eventDiv);
     }
 
