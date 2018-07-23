@@ -1,17 +1,17 @@
 """
 Views for CAE_Web Core App.
 """
-import json
 
+import dateutil.parser
+import json
+import pytz
 from django.contrib.auth.decorators import login_required
 from django.http.response import JsonResponse
 from django.template.response import TemplateResponse
 from django.utils.html import format_html
 
-import dateutil.parser
-import pytz
-
-from .models import Room, RoomEvent
+from .models import RoomEvent
+from cae_home.models import Room
 
 
 def index(request):
