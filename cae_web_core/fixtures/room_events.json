@@ -5,8 +5,8 @@
   "fields": {
     "room": 1,
     "event_type": 1,
-    "start": "2018-07-21T17:00Z",
-    "end": "2018-07-21T19:30Z",
+    "start_time": "2018-07-21T17:00Z",
+    "end_time": "2018-07-21T19:30Z",
     "title": "CS 3500",
     "description": "A databases course",
     "rrule": "",
@@ -20,8 +20,8 @@
   "fields": {
     "room": 3,
     "event_type": 1,
-    "start": "2018-07-21T12:00Z",
-    "end": "2018-07-21T16:30Z",
+    "start_time": "2018-07-21T12:00Z",
+    "end_time": "2018-07-21T16:30Z",
     "title": "CS 3500",
     "description": "A databases course",
     "rrule": "",
