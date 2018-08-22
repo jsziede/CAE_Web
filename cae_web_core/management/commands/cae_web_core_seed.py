@@ -49,9 +49,12 @@ class Command(BaseCommand):
         # Generate random data.
         faker_factory = Faker()
 
+        # Count number of models already created.
+        pre_initialized_count = len(models.RoomEvent.objects.all())
+
         rooms = cae_home_models.Room.objects.all()
 
-        for i in range(model_count):
+        for i in range(model_count - pre_initialized_count):
             # Get Room.
             index = randint(0, len(rooms) - 1)
             room = rooms[index]
