@@ -52,8 +52,10 @@ class Command(BaseCommand):
         # Count number of models already created.
         pre_initialized_count = len(models.RoomEvent.objects.all())
 
+        # Get all related models.
         rooms = cae_home_models.Room.objects.all()
 
+        # Generate models equal to model count.
         for i in range(model_count - pre_initialized_count):
             # Get Room.
             index = randint(0, len(rooms) - 1)
