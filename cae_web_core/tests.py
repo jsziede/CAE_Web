@@ -4,6 +4,7 @@ Test for CAE Web Core app.
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.test import TestCase
 from django.utils import timezone
@@ -109,3 +110,20 @@ class RoomEventModelTests(TestCase):
         self.assertEqual(str(self.test_room_event._meta.verbose_name_plural), 'Room Events')
 
 #endregion Model Tests
+
+
+#region View Tests
+
+class CAEWebCoreViewTests(TestCase):
+    """
+    Tests to ensure valid CAEWeb Core views.
+    """
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = get_user_model().objects.create_user('temporary', 'temporary@gmail.com', 'temporary')
+
+    def test_index_view(self):
+        response = self.client.get(reverse('cae_web_core:index'))
+        self.assertEqual(response.status_code, 200)
+
+#endregion View Tests
