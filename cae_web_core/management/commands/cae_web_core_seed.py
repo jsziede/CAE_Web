@@ -38,13 +38,46 @@ class Command(BaseCommand):
             model_count = 100
 
         print('\nCAE_WEB_CORE: Seed command has been called.')
-        self.create_assets(model_count)
+        self.create_employee_shifts(model_count)
+        self.create_room_events(model_count)
 
         print('CAE_WEB_CORE: Seeding complete.')
 
-    def create_assets(self, model_count):
+    def create_employee_shifts(self, model_count):
         """
-        Create Asset models.
+        Create Employee Shift models.
+        """
+        # Generate random data.
+        faker_factory = Faker()
+
+        # Count number of models already created.
+        pre_initialized_count = len(models.EmployeeShift.objects.all())
+
+        # Get all related models.
+        users = cae_home_models.User.objects.all()
+
+        # Generate models equal to model count.
+        for i in range(model_count - pre_initialized_count):
+            # Get User.
+            index = randint(0, len(users) - 1)
+            user = users[index]
+
+            # Calculate clock in/clock out times.
+            clock_out = timezone.make_aware(faker_factory.date_time_between(start_date='-90d', end_date='now'))
+            hour_difference = randint(1, 8)
+            minute_difference = randint(0, 59)
+            clock_in = clock_out - timezone.timedelta(hours=hour_difference, minutes=minute_difference)
+
+            models.EmployeeShift.objects.create(
+                employee=user,
+                clock_in=clock_in,
+                clock_out=clock_out,
+            )
+        print('Populated employee shift models.')
+
+    def create_room_events(self, model_count):
+        """
+        Create Room Event models.
         """
         # Generate random data.
         faker_factory = Faker()

@@ -2,11 +2,63 @@
 Test for CAE Web Core app.
 """
 
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.test import TestCase
 from django.utils import timezone
 
 from . import models
 from cae_home import models as cae_home_models
+
+
+#region Model Tests
+
+class EmployeeShiftTests(TestCase):
+    """
+    Tests to ensure valid Employee Shift model creation/logic.
+    """
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = get_user_model().objects.create_user('temporary', 'temporary@gmail.com', 'temporary')
+
+    def setUp(self):
+        self.clock_out = timezone.now()
+        self.clock_in = self.clock_out - timezone.timedelta(hours=5, minutes=30)
+        self.test_employee_shift = models.EmployeeShift.objects.create(
+            employee=self.user,
+            clock_in=self.clock_in,
+            clock_out=self.clock_out
+        )
+
+    def test_model_creation(self):
+        self.assertEqual(self.test_employee_shift.employee, self.user)
+        self.assertEqual(self.test_employee_shift.clock_in, self.clock_in)
+        self.assertEqual(self.test_employee_shift.clock_out, self.clock_out)
+
+    def test_string_representation(self):
+        self.assertEqual(
+            str(self.test_employee_shift),
+            '{0}: {1} to {2}'.format(self.user, self.clock_in, self.clock_out)
+        )
+
+    def test_plural_representation(self):
+        self.assertEqual(str(self.test_employee_shift._meta.verbose_name), 'Employee Shift')
+        self.assertEqual(str(self.test_employee_shift._meta.verbose_name_plural), 'Employee Shifts')
+
+    def test_clock_in_equal_to_clock_out(self):
+        # Test clock in equal to clock out.
+        clock_in = self.clock_out
+        with self.assertRaises(ValidationError):
+            with transaction.atomic():
+                models.EmployeeShift.objects.create(employee=self.user, clock_in=clock_in, clock_out=self.clock_out)
+
+    def test_clock_in_after_clock_out(self):
+        # Test clock in of 1 minute after clock out.
+        clock_in = self.clock_out + timezone.timedelta(minutes=1)
+        with self.assertRaises(ValidationError):
+            with transaction.atomic():
+                models.EmployeeShift.objects.create(employee=self.user, clock_in=clock_in, clock_out=self.clock_out)
 
 
 class RoomEventModelTests(TestCase):
@@ -55,3 +107,5 @@ class RoomEventModelTests(TestCase):
     def test_plural_representation(self):
         self.assertEqual(str(self.test_room_event._meta.verbose_name), 'Room Event')
         self.assertEqual(str(self.test_room_event._meta.verbose_name_plural), 'Room Events')
+
+#endregion Model Tests
