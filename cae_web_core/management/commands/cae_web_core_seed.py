@@ -56,6 +56,7 @@ class Command(BaseCommand):
         # Get all related models.
         users = cae_home_models.User.objects.all()
 
+        date_holder = timezone.now()
         # Generate models equal to model count.
         for i in range(model_count - pre_initialized_count):
             # Get User.
@@ -63,8 +64,11 @@ class Command(BaseCommand):
             user = users[index]
 
             # Calculate clock in/clock out times.
-            clock_out = timezone.make_aware(faker_factory.date_time_between(start_date='-90d', end_date='now'))
             hour_difference = randint(1, 8)
+            minute_difference = randint(0, 59)
+            date_holder = date_holder - timezone.timedelta(days=1, hours=hour_difference, minutes=minute_difference)
+            clock_out = date_holder
+            hour_difference = hour_difference * 2
             minute_difference = randint(0, 59)
             clock_in = clock_out - timezone.timedelta(hours=hour_difference, minutes=minute_difference)
 

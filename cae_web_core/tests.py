@@ -61,6 +61,34 @@ class EmployeeShiftTests(TestCase):
             with transaction.atomic():
                 models.EmployeeShift.objects.create(employee=self.user, clock_in=clock_in, clock_out=self.clock_out)
 
+    def test_overlapping_shifts(self):
+        # Test clock in time between old shift.
+        clock_in = self.clock_in + timezone.timedelta(minutes=1)
+        with self.assertRaises(ValidationError):
+            with transaction.atomic():
+                models.EmployeeShift.objects.create(employee=self.user, clock_in=clock_in)
+
+        # Test clock out time between old shift.
+        clock_in = self.clock_in - timezone.timedelta(minutes=1)
+        clock_out = self.clock_in + timezone.timedelta(minutes=1)
+        with self.assertRaises(ValidationError):
+            with transaction.atomic():
+                models.EmployeeShift.objects.create(employee=self.user, clock_in=clock_in, clock_out=clock_out)
+
+        # Test new shift entirely inside old shift.
+        clock_in = self.clock_in + timezone.timedelta(minutes=1)
+        clock_out = self.clock_out - timezone.timedelta(minutes=1)
+        with self.assertRaises(ValidationError):
+            with transaction.atomic():
+                models.EmployeeShift.objects.create(employee=self.user, clock_in=clock_in, clock_out=clock_out)
+
+        # Test old shift entirely inside new shift.
+        clock_in = self.clock_in - timezone.timedelta(minutes=1)
+        clock_out = self.clock_out + timezone.timedelta(minutes=1)
+        with self.assertRaises(ValidationError):
+            with transaction.atomic():
+                models.EmployeeShift.objects.create(employee=self.user, clock_in=clock_in, clock_out=clock_out)
+
 
 class RoomEventModelTests(TestCase):
     """

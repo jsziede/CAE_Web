@@ -34,10 +34,28 @@ class EmployeeShift(models.Model):
         """
         Custom cleaning implementation. Includes validation, setting fields, etc.
         """
+        # Check that clock_out time is after clock_in time.
         if self.clock_in is not None and self.clock_out is not None:
-            # Check that clock_out time is after clock_in time.
             if (self.clock_out == self.clock_in) or (self.clock_out < self.clock_in):
                 raise ValidationError('Clock out time must be after clock in time.')
+
+        # Check that clock times do not overlap previous shifts for user.
+        # Check clock in is not inside other shift.
+        if self.clock_in is not None:
+            previous_shifts = EmployeeShift.objects.filter(clock_in__lte=self.clock_in, clock_out__gte=self.clock_in)
+            if len(previous_shifts) is not 0:
+                raise ValidationError('Users cannot have overlapping shift times.')
+
+        if self.clock_out is not None:
+            # Check clock out is not inside other shift.
+            previous_shifts = EmployeeShift.objects.filter(clock_in__lte=self.clock_out, clock_out__gte=self.clock_out)
+            if len(previous_shifts) is not 0:
+                raise ValidationError('Users cannot have overlapping shift times.')
+
+            # Check old shift is not entirely inside new shift.
+            previous_shifts = EmployeeShift.objects.filter(clock_in__gte=self.clock_in, clock_out__lte=self.clock_out)
+            if len(previous_shifts) is not 0:
+                raise ValidationError('Users cannot have overlapping shift times.')
 
     def save(self, *args, **kwargs):
         """
