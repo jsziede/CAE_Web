@@ -10,7 +10,7 @@ from django.http.response import JsonResponse
 from django.template.response import TemplateResponse
 from django.utils.html import format_html
 
-from .models import RoomEvent
+from . import models
 from cae_home.models import Room
 
 
@@ -21,11 +21,23 @@ def index(request):
     return TemplateResponse(request, 'cae_web_core/index.html', {})
 
 
+@login_required
+def my_hours(request):
+    """
+    Employee shift page for an individual.
+    """
+    shift_list = models.EmployeeShift.objects.filter(employee=request.user)
+
+    return TemplateResponse(request, 'cae_web_core/employee/my_hours.html', {
+        'shift_list': shift_list,
+    })
+
+
 def calendar_test(request):
     rooms = Room.objects.all().order_by('room_type', 'name').values_list(
         'pk', 'name', 'capacity',
     )
-    events = RoomEvent.objects.all().order_by('room', 'start')
+    events = models.RoomEvent.objects.all().order_by('room', 'start')
 
     rooms_json = []
     for pk, name, capacity in rooms:

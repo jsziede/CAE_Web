@@ -1,0 +1,25 @@
+{% extends 'cae_web_core/main.html' %}
+
+
+
+{% block title_page_name %}
+  {% if user.first_name %}
+    {{ user.first_name }}'s Hours |
+  {% else %}
+    {{ user }}'s Hours |
+  {% endif %}
+{% endblock title_page_name %}
+
+
+{% block content %}
+  <article id="content">
+    {% if user.first_name %}
+      <h1>{{ user.first_name }}'s Hours</h1>
+    {% else %}
+      <h1>Worked Hours for {{ user }}</h1>
+    {% endif %}
+    {% for shift in shift_list %}
+      <p>{{ shift }}</p>
+    {% endfor %}
+  </article>
+{% endblock content %}

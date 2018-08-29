@@ -12,6 +12,9 @@ urlpatterns = [
     # Home page.
     url(r'^$', views.index, name='index'),
 
+    # Employee Shift views.
+    url(r'^employee/my_hours/$', views.my_hours, name='my_hours'),
+
     # Room scheduler views.
     # TODO: Note, these schedule api urls are public. Should they be permission based?
     # TODO Response: Probably, yes. At least editing/adding them should be. Standard viewing probably should be public.
