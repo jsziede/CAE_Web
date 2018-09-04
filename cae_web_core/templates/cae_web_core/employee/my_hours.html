@@ -1,5 +1,5 @@
 {% extends 'cae_web_core/main.html' %}
-
+{% load staticfiles %}
 
 
 {% block title_page_name %}
@@ -18,8 +18,27 @@
     {% else %}
       <h1>Worked Hours for {{ user }}</h1>
     {% endif %}
-    {% for shift in shift_list %}
+
+    <div>
+      {{ last_shift }}
+      <input id="shift-submit" type="button" value="Clock In/Out">
+    </div>
+
+    {% for shift in shifts %}
       <p>{{ shift }}</p>
     {% endfor %}
   </article>
 {% endblock content %}
+
+
+{% block extra_scripts %}
+  <script>
+      // Get json list of django models as JavaScript variable.
+      var shifts = {{ json_shifts|safe }};
+
+      // Grab root project url.
+      var domain = "{{ domain }}"
+      console.log(domain);
+    </script>
+    <script src="{% static 'cae_web_core/js/my_hours.js' %}"></script>
+{% endblock extra_scripts %}

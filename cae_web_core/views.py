@@ -5,6 +5,7 @@ Views for CAE_Web Core App.
 import dateutil.parser
 import json
 import pytz
+from django.core import serializers
 from django.contrib.auth.decorators import login_required
 from django.http.response import JsonResponse
 from django.template.response import TemplateResponse
@@ -21,17 +22,32 @@ def index(request):
     return TemplateResponse(request, 'cae_web_core/index.html', {})
 
 
+#region Employee Views
+
 @login_required
 def my_hours(request):
     """
     Employee shift page for an individual.
     """
-    shift_list = models.EmployeeShift.objects.filter(employee=request.user)
+    shifts = models.EmployeeShift.objects.filter(employee=request.user)
+
+    # Convert to json format for React.
+    json_shifts = serializers.serialize(
+        'json',
+        shifts,
+        fields=('clock_in', 'clock_out', 'date_created', 'date_modified',)
+    )
 
     return TemplateResponse(request, 'cae_web_core/employee/my_hours.html', {
-        'shift_list': shift_list,
+        'shifts': shifts,
+        'json_shifts': json_shifts,
+        'last_shift': shifts.last(),
     })
 
+#endregion Employee Views
+
+
+#region Calendar Views
 
 def calendar_test(request):
     rooms = Room.objects.all().order_by('room_type', 'name').values_list(
@@ -60,7 +76,7 @@ def api_room_schedule(request):
     end = request.GET.get('enddate', None)
     room = request.GET.get('room', None)
 
-    events = RoomEvent.objects.all().order_by('room', 'start')
+    events = models.RoomEvent.objects.all().order_by('room', 'start')
 
     if room:
         events = events.filter(room_id=room)
@@ -98,3 +114,5 @@ def api_room_schedule(request):
         'end': end,
         'events': events,
     })
+
+#endregion Calendar Views
