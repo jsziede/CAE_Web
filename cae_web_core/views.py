@@ -41,7 +41,7 @@ def my_hours(request):
     return TemplateResponse(request, 'cae_web_core/employee/my_hours.html', {
         'shifts': shifts,
         'json_shifts': json_shifts,
-        'last_shift': shifts.last(),
+        'last_shift': shifts.first(),
     })
 
 #endregion Employee Views

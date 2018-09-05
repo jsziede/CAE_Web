@@ -38,7 +38,7 @@ class MyHoursConsumer(JsonWebsocketConsumer):
 
         if shift_submit:
             # Check if shift already exists. If not, start new one.
-            shift = models.EmployeeShift.objects.filter(employee=user).last()
+            shift = models.EmployeeShift.objects.filter(employee=user).first()
             if shift.clock_out is None:
                 shift.clock_out = timezone.now()
                 shift.save()
@@ -59,5 +59,6 @@ class MyHoursConsumer(JsonWebsocketConsumer):
 
             # Send data.
             self.send_json({
-                'json_shifts': json_shifts,
-            })
+                    'json_shifts': json_shifts,
+                }, close=True
+            )
