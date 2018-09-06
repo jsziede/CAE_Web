@@ -8,5 +8,5 @@ from . import consumers
 
 
 websocket_urlpatterns = [
-    url('^ws/caeweb/employee/my_hours/$', consumers.MyHoursConsumer),
+    url('^employee/my_hours/$', consumers.MyHoursConsumer),
 ]
