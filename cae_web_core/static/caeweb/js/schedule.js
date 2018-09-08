@@ -24,10 +24,10 @@ function scheduleUpdateEvents(container, events) {
         console.log("Have event!");
 
         var column = resourceIdToColumn[event.resource];
-        var startDiff = start.diff(calendarStart, 'minute') / 60;
-        var endDiff = end.diff(calendarEnd, 'minute') / 60;
+        var startDiff = Math.round(start.diff(calendarStart, 'second') / 3600); // hours
+        var endDiff = Math.round(end.diff(calendarEnd, 'second') / 3600); // hours
         var rowStart = Math.max(0, startDiff) * 4 + 2;
-        var spanHours = end.diff(start, 'minute') / 60;
+        var spanHours = Math.round(end.diff(start, 'second') / 3600);
         if (startDiff < 0) {
             // Reduce span if we cut off the start
             spanHours += startDiff;

@@ -55,7 +55,7 @@ def calendar_test(request):
         'pk', 'name', 'capacity',
     )
     now = timezone.now() # UTC
-    now = pytz.timezone('America/Detroit').localize(now.replace(tzinfo=None)) # EST/EDT
+    now = now.astimezone(pytz.timezone('America/Detroit')) # EST/EDT
     start = now.replace(hour=8, minute=0, second=0)
     end = now.replace(hour=22, minute=0, second=0)
 
@@ -81,7 +81,7 @@ def api_room_schedule(request):
     end = request.GET.get('enddate', None)
     room = request.GET.get('room', None)
 
-    events = models.RoomEvent.objects.all().order_by('room', 'start')
+    events = models.RoomEvent.objects.all().order_by('room', 'start_time')
 
     if room:
         events = events.filter(room_id=room)
