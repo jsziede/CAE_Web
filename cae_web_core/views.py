@@ -9,6 +9,7 @@ from django.core import serializers
 from django.contrib.auth.decorators import login_required
 from django.http.response import JsonResponse
 from django.template.response import TemplateResponse
+from django.utils import timezone
 from django.utils.html import format_html
 
 from . import models
@@ -53,7 +54,10 @@ def calendar_test(request):
     rooms = Room.objects.all().order_by('room_type', 'name').values_list(
         'pk', 'name', 'capacity',
     )
-    events = models.RoomEvent.objects.all().order_by('room', 'start')
+    now = timezone.now() # UTC
+    now = pytz.timezone('America/Detroit').localize(now.replace(tzinfo=None)) # EST/EDT
+    start = now.replace(hour=8, minute=0, second=0)
+    end = now.replace(hour=22, minute=0, second=0)
 
     rooms_json = []
     for pk, name, capacity in rooms:
@@ -65,7 +69,8 @@ def calendar_test(request):
     return TemplateResponse(request, 'cae_web_core/calendar_test.html', {
         'rooms': rooms,
         'rooms_json': json.dumps(rooms_json),
-        'events': events,
+        'start': start,
+        'end': end,
     })
 
 
@@ -87,16 +92,17 @@ def api_room_schedule(request):
         start = dateutil.parser.parse(start)
         if start.tzinfo is None or start.utcoffset is None:
             start = start.replace(tzinfo=pytz.timezone(user_timezone))
-        events = events.filter(start__gte=start)
+        events = events.filter(start_time__gte=start)
 
     if end:
         end = dateutil.parser.parse(end)
         if end.tzinfo is None or end.utcoffset is None:
             end = end.replace(tzinfo=pytz.timezone(user_timezone))
-        events = events.filter(end__lte=end)
+        events = events.filter(end_time__lte=end)
 
     events = events.values_list(
-        'pk', 'room_id', 'event_type', 'start', 'end', 'title', 'description', 'rrule',
+        'pk', 'room_id', 'event_type', 'start_time', 'end_time', 'title',
+        'description', 'rrule',
     )
 
     # Convert to format expected by schedule.js

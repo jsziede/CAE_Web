@@ -2,10 +2,13 @@ function scheduleUpdateEvents(container, events) {
     var resourceIdToEvents = {};
 
     var resourceIdToColumn = container.data('resource-id-to-column');
-    var startHour = container.data('start-hour');
+    var calendarStart = container.data('start');
+    var calendarEnd = container.data('end');
+
+    var scheduleGrid = container.children('.schedule-grid');
 
     // delete old events
-    container.children('.schedule-event').remove();
+    scheduleGrid.children('.schedule-event').remove();
 
     console.log(events);
 
@@ -13,9 +16,26 @@ function scheduleUpdateEvents(container, events) {
         var event = events[i];
         var start = moment(event.start);
         var end = moment(event.end);
+
+        if (end < calendarStart || start > calendarEnd) {
+            // Skip this event
+            continue;
+        }
+        console.log("Have event!");
+
         var column = resourceIdToColumn[event.resource];
-        var rowStart = (start.hours() - startHour) * 4 + 2;
+        var startDiff = start.diff(calendarStart, 'minute') / 60;
+        var endDiff = end.diff(calendarEnd, 'minute') / 60;
+        var rowStart = Math.max(0, startDiff) * 4 + 2;
         var spanHours = end.diff(start, 'minute') / 60;
+        if (startDiff < 0) {
+            // Reduce span if we cut off the start
+            spanHours += startDiff;
+        }
+        if (endDiff > 0) {
+            // Reduce span if we cut off the end
+            spanHours -= endDiff;
+        }
         var span15Min = Math.round(spanHours * 4);
         var eventDivId = 'id_schedule_event_' + event.id;
 
@@ -61,7 +81,7 @@ function scheduleUpdateEvents(container, events) {
             'style': 'grid-column: ' + column + ' / span ' + columnSpan + '; grid-row: ' + rowStart + ' / span ' + span15Min + ';',
         });
         eventDiv.prepend(eventToolbar);
-        container.append(eventDiv);
+        scheduleGrid.append(eventDiv);
     }
 }
 
@@ -91,9 +111,25 @@ jQuery.fn.scheduleUpdate = function(args) {
 
 jQuery.fn.schedule = function(args) {
     var container = $(this[0]);
-    container.addClass("schedule-container");
 
-    container.append('<div class="schedule-header-spacer"></div>');
+    // Add main header
+    var scheduleHeader = $('<div>', {
+        'class': 'schedule-header',
+    });
+    container.append(scheduleHeader);
+
+    // TODO: Add header bar with button to go to 'Today', 'Back', 'Forward'
+    // And list selected day, like old version.
+    //scheduleHeader.html("<");
+
+    // Add Grid
+    var scheduleGrid = $('<div>', {
+        'class': 'schedule-grid',
+    });
+    container.append(scheduleGrid);
+
+    // Spacer for top left, between left and top grid headers
+    scheduleGrid.append('<div class="schedule-header-spacer"></div>');
 
     var resourceIdToColumn = {};
 
@@ -105,25 +141,25 @@ jQuery.fn.schedule = function(args) {
             'class': 'schedule-resource',
             'html': resource.html,
         });
-        container.append(resourceDiv);
+        scheduleGrid.append(resourceDiv);
 
         resourceIdToColumn[resource.id] = i * 2 + 2;
     }
 
 
     // Add time headers
-    // hours are in 24 hour format, 0 and 24 are midnight
-    var startHour = args.startHour || 8;
-    var endHour = args.endHour || 24;
-    var hour = moment({ hour: startHour });
+    // start and end are actual times with timezone info
+    var start = moment(args.start);
+    var end = moment(args.end);
+    var hour = moment(args.start);
     var totalHours = 0;
-    for (var i = startHour; i < endHour; ++i) {
+    while (hour < end) {
         var timeDiv = $('<div>', {
             'class': 'schedule-time',
             'text': hour.format('LT'),
         });
         hour.add({ hours: 1 });
-        container.append(timeDiv);
+        scheduleGrid.append(timeDiv);
         ++totalHours;
     }
 
@@ -137,13 +173,13 @@ jQuery.fn.schedule = function(args) {
                 'style': 'grid-column: ' + column + '/ span 2; ' +
                     'grid-row: ' + row + ';',
             });
-            container.append(gridLineDiv);
+            scheduleGrid.append(gridLineDiv);
         }
     }
 
     container.data('resource-id-to-column', resourceIdToColumn);
-    container.data('start-hour', startHour);
-    container.data('end-hour', endHour);
+    container.data('start', start);
+    container.data('end', end);
 
     this.scheduleUpdate(args);
 

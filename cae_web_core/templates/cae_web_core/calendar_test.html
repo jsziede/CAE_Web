@@ -19,7 +19,7 @@
   border: 1px solid #EEE;
 }
 
-.schedule-container {
+.schedule-grid {
   display: grid;
   grid-template-columns: 70px;
   grid-template-rows: 45px;
@@ -108,9 +108,10 @@
       $('#schedule').schedule({
         startHour: 8,
         endHour: 22,
+        start: "{{ start.isoformat }}",
+        end: "{{ end.isoformat }}",
         resources: {{ rooms_json|safe }},
         eventsURL: "{% url 'cae_web_core:api_room_schedule' %}",
-        timezone: 'America/Detroit',
       });
     </script>
     <!--
