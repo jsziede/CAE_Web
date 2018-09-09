@@ -111,7 +111,12 @@ body main #content {
     <h1 style="color: red">You need to login for this work.</h1>
     {% endif %}
     <h3>React Version:</h3>
-    <div id="react-root">
+    <div id="react-root"
+      data-start="{{ start.isoformat }}"
+      data-end="{{ end.isoformat }}"
+      data-resources="{{ rooms_json|safe }}"
+      data-eventsURL="{% url 'cae_web_core:api_room_schedule' %}"
+    >
       <h2>Something went wrong.</h2>
       <p>If you see this, then React did not load properly.</p>
     </div>
