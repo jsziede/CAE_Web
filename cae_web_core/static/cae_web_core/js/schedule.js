@@ -29,12 +29,7 @@ var Event = function (_React$Component) {
   function Event(props) {
     _classCallCheck(this, Event);
 
-    var _this = _possibleConstructorReturn(this, (Event.__proto__ || Object.getPrototypeOf(Event)).call(this, props));
-
-    _this.state = {
-      gridColumn: props.gridColumn
-    };
-    return _this;
+    return _possibleConstructorReturn(this, (Event.__proto__ || Object.getPrototypeOf(Event)).call(this, props));
   }
 
   _createClass(Event, [{
@@ -46,10 +41,19 @@ var Event = function (_React$Component) {
           className: 'schedule-event',
           title: this.props.event.description,
           style: {
-            gridColumn: this.state.gridColumn,
+            gridColumn: this.props.gridColumn,
             gridRow: '' + this.props.rowStart + ' / span ' + this.props.span15Min
           }
         },
+        React.createElement(
+          'div',
+          { className: 'schedule-event-toolbar' },
+          React.createElement(
+            'button',
+            { type: 'button', title: 'Edit' },
+            '\u2699'
+          )
+        ),
         moment(this.props.event.start).format('LT'),
         React.createElement('br', null),
         this.props.event.title,
@@ -166,7 +170,11 @@ var Schedule = function (_React$Component2) {
         return React.createElement(Resource, { key: resource.id, resource: resource });
       });
 
-      var events = this.state.events.map(function (event) {
+      // keep track of events that have been processsed
+      // we may need to update some before actually creating React elements
+      var processedEvents = {};
+
+      this.state.events.map(function (event) {
         var start = moment(event.start);
         var end = moment(event.end);
 
@@ -196,14 +204,11 @@ var Schedule = function (_React$Component2) {
         var hasEventConflict = false;
         Object.keys(resourceEvents).map(function (i) {
           var resourceEvent = resourceEvents[i];
-          if (!start.isAfter(resourceEvent.end) && !end.isBefore(resourceEvent.start)) {
+          if (!start.isAfter(resourceEvent.event.end) && !end.isBefore(resourceEvent.event.start)) {
             hasEventConflict = true;
             // shrink event to span only 1 column
             // (No longer includes the '/ span 2')
-            console.log(resourceEvent.element);
-            resourceEvent.element.setState({
-              gridColumn: '' + column
-            });
+            resourceEvent.gridColumn = '' + column;
           }
         });
 
@@ -215,36 +220,32 @@ var Schedule = function (_React$Component2) {
 
         var gridColumn = '' + column + ' / span ' + columnSpan;
 
-        var eventElement = React.createElement(
-          Event,
-          {
-            key: event.id,
-            event: event,
-            gridColumn: gridColumn,
-            rowStart: rowStart,
-            span15Min: span15Min
-          },
-          React.createElement(
-            'div',
-            { className: 'schedule-event-toolbar' },
-            React.createElement(
-              'button',
-              { type: 'button', title: 'Edit' },
-              '\u2699'
-            )
-          )
-        );
+        var data = {
+          event: event,
+          gridColumn: gridColumn,
+          rowStart: rowStart,
+          span15Min: span15Min
+        };
+
+        processedEvents[event.id] = data;
 
         if (!hasEventConflict) {
-          resourceEvents[event.id] = {
-            element: eventElement,
-            start: start,
-            end: end
-          };
+          resourceEvents[event.id] = data;
           resourceIdToEvents[event.resource] = resourceEvents;
         }
+      });
 
-        return eventElement;
+      // Now create event elements
+      var events = [];
+      Object.keys(processedEvents).map(function (i) {
+        var data = processedEvents[i];
+        events.push(React.createElement(Event, {
+          key: data.event.id,
+          event: data.event,
+          gridColumn: data.gridColumn,
+          rowStart: data.rowStart,
+          span15Min: data.span15Min
+        }));
       });
 
       return React.createElement(

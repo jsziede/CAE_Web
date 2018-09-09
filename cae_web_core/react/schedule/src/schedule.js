@@ -17,9 +17,6 @@ function Resource(props) {
 class Event extends React.Component {
   constructor(props) {
     super(props)
-    this.state = {
-      gridColumn: props.gridColumn,
-    }
   }
 
   render() {
@@ -28,10 +25,13 @@ class Event extends React.Component {
         className="schedule-event"
         title={this.props.event.description}
         style={{
-          gridColumn: this.state.gridColumn,
+          gridColumn: this.props.gridColumn,
           gridRow: '' + this.props.rowStart + ' / span ' + this.props.span15Min,
         }}
       >
+        <div className="schedule-event-toolbar">
+          <button type="button" title="Edit">&#9881;</button>
+        </div>
         {moment(this.props.event.start).format('LT')}<br/>
         {this.props.event.title}<br/>
         {moment(this.props.event.end).format('LT')}
@@ -141,7 +141,11 @@ class Schedule extends React.Component {
       )
     })
 
-    const events = this.state.events.map((event) => {
+    // keep track of events that have been processsed
+    // we may need to update some before actually creating React elements
+    const processedEvents = {}
+
+    this.state.events.map((event) => {
       const start = moment(event.start)
       const end = moment(event.end)
 
@@ -171,15 +175,12 @@ class Schedule extends React.Component {
       var hasEventConflict = false;
       Object.keys(resourceEvents).map((i) => {
         const resourceEvent = resourceEvents[i];
-        if (!start.isAfter(resourceEvent.end) &&
-            !end.isBefore(resourceEvent.start)) {
+        if (!start.isAfter(resourceEvent.event.end) &&
+            !end.isBefore(resourceEvent.event.start)) {
             hasEventConflict = true;
             // shrink event to span only 1 column
             // (No longer includes the '/ span 2')
-            console.log(resourceEvent.element);
-            resourceEvent.element.setState({
-              gridColumn: '' + column,
-            })
+            resourceEvent.gridColumn = '' + column
         }
       })
 
@@ -191,30 +192,34 @@ class Schedule extends React.Component {
 
       const gridColumn = '' + column + ' / span ' + columnSpan
 
-      const eventElement = (
-        <Event
-          key={event.id}
-          event={event}
-          gridColumn={gridColumn}
-          rowStart={rowStart}
-          span15Min={span15Min}
-        >
-          <div className="schedule-event-toolbar">
-            <button type="button" title="Edit">&#9881;</button>
-          </div>
-        </Event>
-      )
-
-      if (!hasEventConflict) {
-        resourceEvents[event.id] = {
-          element: eventElement,
-          start: start,
-          end: end,
-        }
-        resourceIdToEvents[event.resource] = resourceEvents
+      const data = {
+        event: event,
+        gridColumn: gridColumn,
+        rowStart: rowStart,
+        span15Min: span15Min,
       }
 
-      return eventElement
+      processedEvents[event.id] = data
+
+      if (!hasEventConflict) {
+        resourceEvents[event.id] = data
+        resourceIdToEvents[event.resource] = resourceEvents
+      }
+    })
+
+    // Now create event elements
+    const events = [];
+    Object.keys(processedEvents).map((i) => {
+      const data = processedEvents[i];
+      events.push(
+        <Event
+          key={data.event.id}
+          event={data.event}
+          gridColumn={data.gridColumn}
+          rowStart={data.rowStart}
+          span15Min={data.span15Min}
+        />
+      )
     })
 
     return (
