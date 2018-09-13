@@ -1,4 +1,16 @@
-{% extends 'cae_home/main.html' %}
+{% extends 'cae_home/base.html' %}
 
 
 {% block title_site_name %}CAE Web{% endblock title_site_name %}
+
+
+{% block header %}
+  {% include 'cae_home/header.html' with app_nav='cae_web_core/app_nav.html' %}
+{% endblock header %}
+
+
+{% block main %}
+  <main id="content" class="cae_web">
+    {% block content %}{% endblock content %}
+  </main>
+{% endblock %}
