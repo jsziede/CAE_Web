@@ -2,9 +2,8 @@
 Views for CAE_Web Core App.
 """
 
-import dateutil.parser
-import json
-import pytz
+# System Imports.
+import dateutil.parser, json, pytz
 from django.core import serializers
 from django.contrib.auth.decorators import login_required
 from django.http.response import JsonResponse
@@ -12,6 +11,7 @@ from django.template.response import TemplateResponse
 from django.utils import timezone
 from django.utils.html import format_html
 
+# User Class Imports.
 from . import models
 from cae_home.models import Room
 
@@ -30,7 +30,16 @@ def my_hours(request):
     """
     Employee shift page for an individual.
     """
+    # Pull models from database.
+    user_timezone = request.user.profile.user_timezone
+    timezone.activate(pytz.timezone(user_timezone))
     shifts = models.EmployeeShift.objects.filter(employee=request.user)
+
+    # Convert shift values to user's local time.
+    for shift in shifts:
+        shift.clock_in = timezone.localtime(shift.clock_in)
+        if shift.clock_out is not None:
+            shift.clock_out = timezone.localtime(shift.clock_out)
 
     # Convert to json format for React.
     json_shifts = serializers.serialize(
@@ -39,6 +48,7 @@ def my_hours(request):
         fields=('clock_in', 'clock_out', 'date_created', 'date_modified',)
     )
 
+    # Send to template for user display.
     return TemplateResponse(request, 'cae_web_core/employee/my_hours.html', {
         'shifts': shifts,
         'json_shifts': json_shifts,

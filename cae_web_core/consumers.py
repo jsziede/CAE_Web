@@ -2,6 +2,8 @@
 Consumers for CAE Web Core app.
 """
 
+# System Imports.
+import pytz
 from asgiref.sync import async_to_sync
 from channels.db import database_sync_to_async
 from channels.generic.websocket import (
@@ -14,7 +16,10 @@ from django.core import serializers
 from django.db.models.signals import post_save, post_delete
 from django.utils import timezone
 
+# User Class Imports.
 from . import models
+from cae_home import models as cae_home_models
+
 
 channel_layer = get_channel_layer()
 
@@ -63,6 +68,15 @@ class MyHoursConsumer(JsonWebsocketConsumer):
 
             # Respond to client with updated model info.
             shifts = models.EmployeeShift.objects.filter(employee=user)
+
+            # Convert shift values to user's local time.
+            user_timezone = cae_home_models.Profile.objects.get(user=user).user_timezone
+            timezone.activate(pytz.timezone(user_timezone))
+            for shift in shifts:
+                shift.clock_in = timezone.localtime(shift.clock_in)
+                if shift.clock_out is not None:
+                    shift.clock_out = timezone.localtime(shift.clock_out)
+
             json_shifts = serializers.serialize(
                 'json',
                 shifts,
