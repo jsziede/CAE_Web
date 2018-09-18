@@ -10,6 +10,10 @@ DEBUG
 .vscode/
 .idea/
 
+# Do not track css/sass map files.
+*.css.map
+*.sass-cache/
+
 # Do not track migrations for now.
 */migrations/0*.py
 

@@ -31,15 +31,14 @@ def my_hours(request):
     Employee shift page for an individual.
     """
     # Pull models from database.
-    user_timezone = request.user.profile.user_timezone
-    timezone.activate(pytz.timezone(user_timezone))
+    user_timezone = pytz.timezone(request.user.profile.user_timezone)
     shifts = models.EmployeeShift.objects.filter(employee=request.user)
 
     # Convert shift values to user's local time.
     for shift in shifts:
-        shift.clock_in = timezone.localtime(shift.clock_in)
+        shift.clock_in = user_timezone.normalize(shift.clock_in.astimezone(user_timezone))
         if shift.clock_out is not None:
-            shift.clock_out = timezone.localtime(shift.clock_out)
+            shift.clock_out = user_timezone.normalize(shift.clock_out.astimezone(user_timezone))
 
     # Convert to json format for React.
     json_shifts = serializers.serialize(

@@ -52,7 +52,6 @@ class MyHoursConsumer(JsonWebsocketConsumer):
 
         # Attempt to get "shift_submit" value. Defaults to None.
         shift_submit = content.get('shift_submit', None)
-
         if shift_submit:
             # Check if shift already exists. If not, start new one.
             shift = models.EmployeeShift.objects.filter(employee=user).first()
@@ -70,12 +69,11 @@ class MyHoursConsumer(JsonWebsocketConsumer):
             shifts = models.EmployeeShift.objects.filter(employee=user)
 
             # Convert shift values to user's local time.
-            user_timezone = cae_home_models.Profile.objects.get(user=user).user_timezone
-            timezone.activate(pytz.timezone(user_timezone))
+            user_timezone = pytz.timezone(cae_home_models.Profile.objects.get(user=user).user_timezone)
             for shift in shifts:
-                shift.clock_in = timezone.localtime(shift.clock_in)
+                shift.clock_in = user_timezone.normalize(shift.clock_in.astimezone(user_timezone))
                 if shift.clock_out is not None:
-                    shift.clock_out = timezone.localtime(shift.clock_out)
+                    shift.clock_out = user_timezone.normalize(shift.clock_out.astimezone(user_timezone))
 
             json_shifts = serializers.serialize(
                 'json',
@@ -101,7 +99,7 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
     async def disconnect(self, code):
         print("DISCONNECT ({}):".format(code), self.scope['user'])
 
-    async def receive_json(self, content):
+    async def receive_json(self, content, **kwargs):
         print("{}: {}".format(self.scope['user'], content))
 
         handlers = {

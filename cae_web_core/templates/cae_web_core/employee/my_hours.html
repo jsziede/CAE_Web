@@ -12,21 +12,19 @@
 
 
 {% block content %}
-  <article id="content">
-    {% if user.first_name %}
-      <h1>{{ user.first_name }}'s Hours</h1>
-    {% else %}
-      <h1>Worked Hours for {{ user }}</h1>
-    {% endif %}
+  {% if user.first_name %}
+    <h1>{{ user.first_name }}'s Hours</h1>
+  {% else %}
+    <h1>Worked Hours for {{ user }}</h1>
+  {% endif %}
 
-    <div id="react-root">
-      {{ last_shift }}
+  <div id="react-root">
+    {{ last_shift }}
 
-      {% for shift in shifts %}
-        <p>{{ shift }}</p>
-      {% endfor %}
-    </div>
-  </article>
+    {% for shift in shifts %}
+      <p>{{ shift }}</p>
+    {% endfor %}
+  </div>
 {% endblock content %}
 
 
@@ -37,7 +35,6 @@
 
       // Grab root project url.
       var domain = "{{ domain }}"
-      console.log(domain);
     </script>
     <script src="{% static 'cae_web_core/js/my_hours.js' %}"></script>
 {% endblock extra_scripts_body %}

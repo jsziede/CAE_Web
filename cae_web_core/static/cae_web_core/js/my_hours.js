@@ -20,45 +20,154 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 var CurrentShift = function (_React$Component) {
     _inherits(CurrentShift, _React$Component);
 
-    function CurrentShift() {
+    /**
+     * Constructor for component.
+     */
+    function CurrentShift(props) {
         _classCallCheck(this, CurrentShift);
 
-        return _possibleConstructorReturn(this, (CurrentShift.__proto__ || Object.getPrototypeOf(CurrentShift)).apply(this, arguments));
+        // State variables.
+        var _this = _possibleConstructorReturn(this, (CurrentShift.__proto__ || Object.getPrototypeOf(CurrentShift)).call(this, props));
+
+        _this.state = {
+            date_string_options: { month: "short", day: "2-digit", year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true },
+            current_time: new Date(),
+            hour_difference: -1,
+            minute_difference: -1,
+            second_difference: -1
+        };
+
+        // Static variables.
+        _this.one_second = 1000;
+        _this.one_minute = 60 * _this.one_second;
+        _this.one_hour = 60 * _this.one_minute;
+        return _this;
     }
 
-    _createClass(CurrentShift, [{
-        key: "render",
+    /**
+     * Logic to run on component load.
+     */
 
+
+    _createClass(CurrentShift, [{
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            var _this2 = this;
+
+            // Ensure that the page processes a tick immediately on load.
+            this.tick();
+
+            // Set component to run an update tick every second.
+            this.intervalId = setInterval(function () {
+                return _this2.tick();
+            }, 1000);
+        }
+
+        /**
+         * Logic to run on component unload.
+         */
+
+    }, {
+        key: "componentWillUnmount",
+        value: function componentWillUnmount() {
+            clearInterval(this.intervalId);
+        }
+
+        /**
+         * Functions to run on each tick.
+         */
+
+    }, {
+        key: "tick",
+        value: function tick() {
+            this.setState({
+                current_time: new Date()
+            });
+
+            // Check if currently clocked in.
+            if (this.props.clock_out == null) {
+
+                var time_difference = new Date() - new Date(this.props.clock_in);
+                var hour_difference = Math.trunc(time_difference / this.one_hour);
+                var minute_difference = Math.trunc((time_difference - hour_difference * this.one_hour) / this.one_minute);
+                var second_difference = Math.trunc((time_difference - hour_difference * this.one_hour - minute_difference * this.one_minute) / this.one_second);
+
+                // Update time difference trackers.
+                this.setState({
+                    hour_difference: hour_difference,
+                    minute_difference: minute_difference,
+                    second_difference: second_difference
+                });
+            } else {
+                // Reset all trackers if currently set.
+                this.setState({
+                    hour_difference: -1,
+                    minute_difference: -1,
+                    second_difference: -1
+                });
+            }
+        }
 
         /**
          * Rendering and last minute calculations for client display.
          */
-        value: function render() {
-            var _this2 = this;
 
-            return React.createElement(
-                "div",
-                null,
-                React.createElement(
+    }, {
+        key: "render",
+        value: function render() {
+            var _this3 = this;
+
+            var clock_in;
+            var clock_out;
+            var time_display;
+            var submit_value;
+
+            // Handle display differently if clocked in or clocked out.
+            if (this.props.clock_out == null) {
+                clock_in = new Date(this.props.clock_in);
+                clock_out = new Date(this.props.clock_out);
+                time_display = React.createElement(
                     "div",
-                    null,
+                    { className: "time-display" },
                     React.createElement(
                         "p",
                         null,
-                        this.props.clock_in
+                        "Clocked in: ",
+                        clock_in.toLocaleDateString('en-US', this.state.date_string_options)
                     ),
                     React.createElement(
                         "p",
                         null,
-                        this.props.clock_out
+                        "ShiftLength: \xA0",
+                        this.state.hour_difference.toString(),
+                        " Hours \xA0",
+                        this.state.minute_difference.toString(),
+                        " Minutes \xA0",
+                        this.state.second_difference.toString(),
+                        " Seconds \xA0"
                     )
+                );
+                submit_value = "Clock Out";
+            } else {
+                time_display = React.createElement("div", { className: "time-display" });
+                submit_value = "Clock In";
+            }
+
+            return React.createElement(
+                "div",
+                { className: "current-shift" },
+                React.createElement(
+                    "h2",
+                    null,
+                    "Current Shift"
                 ),
+                time_display,
                 React.createElement("input", {
                     id: "shift-submit",
                     type: "button",
-                    value: "Clock In/Out",
+                    value: submit_value,
                     onClick: function onClick() {
-                        return _this2.props.onClick();
+                        return _this3.props.onClick();
                     }
                 })
             );
