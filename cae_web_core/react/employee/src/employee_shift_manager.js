@@ -13,10 +13,19 @@ class EmployeeShiftManager extends React.Component {
      */
     constructor(props) {
         super(props);
+
         this.state = {
-            shifts: json_shifts,
+            all_shifts: json_shifts,
             last_shift: json_shifts[0],
         }
+    }
+
+
+    /**
+     * Logic to run on component load.
+     */
+    componentWillMount() {
+
     }
 
 
@@ -24,7 +33,6 @@ class EmployeeShiftManager extends React.Component {
      *Handle clock in/out button click.
      */
     handleClick() {
-
         // Establish socket connection.
         var socket = new WebSocket('ws://' + domain + '/ws/caeweb/employee/my_hours/');
 
@@ -35,8 +43,8 @@ class EmployeeShiftManager extends React.Component {
         // Handle incoming socket message event. Note the bind(this) to access React object state within function.
         socket.onmessage = function(message) {
             var data = JSON.parse(message.data);
-            this.setState({ shifts: JSON.parse(data.json_shifts) });
-            this.setState({ last_shift: this.state.shifts[0] });
+            this.setState({ all_shifts: JSON.parse(data.json_shifts) });
+            this.setState({ last_shift: this.state.all_shifts[0] });
         }.bind(this);
 
         // Send message to socket.
@@ -62,7 +70,7 @@ class EmployeeShiftManager extends React.Component {
     render() {
         // Calculate list of shifts.
         const shifts = [];
-        this.state.shifts.forEach((shift) => {
+        this.state.all_shifts.forEach((shift) => {
             shifts.push(
                 <EmployeeShift
                     key={ shift.pk }
@@ -74,7 +82,7 @@ class EmployeeShiftManager extends React.Component {
 
         // Elements to render for client.
         return (
-            <div>
+            <div className="center">
                 <div>
                     <CurrentShift
                         key={ this.state.last_shift.pk }

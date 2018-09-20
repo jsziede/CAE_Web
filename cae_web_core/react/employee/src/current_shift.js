@@ -98,7 +98,7 @@ class CurrentShift extends React.Component {
             time_display = <div className="time-display">
                 <p>Clocked in: { clock_in.toLocaleDateString('en-US', this.state.date_string_options) }</p>
                 <p>
-                    ShiftLength: &nbsp;
+                    Shift Length: &nbsp;
                     { this.state.hour_difference.toString() } Hours &nbsp;
                     { this.state.minute_difference.toString() } Minutes &nbsp;
                     { this.state.second_difference.toString() } Seconds &nbsp;

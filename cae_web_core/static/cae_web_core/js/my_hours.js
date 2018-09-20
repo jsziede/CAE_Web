@@ -138,7 +138,7 @@ var CurrentShift = function (_React$Component) {
                     React.createElement(
                         "p",
                         null,
-                        "ShiftLength: \xA0",
+                        "Shift Length: \xA0",
                         this.state.hour_difference.toString(),
                         " Hours \xA0",
                         this.state.minute_difference.toString(),
@@ -279,21 +279,28 @@ var EmployeeShiftManager = function (_React$Component) {
         var _this = _possibleConstructorReturn(this, (EmployeeShiftManager.__proto__ || Object.getPrototypeOf(EmployeeShiftManager)).call(this, props));
 
         _this.state = {
-            shifts: json_shifts,
+            all_shifts: json_shifts,
             last_shift: json_shifts[0]
         };
         return _this;
     }
 
     /**
-     *Handle clock in/out button click.
+     * Logic to run on component load.
      */
 
 
     _createClass(EmployeeShiftManager, [{
+        key: 'componentWillMount',
+        value: function componentWillMount() {}
+
+        /**
+         *Handle clock in/out button click.
+         */
+
+    }, {
         key: 'handleClick',
         value: function handleClick() {
-
             // Establish socket connection.
             var socket = new WebSocket('ws://' + domain + '/ws/caeweb/employee/my_hours/');
 
@@ -304,8 +311,8 @@ var EmployeeShiftManager = function (_React$Component) {
             // Handle incoming socket message event. Note the bind(this) to access React object state within function.
             socket.onmessage = function (message) {
                 var data = JSON.parse(message.data);
-                this.setState({ shifts: JSON.parse(data.json_shifts) });
-                this.setState({ last_shift: this.state.shifts[0] });
+                this.setState({ all_shifts: JSON.parse(data.json_shifts) });
+                this.setState({ last_shift: this.state.all_shifts[0] });
             }.bind(this);
 
             // Send message to socket.
@@ -337,7 +344,7 @@ var EmployeeShiftManager = function (_React$Component) {
 
             // Calculate list of shifts.
             var shifts = [];
-            this.state.shifts.forEach(function (shift) {
+            this.state.all_shifts.forEach(function (shift) {
                 shifts.push(React.createElement(_employee_shift2.default, {
                     key: shift.pk,
                     clock_in: shift.fields['clock_in'],
@@ -348,7 +355,7 @@ var EmployeeShiftManager = function (_React$Component) {
             // Elements to render for client.
             return React.createElement(
                 'div',
-                null,
+                { className: 'center' },
                 React.createElement(
                     'div',
                     null,
