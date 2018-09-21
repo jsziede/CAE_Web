@@ -54,7 +54,7 @@ class EmployeeShift(models.Model):
     # Relationship keys.
     employee = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     pay_period = models.ForeignKey('PayPeriod', on_delete=models.CASCADE)
-    error_flag = models.BooleanField(default=True)
+    error_flag = models.BooleanField(default=False)
 
     # Model fields.
     clock_in = models.DateTimeField()
