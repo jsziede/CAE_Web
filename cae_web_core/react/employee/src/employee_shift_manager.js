@@ -15,6 +15,7 @@ class EmployeeShiftManager extends React.Component {
         super(props);
 
         this.state = {
+            date_string_options: { month: "short", day: "2-digit", year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true, },
             all_shifts: json_shifts,
             last_shift: json_shifts[0],
         }
@@ -25,7 +26,20 @@ class EmployeeShiftManager extends React.Component {
      * Logic to run on component load.
      */
     componentWillMount() {
+        // If no shiffts are defined yet for this pay period, create a dummy "last shift" to prevent render errors.
+        if (this.state.last_shift == null) {
 
+            this.setState({
+                last_shift: {
+                    pk: -1,
+                    fields: {
+                        "clock_in": new Date(),
+                        "clock_out": new Date(),
+                    },
+                }
+            });
+
+        }
     }
 
 
@@ -76,6 +90,7 @@ class EmployeeShiftManager extends React.Component {
                     key={ shift.pk }
                     clock_in={ shift.fields['clock_in'] }
                     clock_out={ shift.fields['clock_out'] }
+                    date_string_options = { this.state.date_string_options }
                 />
             );
         });
@@ -88,6 +103,7 @@ class EmployeeShiftManager extends React.Component {
                         key={ this.state.last_shift.pk }
                         clock_in={ this.state.last_shift.fields['clock_in'] }
                         clock_out={ this.state.last_shift.fields['clock_out'] }
+                        date_string_options = { this.state.date_string_options }
                         onClick={() => this.handleClick() }
                     />
                 </div>

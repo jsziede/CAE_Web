@@ -30,7 +30,6 @@ var CurrentShift = function (_React$Component) {
         var _this = _possibleConstructorReturn(this, (CurrentShift.__proto__ || Object.getPrototypeOf(CurrentShift)).call(this, props));
 
         _this.state = {
-            date_string_options: { month: "short", day: "2-digit", year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true },
             current_time: new Date(),
             hour_difference: -1,
             minute_difference: -1,
@@ -133,7 +132,7 @@ var CurrentShift = function (_React$Component) {
                         "p",
                         null,
                         "Clocked in: ",
-                        clock_in.toLocaleDateString('en-US', this.state.date_string_options)
+                        clock_in.toLocaleDateString('en-US', this.props.date_string_options)
                     ),
                     React.createElement(
                         "p",
@@ -180,7 +179,7 @@ var CurrentShift = function (_React$Component) {
 exports.default = CurrentShift;
 
 },{}],2:[function(require,module,exports){
-"use strict";
+'use strict';
 
 Object.defineProperty(exports, "__esModule", {
     value: true
@@ -216,20 +215,28 @@ var Shift = function (_React$Component) {
 
 
     _createClass(Shift, [{
-        key: "render",
+        key: 'render',
         value: function render() {
+            var clock_in = new Date(this.props.clock_in);
+            var clock_out = null;
+
+            if (this.props.clock_out != null) {
+                clock_out = new Date(this.props.clock_out);
+            }
+
             return React.createElement(
-                "tr",
+                'tr',
                 null,
                 React.createElement(
-                    "td",
+                    'td',
                     null,
-                    this.props.clock_in
+                    clock_in.toLocaleDateString('en-US', this.props.date_string_options)
                 ),
+                clock_out && // If statement. Only displays if clock_out is not null.
                 React.createElement(
-                    "td",
+                    'td',
                     null,
-                    this.props.clock_out
+                    clock_out.toLocaleDateString('en-US', this.props.date_string_options)
                 )
             );
         }
@@ -279,6 +286,7 @@ var EmployeeShiftManager = function (_React$Component) {
         var _this = _possibleConstructorReturn(this, (EmployeeShiftManager.__proto__ || Object.getPrototypeOf(EmployeeShiftManager)).call(this, props));
 
         _this.state = {
+            date_string_options: { month: "short", day: "2-digit", year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true },
             all_shifts: json_shifts,
             last_shift: json_shifts[0]
         };
@@ -292,7 +300,21 @@ var EmployeeShiftManager = function (_React$Component) {
 
     _createClass(EmployeeShiftManager, [{
         key: 'componentWillMount',
-        value: function componentWillMount() {}
+        value: function componentWillMount() {
+            // If no shiffts are defined yet for this pay period, create a dummy "last shift" to prevent render errors.
+            if (this.state.last_shift == null) {
+
+                this.setState({
+                    last_shift: {
+                        pk: -1,
+                        fields: {
+                            "clock_in": new Date(),
+                            "clock_out": new Date()
+                        }
+                    }
+                });
+            }
+        }
 
         /**
          *Handle clock in/out button click.
@@ -348,7 +370,8 @@ var EmployeeShiftManager = function (_React$Component) {
                 shifts.push(React.createElement(_employee_shift2.default, {
                     key: shift.pk,
                     clock_in: shift.fields['clock_in'],
-                    clock_out: shift.fields['clock_out']
+                    clock_out: shift.fields['clock_out'],
+                    date_string_options: _this2.state.date_string_options
                 }));
             });
 
@@ -363,6 +386,7 @@ var EmployeeShiftManager = function (_React$Component) {
                         key: this.state.last_shift.pk,
                         clock_in: this.state.last_shift.fields['clock_in'],
                         clock_out: this.state.last_shift.fields['clock_out'],
+                        date_string_options: this.state.date_string_options,
                         onClick: function onClick() {
                             return _this2.handleClick();
                         }

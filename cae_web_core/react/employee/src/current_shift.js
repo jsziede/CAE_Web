@@ -12,7 +12,6 @@ class CurrentShift extends React.Component {
 
         // State variables.
         this.state = {
-            date_string_options: { month: "short", day: "2-digit", year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true, },
             current_time: new Date(),
             hour_difference: -1,
             minute_difference: -1,
@@ -96,7 +95,7 @@ class CurrentShift extends React.Component {
             clock_in = new Date(this.props.clock_in);
             clock_out = new Date(this.props.clock_out);
             time_display = <div className="time-display">
-                <p>Clocked in: { clock_in.toLocaleDateString('en-US', this.state.date_string_options) }</p>
+                <p>Clocked in: { clock_in.toLocaleDateString('en-US', this.props.date_string_options) }</p>
                 <p>
                     Shift Length: &nbsp;
                     { this.state.hour_difference.toString() } Hours &nbsp;
