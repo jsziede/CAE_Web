@@ -48,17 +48,17 @@ class EmployeeShiftTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.user = get_user_model().objects.create_user('temporary', 'temporary@gmail.com', 'temporary')
-        cls.period_start = timezone.now()
+        cls.period_start = timezone.now() - timezone.timedelta(days=2, hours=12)
         cls.pay_period = models.PayPeriod.objects.create(period_start=cls.period_start)
 
     def setUp(self):
-        self.clock_out = timezone.now()
-        self.clock_in = self.clock_out - timezone.timedelta(hours=5, minutes=30)
+        self.clock_in = timezone.now()
+        self.clock_out = self.clock_in + timezone.timedelta(hours=5, minutes=30)
         self.test_employee_shift = models.EmployeeShift.objects.create(
             pay_period=self.pay_period,
             employee=self.user,
             clock_in=self.clock_in,
-            clock_out=self.clock_out
+            clock_out=self.clock_out,
         )
 
     def test_model_creation(self):
@@ -96,28 +96,87 @@ class EmployeeShiftTests(TestCase):
         clock_in = self.clock_in + timezone.timedelta(minutes=1)
         with self.assertRaises(ValidationError):
             with transaction.atomic():
-                models.EmployeeShift.objects.create(employee=self.user, clock_in=clock_in)
+                models.EmployeeShift.objects.create(
+                    employee=self.user,
+                    pay_period=self.pay_period,
+                    clock_in=clock_in
+                )
 
         # Test clock out time between old shift.
         clock_in = self.clock_in - timezone.timedelta(minutes=1)
         clock_out = self.clock_in + timezone.timedelta(minutes=1)
         with self.assertRaises(ValidationError):
             with transaction.atomic():
-                models.EmployeeShift.objects.create(employee=self.user, clock_in=clock_in, clock_out=clock_out)
+                models.EmployeeShift.objects.create(
+                    employee=self.user,
+                    pay_period=self.pay_period,
+                    clock_in=clock_in,
+                    clock_out=clock_out
+                )
 
         # Test new shift entirely inside old shift.
         clock_in = self.clock_in + timezone.timedelta(minutes=1)
         clock_out = self.clock_out - timezone.timedelta(minutes=1)
         with self.assertRaises(ValidationError):
             with transaction.atomic():
-                models.EmployeeShift.objects.create(employee=self.user, clock_in=clock_in, clock_out=clock_out)
+                models.EmployeeShift.objects.create(
+                    employee=self.user,
+                    pay_period=self.pay_period,
+                    clock_in=clock_in,
+                    clock_out=clock_out
+                )
 
         # Test old shift entirely inside new shift.
         clock_in = self.clock_in - timezone.timedelta(minutes=1)
         clock_out = self.clock_out + timezone.timedelta(minutes=1)
         with self.assertRaises(ValidationError):
             with transaction.atomic():
-                models.EmployeeShift.objects.create(employee=self.user, clock_in=clock_in, clock_out=clock_out)
+                models.EmployeeShift.objects.create(
+                    employee=self.user,
+                    pay_period=self.pay_period,
+                    clock_in=clock_in,
+                    clock_out=clock_out
+                )
+
+    def test_outside_of_pay_period(self):
+        # Test before pay period.
+        clock_in = self.pay_period.period_start - timezone.timedelta(hours=5)
+        clock_out = self.pay_period.period_start - timezone.timedelta(hours=1)
+        with self.assertRaises(ValidationError):
+            with transaction.atomic():
+                models.EmployeeShift.objects.create(
+                    employee=self.user,
+                    pay_period=self.pay_period,
+                    clock_in=clock_in,
+                    clock_out=clock_out,
+                )
+
+        # Test after pay period.
+        clock_in = self.pay_period.period_end + timezone.timedelta(hours=1)
+        clock_out = self.pay_period.period_end + timezone.timedelta(hours=5)
+        with self.assertRaises(ValidationError):
+            with transaction.atomic():
+                models.EmployeeShift.objects.create(
+                    employee=self.user,
+                    pay_period=self.pay_period,
+                    clock_in=clock_in,
+                    clock_out=clock_out,
+                )
+
+    def test_spaning_multiple_pay_periods(self):
+        next_pay_period_start = self.pay_period.period_start + timezone.timedelta(days=14)
+        next_pay_period = models.PayPeriod.objects.create(period_start=next_pay_period_start)
+
+        clock_in = self.pay_period.period_end - timezone.timedelta(hours=1)
+        clock_out = next_pay_period.period_start + timezone.timedelta(hours=1)
+
+        test_shift = models.EmployeeShift.objects.create(
+            employee=self.user,
+            pay_period=self.pay_period,
+            clock_in=clock_in,
+            clock_out=clock_out,
+        )
+        self.assertTrue(test_shift.error_flag)
 
 
 class RoomEventModelTests(TestCase):

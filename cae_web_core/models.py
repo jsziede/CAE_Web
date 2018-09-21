@@ -54,6 +54,7 @@ class EmployeeShift(models.Model):
     # Relationship keys.
     employee = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     pay_period = models.ForeignKey('PayPeriod', on_delete=models.CASCADE)
+    error_flag = models.BooleanField(default=True)
 
     # Model fields.
     clock_in = models.DateTimeField()
@@ -97,6 +98,15 @@ class EmployeeShift(models.Model):
             previous_shifts = EmployeeShift.objects.filter(clock_in__gte=self.clock_in, clock_out__lte=self.clock_out)
             if len(previous_shifts) is not 0:
                 raise ValidationError('Users cannot have overlapping shift times.')
+
+        # Check that clock times are inside provided pay period.
+        # Check clock in times. Shift just started so there's no data to lose. Raise validation error.
+        if (self.clock_in < self.pay_period.period_start) or (self.clock_in > self.pay_period.period_end):
+            raise ValidationError('Shift must be between pay period dates. Double check that you\'re using the correct'
+                                  'pay period.')
+        # Check if clock out time spans multiple pay periods. Since we don't want to lose shift data, flag as error.
+        if (self.clock_out is not None) and (self.clock_out > self.pay_period.period_end):
+            self.error_flag = True
 
     def save(self, *args, **kwargs):
         """

@@ -13,13 +13,13 @@ class RoomEventInline(admin.TabularInline):
 
 class PayPeriodAdmin(admin.ModelAdmin):
     # Fields to display in admin list view.
-    list_display = ('period_start', 'period_end')
+    list_display = ('period_start', 'period_end',)
 
     # Fields to search in admin list view.
     search_fields = ['period_start', 'period_end', ]
 
     # Read only fields for admin detail view.
-    readonly_fields = ('date_created', 'date_modified')
+    readonly_fields = ('date_created', 'date_modified',)
 
     # Organize fieldsets for admin detail view.
     fieldsets = (
@@ -37,22 +37,22 @@ class PayPeriodAdmin(admin.ModelAdmin):
 
 class EmployeeShiftAdmin(admin.ModelAdmin):
     # Fields to display in admin list view.
-    list_display = ('pay_period', 'employee', 'clock_in', 'clock_out',)
+    list_display = ('pay_period', 'employee', 'clock_in', 'clock_out', 'error_flag',)
 
     # Fields to filter by in admin list view.
-    list_filter = ('employee', 'pay_period')
+    list_filter = ('error_flag', 'employee', 'pay_period',)
 
     # Fields to search in admin list view.
     search_fields = ['clock_in', 'clock_out',]
 
     # Read only fields for admin detail view.
-    readonly_fields = ('date_created', 'date_modified')
+    readonly_fields = ('date_created', 'date_modified',)
 
     # Organize fieldsets for admin detail view.
     fieldsets = (
         (None, {
             'fields': (
-                'pay_period', 'employee', 'clock_in', 'clock_out',
+                'pay_period', 'employee', 'clock_in', 'clock_out', 'error_flag',
             )
         }),
         ('Advanced', {
@@ -73,7 +73,7 @@ class RoomEventAdmin(admin.ModelAdmin):
     search_fields = ['title',]
 
     # Read only fields for admin detail view.
-    readonly_fields = ('date_created', 'date_modified')
+    readonly_fields = ('date_created', 'date_modified',)
 
     # Organize fieldsets for admin detail view.
     fieldsets = (
