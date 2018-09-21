@@ -3,6 +3,7 @@ Seeder command that initializes user models.
 """
 
 import datetime, pytz
+from django.core.exceptions import ValidationError
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from faker import Faker
@@ -55,10 +56,8 @@ class Command(BaseCommand):
         # Count number of models already created.
         pre_initialized_count = len(models.PayPeriod.objects.all())
 
-        # var first_week = new Date("2015-05-25");    // First pay period with valid database
         # First pay period with valid shift data, in production database. Starting here for consistency.
         date_holder = datetime.datetime.strptime('2015 05 25 00 00 00', '%Y %m %d %H %M %S')
-        # date_holder = timezone.make_aware(date_holder, pytz.timezone('America/Detroit'))
 
         # Check that time is daylight savings compliant.
         date_holder = self.normalize_for_daylight_savings(date_holder)
@@ -112,20 +111,25 @@ class Command(BaseCommand):
             pay_period = pay_periods[index]
 
             # Calculate clock in/clock out times.
-            hour_difference = randint(1, 8)
-            minute_difference = randint(0, 59)
-            date_holder = date_holder - timezone.timedelta(days=1, hours=hour_difference, minutes=minute_difference)
-            clock_out = date_holder
-            hour_difference = hour_difference * 2
-            minute_difference = randint(0, 59)
-            clock_in = clock_out - timezone.timedelta(hours=hour_difference, minutes=minute_difference)
-
-            models.EmployeeShift.objects.create(
-                employee=user,
-                pay_period=pay_period,
-                clock_in=clock_in,
-                clock_out=clock_out,
+            clock_in = pay_period.period_start + timezone.timedelta(
+                days=randint(0, 6),
+                hours=randint(8, 16),
+                minutes=randint(0,59)
             )
+            clock_out = clock_in + timezone.timedelta(hours=randint(1, 4), minutes=randint(0, 59))
+
+            try:
+                models.EmployeeShift.objects.create(
+                    employee=user,
+                    pay_period=pay_period,
+                    clock_in=clock_in,
+                    clock_out=clock_out,
+                )
+            except ValidationError:
+                # Likely due to overlapping shift times. Nothing can be done about this without removing the random
+                # generation aspect. If we want that, we should use fixtures instead.
+                pass
+
         print('Populated employee shift models.')
 
     def create_room_events(self, model_count):
