@@ -54,19 +54,21 @@ class MyHoursConsumer(JsonWebsocketConsumer):
         shift_submit = content.get('shift_submit', None)
         if shift_submit:
             # Check if shift already exists. If not, start new one.
+            pay_period = models.PayPeriod.objects.all().last()
             shift = models.EmployeeShift.objects.filter(employee=user).first()
             if shift.clock_out is None:
                 shift.clock_out = timezone.now()
                 shift.save()
             else:
                 shift = models.EmployeeShift.objects.create(
+                    pay_period=pay_period,
                     employee=user,
                     clock_in=timezone.now(),
                 )
                 shift.save()
 
             # Respond to client with updated model info.
-            shifts = models.EmployeeShift.objects.filter(employee=user)
+            shifts = models.EmployeeShift.objects.filter(employee=user, pay_period=pay_period)
 
             # Convert shift values to user's local time.
             user_timezone = pytz.timezone(cae_home_models.Profile.objects.get(user=user).user_timezone)

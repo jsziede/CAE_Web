@@ -5,17 +5,57 @@ Models for CAE Web Core app.
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils import timezone
 
 
 MAX_LENGTH = 255
+
+
+class PayPeriod(models.Model):
+    """
+    An instance of a two week pay period.
+    """
+    # Model fields.
+    period_start = models.DateTimeField()
+    period_end = models.DateTimeField(blank=True)
+
+    # Self-setting/Non-user-editable fields.
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Pay Period"
+        verbose_name_plural = "Pay Periods"
+        ordering = ('-period_start',)
+
+    def __str__(self):
+        return '{0} - {1}'.format(self.period_start, self.period_end)
+
+    def clean(self, *args, **kwargs):
+        """
+        Custom cleaning implementation. Includes validation, setting fields, etc.
+        """
+        if self.period_end is None:
+            self.period_end = self.period_start + timezone.timedelta(days=14) - timezone.timedelta(milliseconds=1)
+
+    def save(self, *args, **kwargs):
+        """
+        Modify model save behavior.
+        """
+        # Save model.
+        self.full_clean()
+        super(PayPeriod, self).save(*args, **kwargs)
 
 
 class EmployeeShift(models.Model):
     """
     An instance of an employee clocking in and out for a shift.
     """
-    # Model fields.
+    # Relationship keys.
     employee = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    pay_period = models.ForeignKey('PayPeriod', on_delete=models.CASCADE)
+
+    # Model fields.
     clock_in = models.DateTimeField()
     clock_out = models.DateTimeField(blank=True, null=True)
 
@@ -79,8 +119,10 @@ class RoomEvent(models.Model):
         (TYPE_EVENT, "Event"),
     )
 
-    # Model fields.
+    # Relationship keys.
     room = models.ForeignKey('cae_home.Room', on_delete=models.CASCADE)
+
+    # Model fields.
     event_type = models.PositiveSmallIntegerField(
         choices=TYPE_CHOICES,
         default=TYPE_CLASS,

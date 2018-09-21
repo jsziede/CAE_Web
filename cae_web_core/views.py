@@ -32,7 +32,9 @@ def my_hours(request):
     """
     # Pull models from database.
     user_timezone = pytz.timezone(request.user.profile.user_timezone)
-    shifts = models.EmployeeShift.objects.filter(employee=request.user)
+    pay_period = models.PayPeriod.objects.last()
+    shifts = models.EmployeeShift.objects.filter(employee=request.user, pay_period=pay_period)
+    print(shifts)
 
     # Convert shift values to user's local time.
     for shift in shifts:
@@ -49,6 +51,7 @@ def my_hours(request):
 
     # Send to template for user display.
     return TemplateResponse(request, 'cae_web_core/employee/my_hours.html', {
+        'pay_period': pay_period,
         'shifts': shifts,
         'json_shifts': json_shifts,
         'last_shift': shifts.first(),

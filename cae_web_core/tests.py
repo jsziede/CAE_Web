@@ -15,6 +15,32 @@ from cae_home import models as cae_home_models
 
 #region Model Tests
 
+class PayPeriodTests(TestCase):
+    """
+    Tests to ensure valid Pay Period model creation/logic.
+    """
+    @classmethod
+    def setUpTestData(cls):
+        cls.period_start = timezone.now()
+        cls.period_end = cls.period_start + timezone.timedelta(days=14) - timezone.timedelta(milliseconds=1)
+
+    def setUp(self):
+        self.test_pay_period = models.PayPeriod.objects.create(
+            period_start=self.period_start,
+        )
+
+    def test_model_creation(self):
+        self.assertEqual(self.test_pay_period.period_start, self.period_start)
+        self.assertEqual(self.test_pay_period.period_end, self.period_end)
+
+    def test_string_representation(self):
+        self.assertEqual(str(self.test_pay_period), '{0} - {1}'.format(self.period_start, self.period_end))
+
+    def test_plural_representation(self):
+        self.assertEqual(str(self.test_pay_period._meta.verbose_name), 'Pay Period')
+        self.assertEqual(str(self.test_pay_period._meta.verbose_name_plural), 'Pay Periods')
+
+
 class EmployeeShiftTests(TestCase):
     """
     Tests to ensure valid Employee Shift model creation/logic.
@@ -22,17 +48,21 @@ class EmployeeShiftTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.user = get_user_model().objects.create_user('temporary', 'temporary@gmail.com', 'temporary')
+        cls.period_start = timezone.now()
+        cls.pay_period = models.PayPeriod.objects.create(period_start=cls.period_start)
 
     def setUp(self):
         self.clock_out = timezone.now()
         self.clock_in = self.clock_out - timezone.timedelta(hours=5, minutes=30)
         self.test_employee_shift = models.EmployeeShift.objects.create(
+            pay_period=self.pay_period,
             employee=self.user,
             clock_in=self.clock_in,
             clock_out=self.clock_out
         )
 
     def test_model_creation(self):
+        self.assertEqual(self.test_employee_shift.pay_period, self.pay_period)
         self.assertEqual(self.test_employee_shift.employee, self.user)
         self.assertEqual(self.test_employee_shift.clock_in, self.clock_in)
         self.assertEqual(self.test_employee_shift.clock_out, self.clock_out)
