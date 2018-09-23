@@ -16,6 +16,13 @@ from . import models
 from cae_home.models import Room
 
 
+#region Standard Methods
+
+
+
+#endregion Standard Methods
+
+
 def index(request):
     """
     Root project url.
@@ -31,8 +38,13 @@ def my_hours(request):
     Employee shift page for an individual.
     """
     # Pull models from database.
+    current_time = timezone.now()
     user_timezone = pytz.timezone(request.user.profile.user_timezone)
-    pay_period = models.PayPeriod.objects.last()
+    pay_period = models.PayPeriod.objects.get(period_start__lte=current_time, period_end__gte=current_time)
+    # pay_period = models.PayPeriod.objects.filter(period_start__gte=current_time)
+    # print('Filter by start: {0}'.format(pay_period))
+    # pay_period = models.PayPeriod.objects.filter(period_end__lte=current_time)
+    # print('Filter by end: {0}'.format(pay_period))
     shifts = models.EmployeeShift.objects.filter(employee=request.user, pay_period=pay_period)
     print(shifts)
 
@@ -43,15 +55,22 @@ def my_hours(request):
             shift.clock_out = user_timezone.normalize(shift.clock_out.astimezone(user_timezone))
 
     # Convert to json format for React.
+    json_pay_period = serializers.serialize(
+        'json',
+        [pay_period],
+        fields=('period_start', 'period_end',)
+    )
+
     json_shifts = serializers.serialize(
         'json',
         shifts,
-        fields=('clock_in', 'clock_out', 'date_created', 'date_modified',)
+        fields=('clock_in', 'clock_out',)
     )
 
     # Send to template for user display.
     return TemplateResponse(request, 'cae_web_core/employee/my_hours.html', {
         'pay_period': pay_period,
+        'json_pay_period': json_pay_period,
         'shifts': shifts,
         'json_shifts': json_shifts,
         'last_shift': shifts.first(),

@@ -53,41 +53,89 @@ class MyHoursConsumer(JsonWebsocketConsumer):
         # Attempt to get "shift_submit" value. Defaults to None.
         shift_submit = content.get('shift_submit', None)
         if shift_submit:
-            # Check if shift already exists. If not, start new one.
-            pay_period = models.PayPeriod.objects.all().last()
-            shift = models.EmployeeShift.objects.filter(employee=user).first()
-            if shift.clock_out is None:
-                shift.clock_out = timezone.now()
-                shift.save()
-            else:
-                shift = models.EmployeeShift.objects.create(
-                    pay_period=pay_period,
-                    employee=user,
-                    clock_in=timezone.now(),
-                )
-                shift.save()
+            self.shift_submit(user)
 
-            # Respond to client with updated model info.
-            shifts = models.EmployeeShift.objects.filter(employee=user, pay_period=pay_period)
+        # Attempt to get "pay_period" int value. Defaults to None.
+        pay_period_pk = content.get('pay_period', None)
+        if isinstance(pay_period_pk, int):
+            self.load_pay_period(user, pay_period_pk)
 
-            # Convert shift values to user's local time.
-            user_timezone = pytz.timezone(cae_home_models.Profile.objects.get(user=user).user_timezone)
-            for shift in shifts:
-                shift.clock_in = user_timezone.normalize(shift.clock_in.astimezone(user_timezone))
-                if shift.clock_out is not None:
-                    shift.clock_out = user_timezone.normalize(shift.clock_out.astimezone(user_timezone))
+    def shift_submit(self, user):
+        """
+        Handling for user submitting shift clock in/clock out.
+        """
+        # Get current pay period.
+        current_time = timezone.now()
+        pay_period = models.PayPeriod.objects.get(period_start__lte=current_time, period_end__gte=current_time)
 
-            json_shifts = serializers.serialize(
-                'json',
-                shifts,
-                fields=('clock_in', 'clock_out', 'date_created', 'date_modified',)
+        # Check if shift already exists. If not, start new one.
+        shift = models.EmployeeShift.objects.filter(employee=user, clock_out=None).first()
+        if shift is not None and shift.clock_out is None:
+            shift.clock_out = timezone.now()
+            shift.save()
+        else:
+            shift = models.EmployeeShift.objects.create(
+                pay_period=pay_period,
+                employee=user,
+                clock_in=timezone.now(),
             )
+            shift.save()
 
-            # Send data.
-            self.send_json({
-                    'json_shifts': json_shifts,
-                }, close=True
-            )
+        # Respond to client with updated model info.
+        shifts = models.EmployeeShift.objects.filter(employee=user, pay_period=pay_period)
+
+        # Convert shift values to user's local time.
+        user_timezone = pytz.timezone(cae_home_models.Profile.objects.get(user=user).user_timezone)
+        for shift in shifts:
+            shift.clock_in = user_timezone.normalize(shift.clock_in.astimezone(user_timezone))
+            if shift.clock_out is not None:
+                shift.clock_out = user_timezone.normalize(shift.clock_out.astimezone(user_timezone))
+
+        # Convert to json format for React.
+        json_shifts = serializers.serialize(
+            'json',
+            shifts,
+            fields=('clock_in', 'clock_out',)
+        )
+
+        # Send data.
+        self.send_json({
+            'json_shifts': json_shifts,
+        }, close=True)
+
+    def load_pay_period(self, user, pay_period_pk):
+        """
+        Handling for user requesting new pay period to view.
+        """
+        # Validation for pk going below 0 or above model count.
+        pay_period_count = models.PayPeriod.objects.all().count()
+        if pay_period_pk < 1:
+            pay_period_pk = pay_period_count
+        elif pay_period_pk > pay_period_count:
+            pay_period_pk = 1
+
+        # Get indicated pay period and associated shifts.
+        pay_period = models.PayPeriod.objects.get(pk=pay_period_pk)
+        shifts = models.EmployeeShift.objects.filter(employee=user, pay_period=pay_period)
+
+        # Convert to json format for React.
+        json_pay_period = serializers.serialize(
+            'json',
+            [pay_period],
+            fields=('period_start', 'period_end',)
+        )
+
+        json_shifts = serializers.serialize(
+            'json',
+            shifts,
+            fields=('clock_in', 'clock_out',)
+        )
+
+        # Send data.
+        self.send_json({
+            'json_pay_period': json_pay_period,
+            'json_shifts': json_shifts,
+        }, close=True)
 
 
 class ScheduleConsumer(AsyncJsonWebsocketConsumer):

@@ -287,7 +287,9 @@ var EmployeeShiftManager = function (_React$Component) {
 
         _this.state = {
             date_string_options: { month: "short", day: "2-digit", year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true },
-            all_shifts: json_shifts,
+            current_pay_period: json_pay_period[0],
+            displayed_pay_period: json_pay_period[0],
+            shifts: json_shifts,
             last_shift: json_shifts[0]
         };
         return _this;
@@ -321,8 +323,8 @@ var EmployeeShiftManager = function (_React$Component) {
          */
 
     }, {
-        key: 'handleClick',
-        value: function handleClick() {
+        key: 'handleShiftClick',
+        value: function handleShiftClick() {
             // Establish socket connection.
             var socket = new WebSocket('ws://' + domain + '/ws/caeweb/employee/my_hours/');
 
@@ -333,14 +335,59 @@ var EmployeeShiftManager = function (_React$Component) {
             // Handle incoming socket message event. Note the bind(this) to access React object state within function.
             socket.onmessage = function (message) {
                 var data = JSON.parse(message.data);
-                this.setState({ all_shifts: JSON.parse(data.json_shifts) });
-                this.setState({ last_shift: this.state.all_shifts[0] });
+                this.setState({ shifts: JSON.parse(data.json_shifts) });
+                this.setState({ last_shift: this.state.shifts[0] });
+                this.setState({ displayed_pay_period: this.state.current_pay_period });
             }.bind(this);
 
             // Send message to socket.
             socket.onopen = function (event) {
                 socket.send(JSON.stringify({
                     'shift_submit': true
+                }));
+            };
+        }
+    }, {
+        key: 'handlePrevPeriodClick',
+        value: function handlePrevPeriodClick() {
+            this.getNewPayPeriod(this.state.displayed_pay_period.pk - 1);
+        }
+    }, {
+        key: 'handleCurrPeriodClick',
+        value: function handleCurrPeriodClick() {
+            this.getNewPayPeriod(this.state.current_pay_period.pk);
+        }
+    }, {
+        key: 'handleNextPeriodClick',
+        value: function handleNextPeriodClick() {
+            this.getNewPayPeriod(this.state.displayed_pay_period.pk + 1);
+        }
+
+        /**
+         * Grab pay period of provided pk.
+         */
+
+    }, {
+        key: 'getNewPayPeriod',
+        value: function getNewPayPeriod(pay_period_index) {
+            // Establish socket connection.
+            var socket = new WebSocket('ws://' + domain + '/ws/caeweb/employee/my_hours/');
+
+            socket.beforeunload = function () {
+                socket.close();
+            };
+
+            // Handle incoming socket message event. Note the bind(this) to access React object state within function.
+            socket.onmessage = function (message) {
+                var data = JSON.parse(message.data);
+                this.setState({ displayed_pay_period: JSON.parse(data.json_pay_period)[0] });
+                this.setState({ shifts: JSON.parse(data.json_shifts) });
+            }.bind(this);
+
+            // Send message to socket.
+            socket.onopen = function (event) {
+                socket.send(JSON.stringify({
+                    'pay_period': pay_period_index
                 }));
             };
         }
@@ -366,7 +413,7 @@ var EmployeeShiftManager = function (_React$Component) {
 
             // Calculate list of shifts.
             var shifts = [];
-            this.state.all_shifts.forEach(function (shift) {
+            this.state.shifts.forEach(function (shift) {
                 shifts.push(React.createElement(_employee_shift2.default, {
                     key: shift.pk,
                     clock_in: shift.fields['clock_in'],
@@ -374,6 +421,9 @@ var EmployeeShiftManager = function (_React$Component) {
                     date_string_options: _this2.state.date_string_options
                 }));
             });
+
+            var pay_period_display = new Date(this.state.displayed_pay_period.fields['period_start']);
+            var pay_period_string_options = { month: "short", day: "2-digit", year: 'numeric' };
 
             // Elements to render for client.
             return React.createElement(
@@ -388,19 +438,56 @@ var EmployeeShiftManager = function (_React$Component) {
                         clock_out: this.state.last_shift.fields['clock_out'],
                         date_string_options: this.state.date_string_options,
                         onClick: function onClick() {
-                            return _this2.handleClick();
+                            return _this2.handleShiftClick();
                         }
                     })
                 ),
                 React.createElement('hr', null),
                 React.createElement('hr', null),
                 React.createElement(
-                    'table',
+                    'div',
                     null,
                     React.createElement(
-                        'tbody',
+                        'h2',
                         null,
-                        shifts
+                        'Pay Period starting on ',
+                        pay_period_display.toLocaleDateString('en-US', pay_period_string_options)
+                    ),
+                    React.createElement(
+                        'div',
+                        null,
+                        React.createElement('input', {
+                            id: 'prev_pay_period_button',
+                            type: 'button',
+                            value: '\u23F4',
+                            onClick: function onClick() {
+                                return _this2.handlePrevPeriodClick();
+                            }
+                        }),
+                        React.createElement('input', {
+                            id: 'curr_pay_period_button',
+                            type: 'button',
+                            value: 'Current Pay Period',
+                            onClick: function onClick() {
+                                return _this2.handleCurrPeriodClick();
+                            }
+                        }),
+                        React.createElement('input', {
+                            id: 'next_pay_period_button', type: 'button',
+                            value: '\u23F5',
+                            onClick: function onClick() {
+                                return _this2.handleNextPeriodClick();
+                            }
+                        })
+                    ),
+                    React.createElement(
+                        'table',
+                        null,
+                        React.createElement(
+                            'tbody',
+                            null,
+                            shifts
+                        )
                     )
                 )
             );
