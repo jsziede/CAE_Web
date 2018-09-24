@@ -13,6 +13,7 @@ from channels.generic.websocket import (
 from channels.layers import get_channel_layer
 import dateutil.parser
 from django.core import serializers
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.signals import post_save, post_delete
 from django.utils import timezone
 
@@ -73,6 +74,7 @@ class MyHoursConsumer(JsonWebsocketConsumer):
         if shift is not None and shift.clock_out is None:
             shift.clock_out = timezone.now()
             shift.save()
+
         else:
             shift = models.EmployeeShift.objects.create(
                 pay_period=pay_period,
@@ -82,7 +84,7 @@ class MyHoursConsumer(JsonWebsocketConsumer):
             shift.save()
 
         # Respond to client with updated model info.
-        shifts = models.EmployeeShift.objects.filter(employee=user, pay_period=pay_period)
+        shifts, last_shift = self.get_shifts(user, pay_period)
 
         # Convert shift values to user's local time.
         user_timezone = pytz.timezone(cae_home_models.Profile.objects.get(user=user).user_timezone)
@@ -98,10 +100,31 @@ class MyHoursConsumer(JsonWebsocketConsumer):
             fields=('clock_in', 'clock_out',)
         )
 
+        json_last_shift = serializers.serialize(
+            'json',
+            [last_shift],
+            fields=('clock_in', 'clock_out',)
+        )
+
         # Send data.
         self.send_json({
             'json_shifts': json_shifts,
+            'json_last_shift': json_last_shift,
         }, close=True)
+
+    def get_shifts(self, user, pay_period):
+        """
+        Gets last shift with given pay period.
+        """
+        shifts = models.EmployeeShift.objects.filter(employee=user, pay_period=pay_period)
+
+        # Try to get shift with no clock out. If none exist, then use last shift in current pay period.
+        try:
+            last_shift = models.EmployeeShift.objects.get(employee=user, clock_out=None)
+        except ObjectDoesNotExist:
+            last_shift = shifts.last()
+
+        return (shifts, last_shift)
 
     def load_pay_period(self, user, pay_period_pk):
         """

@@ -206,7 +206,13 @@ var Shift = function (_React$Component) {
     function Shift(props) {
         _classCallCheck(this, Shift);
 
-        return _possibleConstructorReturn(this, (Shift.__proto__ || Object.getPrototypeOf(Shift)).call(this, props));
+        // Static variables.
+        var _this = _possibleConstructorReturn(this, (Shift.__proto__ || Object.getPrototypeOf(Shift)).call(this, props));
+
+        _this.one_second = 1000;
+        _this.one_minute = 60 * _this.one_second;
+        _this.one_hour = 60 * _this.one_minute;
+        return _this;
     }
 
     /**
@@ -219,10 +225,17 @@ var Shift = function (_React$Component) {
         value: function render() {
             var clock_in = new Date(this.props.clock_in);
             var clock_out = null;
+            var shift_total = null;
 
             if (this.props.clock_out != null) {
                 clock_out = new Date(this.props.clock_out);
+                shift_total = clock_out.getTime() - clock_in.getTime();
+            } else {
+                shift_total = new Date().getTime() - clock_in.getTime();
             }
+
+            var shift_hours = Math.trunc(shift_total / this.one_hour);
+            var shift_minutes = Math.trunc((shift_total - shift_hours * this.one_hour) / this.one_minute);
 
             return React.createElement(
                 'tr',
@@ -232,11 +245,22 @@ var Shift = function (_React$Component) {
                     null,
                     clock_in.toLocaleDateString('en-US', this.props.date_string_options)
                 ),
-                clock_out && // If statement. Only displays if clock_out is not null.
-                React.createElement(
+                clock_out ? React.createElement(
                     'td',
                     null,
                     clock_out.toLocaleDateString('en-US', this.props.date_string_options)
+                ) : React.createElement(
+                    'td',
+                    null,
+                    'N/A'
+                ),
+                React.createElement(
+                    'td',
+                    null,
+                    shift_hours,
+                    ' Hours ',
+                    shift_minutes,
+                    ' Minutes'
                 )
             );
         }
@@ -290,7 +314,7 @@ var EmployeeShiftManager = function (_React$Component) {
             current_pay_period: json_pay_period[0],
             displayed_pay_period: json_pay_period[0],
             shifts: json_shifts,
-            last_shift: json_shifts[0]
+            last_shift: json_last_shift[0]
         };
         return _this;
     }
@@ -335,8 +359,10 @@ var EmployeeShiftManager = function (_React$Component) {
             // Handle incoming socket message event. Note the bind(this) to access React object state within function.
             socket.onmessage = function (message) {
                 var data = JSON.parse(message.data);
+                console.log(data);
+                console.log(data.json_last_shift);
                 this.setState({ shifts: JSON.parse(data.json_shifts) });
-                this.setState({ last_shift: this.state.shifts[0] });
+                this.setState({ last_shift: JSON.parse(data.json_last_shift)[0] });
                 this.setState({ displayed_pay_period: this.state.current_pay_period });
             }.bind(this);
 
@@ -483,6 +509,29 @@ var EmployeeShiftManager = function (_React$Component) {
                     React.createElement(
                         'table',
                         null,
+                        React.createElement(
+                            'thead',
+                            null,
+                            React.createElement(
+                                'tr',
+                                null,
+                                React.createElement(
+                                    'th',
+                                    null,
+                                    'Clock In'
+                                ),
+                                React.createElement(
+                                    'th',
+                                    null,
+                                    'Clock Out'
+                                ),
+                                React.createElement(
+                                    'th',
+                                    null,
+                                    'Shift Length'
+                                )
+                            )
+                        ),
                         React.createElement(
                             'tbody',
                             null,

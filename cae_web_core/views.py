@@ -5,6 +5,7 @@ Views for CAE_Web Core App.
 # System Imports.
 import dateutil.parser, json, pytz
 from django.core import serializers
+from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
 from django.http.response import JsonResponse
 from django.template.response import TemplateResponse
@@ -41,12 +42,13 @@ def my_hours(request):
     current_time = timezone.now()
     user_timezone = pytz.timezone(request.user.profile.user_timezone)
     pay_period = models.PayPeriod.objects.get(period_start__lte=current_time, period_end__gte=current_time)
-    # pay_period = models.PayPeriod.objects.filter(period_start__gte=current_time)
-    # print('Filter by start: {0}'.format(pay_period))
-    # pay_period = models.PayPeriod.objects.filter(period_end__lte=current_time)
-    # print('Filter by end: {0}'.format(pay_period))
     shifts = models.EmployeeShift.objects.filter(employee=request.user, pay_period=pay_period)
-    print(shifts)
+
+    # Try to get shift with no clock out. If none exist, then use last shift in current pay period.
+    try:
+        last_shift = models.EmployeeShift.objects.get(employee=request.user, clock_out=None)
+    except ObjectDoesNotExist:
+        last_shift = shifts.last()
 
     # Convert shift values to user's local time.
     for shift in shifts:
@@ -67,13 +69,20 @@ def my_hours(request):
         fields=('clock_in', 'clock_out',)
     )
 
+    json_last_shift = serializers.serialize(
+        'json',
+        [last_shift],
+        fields=('clock_in', 'clock_out',)
+    )
+
     # Send to template for user display.
     return TemplateResponse(request, 'cae_web_core/employee/my_hours.html', {
         'pay_period': pay_period,
         'json_pay_period': json_pay_period,
         'shifts': shifts,
         'json_shifts': json_shifts,
-        'last_shift': shifts.first(),
+        'last_shift': last_shift,
+        'json_last_shift': json_last_shift,
     })
 
 #endregion Employee Views

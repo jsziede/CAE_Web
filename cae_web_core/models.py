@@ -67,7 +67,7 @@ class EmployeeShift(models.Model):
     class Meta:
         verbose_name = "Employee Shift"
         verbose_name_plural = "Employee Shifts"
-        ordering = ('-clock_in', '-clock_out',)
+        ordering = ('clock_in', 'clock_out',)
 
     def __str__(self):
         return '{0}: {1} to {2}'.format(self.employee, self.clock_in, self.clock_out)

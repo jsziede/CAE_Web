@@ -19,7 +19,7 @@ class EmployeeShiftManager extends React.Component {
             current_pay_period: json_pay_period[0],
             displayed_pay_period: json_pay_period[0],
             shifts: json_shifts,
-            last_shift: json_shifts[0],
+            last_shift: json_last_shift[0],
         }
     }
 
@@ -59,8 +59,10 @@ class EmployeeShiftManager extends React.Component {
         // Handle incoming socket message event. Note the bind(this) to access React object state within function.
         socket.onmessage = function(message) {
             var data = JSON.parse(message.data);
+            console.log(data);
+            console.log(data.json_last_shift);
             this.setState({ shifts: JSON.parse(data.json_shifts) });
-            this.setState({ last_shift: this.state.shifts[0] });
+            this.setState({ last_shift: JSON.parse(data.json_last_shift)[0] });
             this.setState({ displayed_pay_period: this.state.current_pay_period });
         }.bind(this);
 
@@ -178,8 +180,15 @@ class EmployeeShiftManager extends React.Component {
                         />
                     </div>
                     <table>
+                        <thead>
+                            <tr>
+                                <th>Clock In</th>
+                                <th>Clock Out</th>
+                                <th>Shift Length</th>
+                            </tr>
+                        </thead>
                         <tbody>
-                        { shifts }
+                            { shifts }
                         </tbody>
                     </table>
                 </div>
