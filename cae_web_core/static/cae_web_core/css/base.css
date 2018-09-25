@@ -32,8 +32,19 @@
     -ms-align-items: center;
     align-items: center;
     width: 100%; }
+#content.cae-web .pay-period div {
+  margin-top: 10px;
+  margin-bottom: 10px; }
+#content.cae-web .pay-period table {
+  margin-top: 10px;
+  min-width: 90%; }
+  @media only screen and (min-width: 869px) {
+    #content.cae-web .pay-period table {
+      min-width: 400px; } }
 
 #content.cae-web .current-shift {
+  border: 1px solid #cccccc; }
+#content.cae-web .pay-period {
   border: 1px solid #cccccc; }
 
 /*# sourceMappingURL=base.css.map */

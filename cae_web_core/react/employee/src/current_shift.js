@@ -13,9 +13,9 @@ class CurrentShift extends React.Component {
         // State variables.
         this.state = {
             current_time: new Date(),
-            hour_difference: -1,
-            minute_difference: -1,
-            second_difference: -1,
+            shift_hours: -1,
+            shift_minutes: -1,
+            shift_seconds: -1,
         };
 
         // Static variables.
@@ -59,24 +59,24 @@ class CurrentShift extends React.Component {
         // Check if currently clocked in.
         if (this.props.clock_out == null) {
 
-            var time_difference = new Date() - new Date(this.props.clock_in);
-            var hour_difference = Math.trunc(time_difference / this.one_hour);
-            var minute_difference = Math.trunc((time_difference - (hour_difference * this.one_hour)) / this.one_minute);
-            var second_difference = Math.trunc( (time_difference - (hour_difference * this.one_hour) - (minute_difference * this.one_minute)) / this.one_second );
+            var shift_total = new Date() - new Date(this.props.clock_in);
+            var shift_hours = Math.trunc(shift_total / this.one_hour);
+            var shift_minutes = Math.trunc((shift_total - (shift_hours * this.one_hour)) / this.one_minute);
+            var shift_seconds = Math.trunc( (shift_total - (shift_hours * this.one_hour) - (shift_minutes * this.one_minute)) / this.one_second );
 
             // Update time difference trackers.
             this.setState({
-                hour_difference: hour_difference,
-                minute_difference: minute_difference,
-                second_difference: second_difference,
+                shift_hours: shift_hours,
+                shift_minutes: shift_minutes,
+                shift_seconds: shift_seconds,
             });
 
         } else {
             // Reset all trackers if currently set.
             this.setState({
-                hour_difference: -1,
-                minute_difference: -1,
-                second_difference: -1,
+                shift_hours: -1,
+                shift_minutes: -1,
+                shift_seconds: -1,
             })
         }
     }
@@ -98,9 +98,9 @@ class CurrentShift extends React.Component {
                 <p>Clocked in: { clock_in.toLocaleDateString('en-US', this.props.date_string_options) }</p>
                 <p>
                     Shift Length: &nbsp;
-                    { this.state.hour_difference.toString() } Hours &nbsp;
-                    { this.state.minute_difference.toString() } Minutes &nbsp;
-                    { this.state.second_difference.toString() } Seconds &nbsp;
+                    { this.state.shift_hours.toString() } Hours &nbsp;
+                    { this.state.shift_minutes.toString() } Minutes &nbsp;
+                    { this.state.shift_seconds.toString() } Seconds &nbsp;
                 </p>
             </div>;
             submit_value = "Clock Out";

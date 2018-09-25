@@ -52,6 +52,23 @@
             width: 100%;
         }
     }
+
+    .pay-period {
+
+        div {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        table {
+            margin-top: 10px;
+            min-width: 90%;
+
+            @media only screen and (min-width: $screen-tablet-mid) {
+                min-width: 400px;
+            }
+        }
+    }
 }
 
 //==============================//
@@ -119,6 +136,10 @@
 #content.cae-web {
 
     .current-shift {
+        border: 1px solid $theme-border;
+    }
+
+    .pay-period {
         border: 1px solid $theme-border;
     }
 }
