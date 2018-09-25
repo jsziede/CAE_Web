@@ -26,105 +26,26 @@ var CurrentShift = function (_React$Component) {
     function CurrentShift(props) {
         _classCallCheck(this, CurrentShift);
 
-        // State variables.
-        var _this = _possibleConstructorReturn(this, (CurrentShift.__proto__ || Object.getPrototypeOf(CurrentShift)).call(this, props));
-
-        _this.state = {
-            current_time: new Date(),
-            shift_hours: -1,
-            shift_minutes: -1,
-            shift_seconds: -1
-        };
-
-        // Static variables.
-        _this.one_second = 1000;
-        _this.one_minute = 60 * _this.one_second;
-        _this.one_hour = 60 * _this.one_minute;
-        return _this;
+        return _possibleConstructorReturn(this, (CurrentShift.__proto__ || Object.getPrototypeOf(CurrentShift)).call(this, props));
     }
 
     /**
-     * Logic to run on component load.
+     * Rendering and last minute calculations for client display.
      */
 
 
     _createClass(CurrentShift, [{
-        key: "componentDidMount",
-        value: function componentDidMount() {
-            var _this2 = this;
-
-            // Ensure that the page processes a tick immediately on load.
-            this.tick();
-
-            // Set component to run an update tick every second.
-            this.intervalId = setInterval(function () {
-                return _this2.tick();
-            }, 1000);
-        }
-
-        /**
-         * Logic to run on component unload.
-         */
-
-    }, {
-        key: "componentWillUnmount",
-        value: function componentWillUnmount() {
-            clearInterval(this.intervalId);
-        }
-
-        /**
-         * Functions to run on each tick.
-         */
-
-    }, {
-        key: "tick",
-        value: function tick() {
-            this.setState({
-                current_time: new Date()
-            });
-
-            // Check if currently clocked in.
-            if (this.props.clock_out == null) {
-
-                var shift_total = new Date() - new Date(this.props.clock_in);
-                var shift_hours = Math.trunc(shift_total / this.one_hour);
-                var shift_minutes = Math.trunc((shift_total - shift_hours * this.one_hour) / this.one_minute);
-                var shift_seconds = Math.trunc((shift_total - shift_hours * this.one_hour - shift_minutes * this.one_minute) / this.one_second);
-
-                // Update time difference trackers.
-                this.setState({
-                    shift_hours: shift_hours,
-                    shift_minutes: shift_minutes,
-                    shift_seconds: shift_seconds
-                });
-            } else {
-                // Reset all trackers if currently set.
-                this.setState({
-                    shift_hours: -1,
-                    shift_minutes: -1,
-                    shift_seconds: -1
-                });
-            }
-        }
-
-        /**
-         * Rendering and last minute calculations for client display.
-         */
-
-    }, {
         key: "render",
         value: function render() {
-            var _this3 = this;
+            var _this2 = this;
 
             var clock_in;
-            var clock_out;
             var time_display;
             var submit_value;
 
             // Handle display differently if clocked in or clocked out.
             if (this.props.clock_out == null) {
                 clock_in = new Date(this.props.clock_in);
-                clock_out = new Date(this.props.clock_out);
                 time_display = React.createElement(
                     "div",
                     { className: "time-display" },
@@ -138,11 +59,11 @@ var CurrentShift = function (_React$Component) {
                         "p",
                         null,
                         "Shift Length: \xA0",
-                        this.state.shift_hours.toString(),
+                        this.props.shift_hours.toString(),
                         " Hours \xA0",
-                        this.state.shift_minutes.toString(),
+                        this.props.shift_minutes.toString(),
                         " Minutes \xA0",
-                        this.state.shift_seconds.toString(),
+                        this.props.shift_seconds.toString(),
                         " Seconds \xA0"
                     )
                 );
@@ -166,7 +87,7 @@ var CurrentShift = function (_React$Component) {
                     type: "button",
                     value: submit_value,
                     onClick: function onClick() {
-                        return _this3.props.onClick();
+                        return _this2.props.onClick();
                     }
                 })
             );
@@ -230,23 +151,20 @@ var Shift = function (_React$Component) {
             var shift_minutes;
             var shift_time_display;
 
+            // Check if valid clock in time. If none, is dummy shift.
             if (this.props.clock_in != null) {
                 clock_in = new Date(this.props.clock_in);
 
+                // Check for valid clock out time. If none, use passed prop paremeters.
                 if (this.props.clock_out != null) {
                     clock_out = new Date(this.props.clock_out);
                     shift_total = clock_out.getTime() - clock_in.getTime();
+                    shift_hours = Math.trunc(shift_total / this.one_hour);
+                    shift_minutes = Math.trunc((shift_total - shift_hours * this.one_hour) / this.one_minute);
                 } else {
-                    shift_total = new Date().getTime() - clock_in.getTime();
+                    shift_hours = this.props.current_shift_hours;
+                    shift_minutes = this.props.current_shift_minutes;
                 }
-            } else {
-                shift_total = 0;
-            }
-
-            // If shift_total is null, then is a dummy shift. Display accordingly.
-            if (shift_total > 0) {
-                shift_hours = Math.trunc(shift_total / this.one_hour);
-                shift_minutes = Math.trunc((shift_total - shift_hours * this.one_hour) / this.one_minute);
                 shift_time_display = shift_hours + ' Hours ' + shift_minutes + ' Minutes';
             } else {
                 shift_time_display = 'N/A';
@@ -330,17 +248,29 @@ var EmployeeShiftManager = function (_React$Component) {
         var _this = _possibleConstructorReturn(this, (EmployeeShiftManager.__proto__ || Object.getPrototypeOf(EmployeeShiftManager)).call(this, props));
 
         _this.state = {
+            current_time: new Date(),
             date_string_options: { month: "short", day: "2-digit", year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true },
+
             current_pay_period: json_pay_period[0],
             displayed_pay_period: json_pay_period[0],
+
             shifts: json_shifts,
-            last_shift: json_last_shift[0]
+            last_shift: json_last_shift[0],
+
+            current_shift_hours: -1,
+            current_shift_minutes: -1,
+            current_shift_seconds: -1
         };
+
+        // Static variables.
+        _this.one_second = 1000;
+        _this.one_minute = 60 * _this.one_second;
+        _this.one_hour = 60 * _this.one_minute;
         return _this;
     }
 
     /**
-     * Logic to run on component load.
+     * Logic to run before component load.
      */
 
 
@@ -358,6 +288,70 @@ var EmployeeShiftManager = function (_React$Component) {
                             "clock_out": new Date()
                         }
                     }
+                });
+            }
+        }
+
+        /**
+         * Logic to run on component load.
+         */
+
+    }, {
+        key: 'componentDidMount',
+        value: function componentDidMount() {
+            var _this2 = this;
+
+            // Ensure that the page processes a tick immediately on load.
+            this.tick();
+
+            // Set component to run an update tick every second.
+            this.intervalId = setInterval(function () {
+                return _this2.tick();
+            }, 1000);
+        }
+
+        /**
+         * Logic to run on component unload.
+         */
+
+    }, {
+        key: 'componentWillUnmount',
+        value: function componentWillUnmount() {
+            clearInterval(this.intervalId);
+        }
+
+        /**
+         * Functions to run on each tick.
+         */
+
+    }, {
+        key: 'tick',
+        value: function tick() {
+            this.setState({
+                current_time: new Date()
+            });
+
+            // Check if currently clocked in.
+            if (this.state.last_shift.fields['clock_out'] == null) {
+
+                // Calculate shift time trackers.
+                var shift_total = this.state.current_time - new Date(this.state.last_shift.fields['clock_in']);
+                var shift_hours = Math.trunc(shift_total / this.one_hour);
+                var shift_minutes = Math.trunc((shift_total - shift_hours * this.one_hour) / this.one_minute);
+                var shift_seconds = Math.trunc((shift_total - shift_hours * this.one_hour - shift_minutes * this.one_minute) / this.one_second);
+
+                // Update shift time trackers.
+                this.setState({
+                    current_shift_hours: shift_hours,
+                    current_shift_minutes: shift_minutes,
+                    current_shift_seconds: shift_seconds
+                });
+            } else {
+                // Reset all trackers if currently set.
+                this.setState({
+                    current_shift_hours: -1,
+                    current_shift_minutes: -1,
+                    current_shift_seconds: -1
                 });
             }
         }
@@ -453,7 +447,7 @@ var EmployeeShiftManager = function (_React$Component) {
     }, {
         key: 'render',
         value: function render() {
-            var _this2 = this;
+            var _this3 = this;
 
             var pay_period_display = new Date(this.state.displayed_pay_period.fields['period_start']);
             var pay_period_string_options = { month: "short", day: "2-digit", year: 'numeric' };
@@ -463,26 +457,30 @@ var EmployeeShiftManager = function (_React$Component) {
                 'div',
                 { className: 'center' },
                 React.createElement(_current_shift2.default, {
-                    key: this.state.last_shift.pk,
                     clock_in: this.state.last_shift.fields['clock_in'],
                     clock_out: this.state.last_shift.fields['clock_out'],
+                    shift_hours: this.state.current_shift_hours,
+                    shift_minutes: this.state.current_shift_minutes,
+                    shift_seconds: this.state.current_shift_seconds,
                     date_string_options: this.state.date_string_options,
                     onClick: function onClick() {
-                        return _this2.handleShiftClick();
+                        return _this3.handleShiftClick();
                     }
                 }),
                 React.createElement(_pay_period2.default, {
                     date_string_options: this.state.date_string_options,
                     displayed_pay_period: this.state.displayed_pay_period,
                     shifts: this.state.shifts,
+                    current_shift_hours: this.state.current_shift_hours,
+                    current_shift_minutes: this.state.current_shift_minutes,
                     handlePrevPeriodClick: function handlePrevPeriodClick() {
-                        return _this2.handlePrevPeriodClick();
+                        return _this3.handlePrevPeriodClick();
                     },
                     handleCurrPeriodClick: function handleCurrPeriodClick() {
-                        return _this2.handleCurrPeriodClick();
+                        return _this3.handleCurrPeriodClick();
                     },
                     handleNextPeriodClick: function handleNextPeriodClick() {
-                        return _this2.handleNextPeriodClick();
+                        return _this3.handleNextPeriodClick();
                     }
                 })
             );
@@ -572,6 +570,8 @@ var EmployeeShiftManager = function (_React$Component) {
                         key: shift.pk,
                         clock_in: shift.fields['clock_in'],
                         clock_out: shift.fields['clock_out'],
+                        current_shift_hours: _this2.props.current_shift_hours,
+                        current_shift_minutes: _this2.props.current_shift_minutes,
                         date_string_options: _this2.props.date_string_options
                     }));
                 });

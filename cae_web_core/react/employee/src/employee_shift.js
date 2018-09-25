@@ -28,23 +28,20 @@ class Shift extends React.Component {
         var shift_minutes;
         var shift_time_display;
 
+        // Check if valid clock in time. If none, is dummy shift.
         if (this.props.clock_in != null) {
             clock_in = new Date(this.props.clock_in);
 
+            // Check for valid clock out time. If none, use passed prop paremeters.
             if (this.props.clock_out != null) {
                 clock_out = new Date(this.props.clock_out);
                 shift_total = clock_out.getTime() - clock_in.getTime();
+                shift_hours = Math.trunc(shift_total / this.one_hour);
+                shift_minutes = Math.trunc((shift_total - (shift_hours * this.one_hour)) / this.one_minute);
             } else {
-                shift_total = (new Date()).getTime() - clock_in.getTime();
+                shift_hours = this.props.current_shift_hours;
+                shift_minutes = this.props.current_shift_minutes;
             }
-        } else {
-            shift_total = 0;
-        }
-
-        // If shift_total is null, then is a dummy shift. Display accordingly.
-        if (shift_total > 0) {
-            shift_hours = Math.trunc(shift_total / this.one_hour);
-            shift_minutes = Math.trunc((shift_total - (shift_hours * this.one_hour)) / this.one_minute);
             shift_time_display = shift_hours + ' Hours ' + shift_minutes + ' Minutes';
         } else {
             shift_time_display = 'N/A';

@@ -29,6 +29,8 @@ class EmployeeShiftManager extends React.Component {
                         key={ shift.pk }
                         clock_in={ shift.fields['clock_in'] }
                         clock_out={ shift.fields['clock_out'] }
+                        current_shift_hours={ this.props.current_shift_hours }
+                        current_shift_minutes={ this.props.current_shift_minutes }
                         date_string_options={ this.props.date_string_options }
                     />
                 );

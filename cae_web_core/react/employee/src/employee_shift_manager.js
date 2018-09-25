@@ -16,17 +16,29 @@ class EmployeeShiftManager extends React.Component {
         super(props);
 
         this.state = {
+            current_time: new Date(),
             date_string_options: { month: "short", day: "2-digit", year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true, },
+
             current_pay_period: json_pay_period[0],
             displayed_pay_period: json_pay_period[0],
+
             shifts: json_shifts,
             last_shift: json_last_shift[0],
+
+            current_shift_hours: -1,
+            current_shift_minutes: -1,
+            current_shift_seconds: -1,
         };
+
+        // Static variables.
+        this.one_second = 1000;
+        this.one_minute = 60 * this.one_second;
+        this.one_hour = 60 * this.one_minute;
     }
 
 
     /**
-     * Logic to run on component load.
+     * Logic to run before component load.
      */
     componentWillMount() {
         // If no shiffts are defined yet for this pay period, create a dummy "last shift" to prevent render errors.
@@ -42,6 +54,64 @@ class EmployeeShiftManager extends React.Component {
                 }
             });
 
+        }
+    }
+
+
+    /**
+     * Logic to run on component load.
+     */
+    componentDidMount() {
+        // Ensure that the page processes a tick immediately on load.
+        this.tick();
+
+        // Set component to run an update tick every second.
+        this.intervalId = setInterval(
+            () => this.tick(),
+            1000
+        );
+    }
+
+
+    /**
+     * Logic to run on component unload.
+     */
+    componentWillUnmount() {
+        clearInterval(this.intervalId);
+    }
+
+
+    /**
+     * Functions to run on each tick.
+     */
+    tick() {
+        this.setState({
+            current_time: new Date(),
+        });
+
+        // Check if currently clocked in.
+        if (this.state.last_shift.fields['clock_out'] == null) {
+
+            // Calculate shift time trackers.
+            var shift_total = this.state.current_time - new Date(this.state.last_shift.fields['clock_in']);
+            var shift_hours = Math.trunc(shift_total / this.one_hour);
+            var shift_minutes = Math.trunc((shift_total - (shift_hours * this.one_hour)) / this.one_minute);
+            var shift_seconds = Math.trunc( (shift_total - (shift_hours * this.one_hour) - (shift_minutes * this.one_minute)) / this.one_second );
+
+            // Update shift time trackers.
+            this.setState({
+                current_shift_hours: shift_hours,
+                current_shift_minutes: shift_minutes,
+                current_shift_seconds: shift_seconds,
+            });
+
+        } else {
+            // Reset all trackers if currently set.
+            this.setState({
+                current_shift_hours: -1,
+                current_shift_minutes: -1,
+                current_shift_seconds: -1,
+            })
         }
     }
 
@@ -136,9 +206,11 @@ class EmployeeShiftManager extends React.Component {
         return (
             <div className="center">
                 <CurrentShift
-                    key={ this.state.last_shift.pk }
                     clock_in={ this.state.last_shift.fields['clock_in'] }
                     clock_out={ this.state.last_shift.fields['clock_out'] }
+                    shift_hours={ this.state.current_shift_hours }
+                    shift_minutes={ this.state.current_shift_minutes }
+                    shift_seconds={ this.state.current_shift_seconds }
                     date_string_options={ this.state.date_string_options }
                     onClick={() => this.handleShiftClick() }
                 />
@@ -146,6 +218,8 @@ class EmployeeShiftManager extends React.Component {
                     date_string_options={ this.state.date_string_options }
                     displayed_pay_period={ this.state.displayed_pay_period }
                     shifts={ this.state.shifts }
+                    current_shift_hours={ this.state.current_shift_hours }
+                    current_shift_minutes={ this.state.current_shift_minutes }
                     handlePrevPeriodClick={ () => this.handlePrevPeriodClick() }
                     handleCurrPeriodClick={ () => this.handleCurrPeriodClick() }
                     handleNextPeriodClick={ () => this.handleNextPeriodClick() }
