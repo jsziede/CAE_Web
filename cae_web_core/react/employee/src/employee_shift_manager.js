@@ -17,12 +17,16 @@ class EmployeeShiftManager extends React.Component {
 
         this.state = {
             current_time: new Date(),
-            date_string_options: { month: "short", day: "2-digit", year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true, },
+            date_string_options: { month: "short", day: "2-digit", hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true, },
 
             current_pay_period: json_pay_period[0],
             displayed_pay_period: json_pay_period[0],
 
             shifts: json_shifts,
+            week_1_shifts: [],
+            week_2_shifts: [],
+            week_1_hours: 0,
+            week_2_hours: 0,
             last_shift: json_last_shift[0],
 
             current_shift_hours: -1,
@@ -53,8 +57,9 @@ class EmployeeShiftManager extends React.Component {
                     },
                 }
             });
-
         }
+
+        this.calculateWeeksInPayPeriod();
     }
 
 
@@ -113,6 +118,8 @@ class EmployeeShiftManager extends React.Component {
                 current_shift_seconds: -1,
             })
         }
+
+        this.calculateHoursWorked();
     }
 
 
@@ -130,9 +137,11 @@ class EmployeeShiftManager extends React.Component {
         // Handle incoming socket message event. Note the bind(this) to access React object state within function.
         socket.onmessage = function(message) {
             var data = JSON.parse(message.data);
-            this.setState({ shifts: JSON.parse(data.json_shifts) });
-            this.setState({ last_shift: JSON.parse(data.json_last_shift)[0] });
-            this.setState({ displayed_pay_period: this.state.current_pay_period });
+            this.setState({
+                shifts: JSON.parse(data.json_shifts),
+                ast_shift: JSON.parse(data.json_last_shift)[0],
+                displayed_pay_period: this.state.current_pay_period,
+            });
         }.bind(this);
 
         // Send message to socket.
@@ -173,8 +182,11 @@ class EmployeeShiftManager extends React.Component {
         // Handle incoming socket message event. Note the bind(this) to access React object state within function.
         socket.onmessage = function(message) {
             var data = JSON.parse(message.data);
-            this.setState({ displayed_pay_period: JSON.parse(data.json_pay_period)[0] });
-            this.setState({ shifts: JSON.parse(data.json_shifts) });
+            this.setState({
+                displayed_pay_period: JSON.parse(data.json_pay_period)[0],
+                shifts: JSON.parse(data.json_shifts)
+            });
+            this.calculateWeeksInPayPeriod();
         }.bind(this);
 
         // Send message to socket.
@@ -187,10 +199,67 @@ class EmployeeShiftManager extends React.Component {
 
 
     /**
-     * Handle message from socket.
+     * Sorts shifts based on week in pay period.
      */
-    handleData(data) {
-        result = JSON.parse(data);
+    calculateWeeksInPayPeriod() {
+
+        var week_1_shifts = [];
+        var week_2_shifts = [];
+        var week_1_end = new Date(this.state.displayed_pay_period.fields['period_start']);
+
+        week_1_end = week_1_end.setDate(week_1_end.getDate() + 7);
+
+        this.state.shifts.forEach((shift) => {
+            if (new Date(shift.fields['clock_in']).getTime() < week_1_end) {
+                week_1_shifts.push(shift);
+            } else {
+                week_2_shifts.push(shift);
+            }
+        });
+
+        this.setState({
+            week_1_shifts: week_1_shifts,
+            week_2_shifts: week_2_shifts,
+        });
+
+        this.calculateHoursWorked();
+    }
+
+
+    /**
+     * Calculates total hours worked, by week.
+     */
+    calculateHoursWorked() {
+        var shift_start;
+        var shift_end;
+        var total_time = 0;
+
+        // Calculate for week 1.
+        this.state.week_1_shifts.forEach((shift) => {
+            console.log(total_time);
+            shift_start = new Date(shift.fields['clock_in']).getTime();
+            if (shift.fields['clock_out'] != null) {
+                shift_end = new Date(shift.fields['clock_out']).getTime();
+            } else {
+                shift_end = new Date(this.state.current_time);
+            }
+            total_time += (shift_end - shift_start);
+        });
+        this.setState({ week_1_hours: total_time });
+        total_time = 0;
+
+        // Calculate for week 2.
+        this.state.week_2_shifts.forEach((shift) => {
+            console.log(total_time);
+            shift_start = new Date(shift.fields['clock_in']).getTime();
+            if (shift.fields['clock_out'] != null) {
+                shift_end = new Date(shift.fields['clock_out']).getTime();
+            } else {
+                shift_end = new Date(this.state.current_time);
+            }
+            total_time += (shift_end - shift_start);
+        });
+        this.setState({ week_2_hours: total_time });
     }
 
 
@@ -199,8 +268,13 @@ class EmployeeShiftManager extends React.Component {
      */
     render() {
 
-        var pay_period_display = new Date(this.state.displayed_pay_period.fields['period_start']);
+        var pay_period_start_display = new Date(this.state.displayed_pay_period.fields['period_start']);
+        var pay_period_end_display = new Date(this.state.displayed_pay_period.fields['period_end']);
         var pay_period_string_options = { month: "short", day: "2-digit", year: 'numeric' };
+
+        var total_time = this.state.week_1_hours + this.state.week_2_hours;
+        var total_hours = Math.trunc(total_time / this.one_hour);
+        var total_minutes = Math.trunc((total_time - (total_hours * this.one_hour)) / this.one_minute);
 
         // Elements to render for client.
         return (
@@ -214,16 +288,52 @@ class EmployeeShiftManager extends React.Component {
                     date_string_options={ this.state.date_string_options }
                     onClick={() => this.handleShiftClick() }
                 />
-                <PayPeriod
-                    date_string_options={ this.state.date_string_options }
-                    displayed_pay_period={ this.state.displayed_pay_period }
-                    shifts={ this.state.shifts }
-                    current_shift_hours={ this.state.current_shift_hours }
-                    current_shift_minutes={ this.state.current_shift_minutes }
-                    handlePrevPeriodClick={ () => this.handlePrevPeriodClick() }
-                    handleCurrPeriodClick={ () => this.handleCurrPeriodClick() }
-                    handleNextPeriodClick={ () => this.handleNextPeriodClick() }
-                />
+                <div className="pay-period center">
+                    <h2>
+                        Pay Period of&nbsp;
+                        { pay_period_start_display.toLocaleDateString('en-US', pay_period_string_options) }
+                        &nbsp;Through&nbsp;
+                        { pay_period_end_display.toLocaleDateString('en-US', pay_period_string_options) }
+                    </h2>
+                    <div>
+                        <input
+                            id="prev_pay_period_button"
+                            type="button"
+                            value="&#9204;"
+                            onClick={() => this.handlePrevPeriodClick() }
+                        />
+                        <input
+                            id="curr_pay_period_button"
+                            type="button"
+                            value="Current Pay Period"
+                            onClick={() => this.handleCurrPeriodClick() }
+                        />
+                        <input
+                            id="next_pay_period_button" type="button"
+                            value="&#9205;"
+                            onClick={() => this.handleNextPeriodClick() }
+                        />
+                    </div>
+                    <p>Total Pay Period Hours: { total_hours } Hours { total_minutes } Minutes</p>
+                    <PayPeriod
+                        table_title='Week 1'
+                        displayed_pay_period={ this.state.displayed_pay_period }
+                        shifts={ this.state.week_1_shifts }
+                        current_shift_hours={ this.state.current_shift_hours }
+                        current_shift_minutes={ this.state.current_shift_minutes }
+                        week_total={ this.state.week_1_hours }
+                        date_string_options={ this.state.date_string_options }
+                    />
+                    <PayPeriod
+                        table_title='Week 2'
+                        displayed_pay_period={ this.state.displayed_pay_period }
+                        shifts={ this.state.week_2_shifts }
+                        current_shift_hours={ this.state.current_shift_hours }
+                        current_shift_minutes={ this.state.current_shift_minutes }
+                        week_total={ this.state.week_2_hours }
+                        date_string_options={ this.state.date_string_options }
+                    />
+                </div>
             </div>
         )
     }

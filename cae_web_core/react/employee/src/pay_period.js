@@ -13,6 +13,11 @@ class EmployeeShiftManager extends React.Component {
      */
     constructor(props) {
         super(props);
+
+        // Static variables.
+        this.one_second = 1000;
+        this.one_minute = 60 * this.one_second;
+        this.one_hour = 60 * this.one_minute;
     }
 
 
@@ -50,41 +55,29 @@ class EmployeeShiftManager extends React.Component {
         var pay_period_display = new Date(this.props.displayed_pay_period.fields['period_start']);
         var pay_period_string_options = { month: "short", day: "2-digit", year: 'numeric' };
 
+        // Calculate week hours.
+        var week_hours = Math.trunc(this.props.week_total / this.one_hour);
+        var week_minutes = Math.trunc((this.props.week_total - (week_hours * this.one_hour)) / this.one_minute);
+
         return (
-            <div className="pay-period center">
-                <h2>Pay Period starting on { pay_period_display.toLocaleDateString('en-US', pay_period_string_options) }</h2>
-                <div>
-                    <input
-                        id="prev_pay_period_button"
-                        type="button"
-                        value="&#9204;"
-                        onClick={() => this.props.handlePrevPeriodClick() }
-                    />
-                    <input
-                        id="curr_pay_period_button"
-                        type="button"
-                        value="Current Pay Period"
-                        onClick={() => this.props.handleCurrPeriodClick() }
-                    />
-                    <input
-                        id="next_pay_period_button" type="button"
-                        value="&#9205;"
-                        onClick={() => this.props.handleNextPeriodClick() }
-                    />
-                </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Clock In</th>
-                            <th>Clock Out</th>
-                            <th>Shift Length</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        { shifts }
-                    </tbody>
-                </table>
-            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th colspan="3">{ this.props.table_title }</th>
+                    </tr>
+                    <tr>
+                        <th>Clock In</th>
+                        <th>Clock Out</th>
+                        <th>Shift Length</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    { shifts }
+                    <tr>
+                        <td colspan="3">Week Total: { week_hours } Hours { week_minutes } Minutes</td>
+                    </tr>
+                </tbody>
+            </table>
         )
     }
 }

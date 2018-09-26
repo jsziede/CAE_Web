@@ -249,12 +249,16 @@ var EmployeeShiftManager = function (_React$Component) {
 
         _this.state = {
             current_time: new Date(),
-            date_string_options: { month: "short", day: "2-digit", year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true },
+            date_string_options: { month: "short", day: "2-digit", hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true },
 
             current_pay_period: json_pay_period[0],
             displayed_pay_period: json_pay_period[0],
 
             shifts: json_shifts,
+            week_1_shifts: [],
+            week_2_shifts: [],
+            week_1_hours: 0,
+            week_2_hours: 0,
             last_shift: json_last_shift[0],
 
             current_shift_hours: -1,
@@ -290,6 +294,8 @@ var EmployeeShiftManager = function (_React$Component) {
                     }
                 });
             }
+
+            this.calculateWeeksInPayPeriod();
         }
 
         /**
@@ -354,6 +360,8 @@ var EmployeeShiftManager = function (_React$Component) {
                     current_shift_seconds: -1
                 });
             }
+
+            this.calculateHoursWorked();
         }
 
         /**
@@ -373,9 +381,11 @@ var EmployeeShiftManager = function (_React$Component) {
             // Handle incoming socket message event. Note the bind(this) to access React object state within function.
             socket.onmessage = function (message) {
                 var data = JSON.parse(message.data);
-                this.setState({ shifts: JSON.parse(data.json_shifts) });
-                this.setState({ last_shift: JSON.parse(data.json_last_shift)[0] });
-                this.setState({ displayed_pay_period: this.state.current_pay_period });
+                this.setState({
+                    shifts: JSON.parse(data.json_shifts),
+                    ast_shift: JSON.parse(data.json_last_shift)[0],
+                    displayed_pay_period: this.state.current_pay_period
+                });
             }.bind(this);
 
             // Send message to socket.
@@ -418,8 +428,11 @@ var EmployeeShiftManager = function (_React$Component) {
             // Handle incoming socket message event. Note the bind(this) to access React object state within function.
             socket.onmessage = function (message) {
                 var data = JSON.parse(message.data);
-                this.setState({ displayed_pay_period: JSON.parse(data.json_pay_period)[0] });
-                this.setState({ shifts: JSON.parse(data.json_shifts) });
+                this.setState({
+                    displayed_pay_period: JSON.parse(data.json_pay_period)[0],
+                    shifts: JSON.parse(data.json_shifts)
+                });
+                this.calculateWeeksInPayPeriod();
             }.bind(this);
 
             // Send message to socket.
@@ -431,13 +444,74 @@ var EmployeeShiftManager = function (_React$Component) {
         }
 
         /**
-         * Handle message from socket.
+         * Sorts shifts based on week in pay period.
          */
 
     }, {
-        key: 'handleData',
-        value: function handleData(data) {
-            result = JSON.parse(data);
+        key: 'calculateWeeksInPayPeriod',
+        value: function calculateWeeksInPayPeriod() {
+
+            var week_1_shifts = [];
+            var week_2_shifts = [];
+            var week_1_end = new Date(this.state.displayed_pay_period.fields['period_start']);
+
+            week_1_end = week_1_end.setDate(week_1_end.getDate() + 7);
+
+            this.state.shifts.forEach(function (shift) {
+                if (new Date(shift.fields['clock_in']).getTime() < week_1_end) {
+                    week_1_shifts.push(shift);
+                } else {
+                    week_2_shifts.push(shift);
+                }
+            });
+
+            this.setState({
+                week_1_shifts: week_1_shifts,
+                week_2_shifts: week_2_shifts
+            });
+
+            this.calculateHoursWorked();
+        }
+
+        /**
+         * Calculates total hours worked, by week.
+         */
+
+    }, {
+        key: 'calculateHoursWorked',
+        value: function calculateHoursWorked() {
+            var _this3 = this;
+
+            var shift_start;
+            var shift_end;
+            var total_time = 0;
+
+            // Calculate for week 1.
+            this.state.week_1_shifts.forEach(function (shift) {
+                console.log(total_time);
+                shift_start = new Date(shift.fields['clock_in']).getTime();
+                if (shift.fields['clock_out'] != null) {
+                    shift_end = new Date(shift.fields['clock_out']).getTime();
+                } else {
+                    shift_end = new Date(_this3.state.current_time);
+                }
+                total_time += shift_end - shift_start;
+            });
+            this.setState({ week_1_hours: total_time });
+            total_time = 0;
+
+            // Calculate for week 2.
+            this.state.week_2_shifts.forEach(function (shift) {
+                console.log(total_time);
+                shift_start = new Date(shift.fields['clock_in']).getTime();
+                if (shift.fields['clock_out'] != null) {
+                    shift_end = new Date(shift.fields['clock_out']).getTime();
+                } else {
+                    shift_end = new Date(_this3.state.current_time);
+                }
+                total_time += shift_end - shift_start;
+            });
+            this.setState({ week_2_hours: total_time });
         }
 
         /**
@@ -447,10 +521,15 @@ var EmployeeShiftManager = function (_React$Component) {
     }, {
         key: 'render',
         value: function render() {
-            var _this3 = this;
+            var _this4 = this;
 
-            var pay_period_display = new Date(this.state.displayed_pay_period.fields['period_start']);
+            var pay_period_start_display = new Date(this.state.displayed_pay_period.fields['period_start']);
+            var pay_period_end_display = new Date(this.state.displayed_pay_period.fields['period_end']);
             var pay_period_string_options = { month: "short", day: "2-digit", year: 'numeric' };
+
+            var total_time = this.state.week_1_hours + this.state.week_2_hours;
+            var total_hours = Math.trunc(total_time / this.one_hour);
+            var total_minutes = Math.trunc((total_time - total_hours * this.one_hour) / this.one_minute);
 
             // Elements to render for client.
             return React.createElement(
@@ -464,25 +543,75 @@ var EmployeeShiftManager = function (_React$Component) {
                     shift_seconds: this.state.current_shift_seconds,
                     date_string_options: this.state.date_string_options,
                     onClick: function onClick() {
-                        return _this3.handleShiftClick();
+                        return _this4.handleShiftClick();
                     }
                 }),
-                React.createElement(_pay_period2.default, {
-                    date_string_options: this.state.date_string_options,
-                    displayed_pay_period: this.state.displayed_pay_period,
-                    shifts: this.state.shifts,
-                    current_shift_hours: this.state.current_shift_hours,
-                    current_shift_minutes: this.state.current_shift_minutes,
-                    handlePrevPeriodClick: function handlePrevPeriodClick() {
-                        return _this3.handlePrevPeriodClick();
-                    },
-                    handleCurrPeriodClick: function handleCurrPeriodClick() {
-                        return _this3.handleCurrPeriodClick();
-                    },
-                    handleNextPeriodClick: function handleNextPeriodClick() {
-                        return _this3.handleNextPeriodClick();
-                    }
-                })
+                React.createElement(
+                    'div',
+                    { className: 'pay-period center' },
+                    React.createElement(
+                        'h2',
+                        null,
+                        'Pay Period of\xA0',
+                        pay_period_start_display.toLocaleDateString('en-US', pay_period_string_options),
+                        '\xA0Through\xA0',
+                        pay_period_end_display.toLocaleDateString('en-US', pay_period_string_options)
+                    ),
+                    React.createElement(
+                        'div',
+                        null,
+                        React.createElement('input', {
+                            id: 'prev_pay_period_button',
+                            type: 'button',
+                            value: '\u23F4',
+                            onClick: function onClick() {
+                                return _this4.handlePrevPeriodClick();
+                            }
+                        }),
+                        React.createElement('input', {
+                            id: 'curr_pay_period_button',
+                            type: 'button',
+                            value: 'Current Pay Period',
+                            onClick: function onClick() {
+                                return _this4.handleCurrPeriodClick();
+                            }
+                        }),
+                        React.createElement('input', {
+                            id: 'next_pay_period_button', type: 'button',
+                            value: '\u23F5',
+                            onClick: function onClick() {
+                                return _this4.handleNextPeriodClick();
+                            }
+                        })
+                    ),
+                    React.createElement(
+                        'p',
+                        null,
+                        'Total Pay Period Hours: ',
+                        total_hours,
+                        ' Hours ',
+                        total_minutes,
+                        ' Minutes'
+                    ),
+                    React.createElement(_pay_period2.default, {
+                        table_title: 'Week 1',
+                        displayed_pay_period: this.state.displayed_pay_period,
+                        shifts: this.state.week_1_shifts,
+                        current_shift_hours: this.state.current_shift_hours,
+                        current_shift_minutes: this.state.current_shift_minutes,
+                        week_total: this.state.week_1_hours,
+                        date_string_options: this.state.date_string_options
+                    }),
+                    React.createElement(_pay_period2.default, {
+                        table_title: 'Week 2',
+                        displayed_pay_period: this.state.displayed_pay_period,
+                        shifts: this.state.week_2_shifts,
+                        current_shift_hours: this.state.current_shift_hours,
+                        current_shift_minutes: this.state.current_shift_minutes,
+                        week_total: this.state.week_2_hours,
+                        date_string_options: this.state.date_string_options
+                    })
+                )
             );
         }
     }]);
@@ -549,7 +678,13 @@ var EmployeeShiftManager = function (_React$Component) {
     function EmployeeShiftManager(props) {
         _classCallCheck(this, EmployeeShiftManager);
 
-        return _possibleConstructorReturn(this, (EmployeeShiftManager.__proto__ || Object.getPrototypeOf(EmployeeShiftManager)).call(this, props));
+        // Static variables.
+        var _this = _possibleConstructorReturn(this, (EmployeeShiftManager.__proto__ || Object.getPrototypeOf(EmployeeShiftManager)).call(this, props));
+
+        _this.one_second = 1000;
+        _this.one_minute = 60 * _this.one_second;
+        _this.one_hour = 60 * _this.one_minute;
+        return _this;
     }
 
     /**
@@ -588,72 +723,61 @@ var EmployeeShiftManager = function (_React$Component) {
             var pay_period_display = new Date(this.props.displayed_pay_period.fields['period_start']);
             var pay_period_string_options = { month: "short", day: "2-digit", year: 'numeric' };
 
+            // Calculate week hours.
+            var week_hours = Math.trunc(this.props.week_total / this.one_hour);
+            var week_minutes = Math.trunc((this.props.week_total - week_hours * this.one_hour) / this.one_minute);
+
             return React.createElement(
-                'div',
-                { className: 'pay-period center' },
+                'table',
+                null,
                 React.createElement(
-                    'h2',
-                    null,
-                    'Pay Period starting on ',
-                    pay_period_display.toLocaleDateString('en-US', pay_period_string_options)
-                ),
-                React.createElement(
-                    'div',
-                    null,
-                    React.createElement('input', {
-                        id: 'prev_pay_period_button',
-                        type: 'button',
-                        value: '\u23F4',
-                        onClick: function onClick() {
-                            return _this2.props.handlePrevPeriodClick();
-                        }
-                    }),
-                    React.createElement('input', {
-                        id: 'curr_pay_period_button',
-                        type: 'button',
-                        value: 'Current Pay Period',
-                        onClick: function onClick() {
-                            return _this2.props.handleCurrPeriodClick();
-                        }
-                    }),
-                    React.createElement('input', {
-                        id: 'next_pay_period_button', type: 'button',
-                        value: '\u23F5',
-                        onClick: function onClick() {
-                            return _this2.props.handleNextPeriodClick();
-                        }
-                    })
-                ),
-                React.createElement(
-                    'table',
+                    'thead',
                     null,
                     React.createElement(
-                        'thead',
+                        'tr',
                         null,
                         React.createElement(
-                            'tr',
-                            null,
-                            React.createElement(
-                                'th',
-                                null,
-                                'Clock In'
-                            ),
-                            React.createElement(
-                                'th',
-                                null,
-                                'Clock Out'
-                            ),
-                            React.createElement(
-                                'th',
-                                null,
-                                'Shift Length'
-                            )
+                            'th',
+                            { colspan: '3' },
+                            this.props.table_title
                         )
                     ),
                     React.createElement(
-                        'tbody',
+                        'tr',
                         null,
-                        shifts
+                        React.createElement(
+                            'th',
+                            null,
+                            'Clock In'
+                        ),
+                        React.createElement(
+                            'th',
+                            null,
+                            'Clock Out'
+                        ),
+                        React.createElement(
+                            'th',
+                            null,
+                            'Shift Length'
+                        )
+                    )
+                ),
+                React.createElement(
+                    'tbody',
+                    null,
+                    shifts,
+                    React.createElement(
+                        'tr',
+                        null,
+                        React.createElement(
+                            'td',
+                            { colspan: '3' },
+                            'Week Total: ',
+                            week_hours,
+                            ' Hours ',
+                            week_minutes,
+                            ' Minutes'
+                        )
                     )
                 )
             );

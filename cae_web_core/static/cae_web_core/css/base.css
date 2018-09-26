@@ -40,7 +40,9 @@
   min-width: 90%; }
   @media only screen and (min-width: 869px) {
     #content.cae-web .pay-period table {
-      min-width: 400px; } }
+      min-width: 50%; } }
+  #content.cae-web .pay-period table tr, #content.cae-web .pay-period table td {
+    width: 33.33%; }
 
 #content.cae-web .current-shift {
   border: 1px solid #cccccc; }
