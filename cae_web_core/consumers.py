@@ -51,6 +51,8 @@ class MyHoursConsumer(JsonWebsocketConsumer):
         """
         # Grab user.
         user = self.scope['user']
+
+        # Check for valid pay periods.
         populate_pay_periods()
 
         # Attempt to get "shift_submit" value. Defaults to None.

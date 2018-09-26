@@ -105,7 +105,7 @@ def my_hours(request):
     """
     Employee shift page for an individual.
     """
-    # First check for valid pay periods.
+    # Check for valid pay periods.
     populate_pay_periods()
 
     # Pull models from database.
@@ -157,6 +157,7 @@ def my_hours(request):
         'json_shifts': json_shifts,
         'json_last_shift': json_last_shift,
     })
+
 
 #endregion Employee Views
 
