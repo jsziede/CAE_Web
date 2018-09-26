@@ -10,6 +10,7 @@ from faker import Faker
 from random import randint
 
 from apps.CAE_Web.cae_web_core import models
+from apps.CAE_Web.cae_web_core.views import populate_pay_periods
 from cae_home import models as cae_home_models
 
 
@@ -40,50 +41,19 @@ class Command(BaseCommand):
             model_count = 100
 
         print('\nCAE_WEB_CORE: Seed command has been called.')
-        self.create_pay_periods(model_count)
+        self.create_pay_periods()
         self.create_employee_shifts(model_count)
         self.create_room_events(model_count)
 
         print('CAE_WEB_CORE: Seeding complete.')
 
-    def create_pay_periods(self, model_count):
+    def create_pay_periods(self):
         """
         Create Pay Period models.
+        Uses "auto population" method in views. Should create from 5-25-2015 up to a pay period after current date.
         """
-        # Generate random data.
-        faker_factory = Faker()
-
-        # Count number of models already created.
-        pre_initialized_count = len(models.PayPeriod.objects.all())
-
-        # First pay period with valid shift data, in production database. Starting here for consistency.
-        date_holder = datetime.datetime.strptime('2015 05 25 00 00 00', '%Y %m %d %H %M %S')
-
-        # Check that time is daylight savings compliant.
-        date_holder = self.normalize_for_daylight_savings(date_holder)
-
-        # Generate models equal to model count.
-        for i in range(model_count - pre_initialized_count):
-            models.PayPeriod.objects.create(
-                period_start=date_holder,
-            )
-            date_holder = date_holder + timezone.timedelta(days=14)
-            date_holder = self.normalize_for_daylight_savings(date_holder)
+        populate_pay_periods()
         print('Populated pay period models.')
-
-    def normalize_for_daylight_savings(self, date_holder):
-        """
-        Checks and normalizes for daylight savings.
-        We want the date to always be midnight, regardless of time of year.
-        """
-        # First get local server timezone.
-        server_timezone = pytz.timezone('America/Detroit')
-
-        # Then localize the given date, ignoring timezone info if provided.
-        # (We don't want the timezone adjustment for midnight. We want actual midnight, unconditionally.)
-        date_holder_with_timezone = server_timezone.localize(date_holder.replace(tzinfo=None))
-
-        return date_holder_with_timezone
 
     def create_employee_shifts(self, model_count):
         """

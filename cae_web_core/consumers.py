@@ -19,6 +19,7 @@ from django.utils import timezone
 
 # User Class Imports.
 from . import models
+from .views import populate_pay_periods
 from cae_home import models as cae_home_models
 
 
@@ -50,6 +51,7 @@ class MyHoursConsumer(JsonWebsocketConsumer):
         """
         # Grab user.
         user = self.scope['user']
+        populate_pay_periods()
 
         # Attempt to get "shift_submit" value. Defaults to None.
         shift_submit = content.get('shift_submit', None)

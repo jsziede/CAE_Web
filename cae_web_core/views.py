@@ -3,7 +3,7 @@ Views for CAE_Web Core App.
 """
 
 # System Imports.
-import dateutil.parser, json, pytz
+import datetime, dateutil.parser, json, pytz
 from django.core import serializers
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
@@ -19,7 +19,74 @@ from cae_home.models import Room
 
 #region Standard Methods
 
+def populate_pay_periods():
+    """
+    Handles creation of pay periods. Should be called any time a pay period is accessed in a view, prior to view logic.
 
+    This checks if a valid (pay_period + 1) is present for the current date.
+        If so, it does nothing.
+        If not, then it populates new pay periods from last one found, to one pay period past present date.
+
+        On the chance that no pay periods are found, then populates starting from 05-25-2015 (the first known valid pay
+        period in production data, as of writing this).
+
+    Note: Checks for (pay_period + 1) to guarantee no errors, even on the unlikely case of a user loading a view just as
+    the pay period changes over.
+    """
+    pay_period_found = True
+    current_time = timezone.now()
+    plus_1_time = current_time + timezone.timedelta(days=14)
+
+    # Check for current pay period.
+    try:
+        models.PayPeriod.objects.get(period_start__lte=current_time, period_end__gte=current_time)
+
+        # Check for current pay period + 1.
+        try:
+            models.PayPeriod.objects.get(period_start__lte=plus_1_time, period_end__gte=plus_1_time)
+        except ObjectDoesNotExist:
+            pay_period_found = False
+    except ObjectDoesNotExist:
+        pay_period_found = False
+
+    # If both pay periods were not found, create new pay periods.
+    if not pay_period_found:
+        last_pay_period = models.PayPeriod.objects.all().last()
+
+        # If no pay periods found, manually create first one at 5-25-2015.
+        if last_pay_period is None:
+            date_holder = datetime.datetime.strptime('2015 05 25 00 00 00', '%Y %m %d %H %M %S')
+            date_holder = normalize_for_daylight_savings(date_holder)
+            last_pay_period = models.PayPeriod.objects.create(period_start=date_holder)
+
+        # Check that time is daylight savings compliant.
+        date_holder = normalize_for_daylight_savings(last_pay_period.period_start)
+
+        # Continue until pay_period + 1 is created.
+        while not ((last_pay_period.period_start < plus_1_time) and (last_pay_period.period_end > plus_1_time)):
+            date_holder = normalize_for_daylight_savings(date_holder + timezone.timedelta(14))
+            last_pay_period = models.PayPeriod.objects.create(period_start=date_holder)
+
+
+def normalize_for_daylight_savings(date_holder, timezone_instance='America/Detroit'):
+    """
+    Checks and normalizes for daylight savings.
+    We want the date to always be midnight, regardless of time of year.
+    :param date_holder: Should always be an instance of midnight.
+    :return: The same date, set to local time midnight, regardless of daylight savings.
+    """
+    # First get local server timezone.
+    server_timezone = pytz.timezone('America/Detroit')
+
+    # Convert to local server time if not naive and in non-local timezone.
+    if timezone_instance != 'America/Detroit':
+        date_holder = server_timezone.normalize(date_holder.astimezone(server_timezone))
+
+    # Then localize the given date, ignoring timezone info if provided.
+    # (We don't want the timezone adjustment for midnight. We want actual midnight, unconditionally.)
+    date_holder_with_timezone = server_timezone.localize(date_holder.replace(tzinfo=None))
+
+    return date_holder_with_timezone
 
 #endregion Standard Methods
 
@@ -38,6 +105,9 @@ def my_hours(request):
     """
     Employee shift page for an individual.
     """
+    # First check for valid pay periods.
+    populate_pay_periods()
+
     # Pull models from database.
     current_time = timezone.now()
     user_timezone = pytz.timezone(request.user.profile.user_timezone)
@@ -69,11 +139,17 @@ def my_hours(request):
         fields=('clock_in', 'clock_out',)
     )
 
-    json_last_shift = serializers.serialize(
-        'json',
-        [last_shift],
-        fields=('clock_in', 'clock_out',)
-    )
+    if last_shift is not None:
+        json_last_shift = serializers.serialize(
+            'json',
+            [last_shift],
+            fields=('clock_in', 'clock_out',)
+        )
+    else:
+        json_last_shift = serializers.serialize(
+            'json',
+            [],
+        )
 
     # Send to template for user display.
     return TemplateResponse(request, 'cae_web_core/employee/my_hours.html', {
