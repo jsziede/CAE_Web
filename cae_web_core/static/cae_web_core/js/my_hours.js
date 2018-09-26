@@ -261,9 +261,9 @@ var EmployeeShiftManager = function (_React$Component) {
             week_2_hours: 0,
             last_shift: json_last_shift[0],
 
-            current_shift_hours: -1,
-            current_shift_minutes: -1,
-            current_shift_seconds: -1
+            current_shift_hours: 0,
+            current_shift_minutes: 0,
+            current_shift_seconds: 0
         };
 
         // Static variables.
@@ -355,13 +355,13 @@ var EmployeeShiftManager = function (_React$Component) {
             } else {
                 // Reset all trackers if currently set.
                 this.setState({
-                    current_shift_hours: -1,
-                    current_shift_minutes: -1,
-                    current_shift_seconds: -1
+                    current_shift_hours: 0,
+                    current_shift_minutes: 0,
+                    current_shift_seconds: 0
                 });
             }
 
-            this.calculateHoursWorked();
+            this.calculateWeeksInPayPeriod();
         }
 
         /**
@@ -383,7 +383,7 @@ var EmployeeShiftManager = function (_React$Component) {
                 var data = JSON.parse(message.data);
                 this.setState({
                     shifts: JSON.parse(data.json_shifts),
-                    ast_shift: JSON.parse(data.json_last_shift)[0],
+                    last_shift: JSON.parse(data.json_last_shift)[0],
                     displayed_pay_period: this.state.current_pay_period
                 });
             }.bind(this);
@@ -488,7 +488,6 @@ var EmployeeShiftManager = function (_React$Component) {
 
             // Calculate for week 1.
             this.state.week_1_shifts.forEach(function (shift) {
-                console.log(total_time);
                 shift_start = new Date(shift.fields['clock_in']).getTime();
                 if (shift.fields['clock_out'] != null) {
                     shift_end = new Date(shift.fields['clock_out']).getTime();
@@ -502,7 +501,6 @@ var EmployeeShiftManager = function (_React$Component) {
 
             // Calculate for week 2.
             this.state.week_2_shifts.forEach(function (shift) {
-                console.log(total_time);
                 shift_start = new Date(shift.fields['clock_in']).getTime();
                 if (shift.fields['clock_out'] != null) {
                     shift_end = new Date(shift.fields['clock_out']).getTime();
@@ -738,7 +736,7 @@ var EmployeeShiftManager = function (_React$Component) {
                         null,
                         React.createElement(
                             'th',
-                            { colspan: '3' },
+                            { colSpan: '3' },
                             this.props.table_title
                         )
                     ),
@@ -771,7 +769,7 @@ var EmployeeShiftManager = function (_React$Component) {
                         null,
                         React.createElement(
                             'td',
-                            { colspan: '3' },
+                            { colSpan: '3' },
                             'Week Total: ',
                             week_hours,
                             ' Hours ',

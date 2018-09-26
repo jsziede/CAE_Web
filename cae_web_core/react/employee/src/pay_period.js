@@ -63,7 +63,7 @@ class EmployeeShiftManager extends React.Component {
             <table>
                 <thead>
                     <tr>
-                        <th colspan="3">{ this.props.table_title }</th>
+                        <th colSpan="3">{ this.props.table_title }</th>
                     </tr>
                     <tr>
                         <th>Clock In</th>
@@ -74,7 +74,7 @@ class EmployeeShiftManager extends React.Component {
                 <tbody>
                     { shifts }
                     <tr>
-                        <td colspan="3">Week Total: { week_hours } Hours { week_minutes } Minutes</td>
+                        <td colSpan="3">Week Total: { week_hours } Hours { week_minutes } Minutes</td>
                     </tr>
                 </tbody>
             </table>

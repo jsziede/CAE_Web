@@ -42,6 +42,7 @@
         @include align-items(center);
 
         padding-bottom: 15px;
+        margin-top: 10px;
 
         .time-display {
             @include display-flex;

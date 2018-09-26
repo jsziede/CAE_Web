@@ -12,7 +12,8 @@
   -moz-align-items: center;
   -ms-align-items: center;
   align-items: center;
-  padding-bottom: 15px; }
+  padding-bottom: 15px;
+  margin-top: 10px; }
   #content.cae-web .current-shift .time-display {
     display: -webkit-box;
     display: -moz-box;
