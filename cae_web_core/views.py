@@ -77,11 +77,8 @@ def my_hours(request):
 
     # Send to template for user display.
     return TemplateResponse(request, 'cae_web_core/employee/my_hours.html', {
-        'pay_period': pay_period,
         'json_pay_period': json_pay_period,
-        'shifts': shifts,
         'json_shifts': json_shifts,
-        'last_shift': last_shift,
         'json_last_shift': json_last_shift,
     })
 
