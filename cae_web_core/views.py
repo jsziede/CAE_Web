@@ -4,11 +4,14 @@ Views for CAE_Web Core App.
 
 # System Imports.
 import datetime, dateutil.parser, json, pytz
+from django.contrib.auth import get_user_model
 from django.core import serializers
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from django.http.response import JsonResponse
 from django.template.response import TemplateResponse
+from django.shortcuts import get_object_or_404, redirect
 from django.utils import timezone
 from django.utils.html import format_html
 
@@ -158,6 +161,58 @@ def my_hours(request):
         'json_last_shift': json_last_shift,
     })
 
+
+@login_required
+def shift_manager_redirect(request):
+    """
+    Redirects to shift of current date. Used in app nav.
+    """
+    # Check for valid pay periods.
+    populate_pay_periods()
+
+    pay_period_count = models.PayPeriod.objects.count()
+
+    return redirect('cae_web_core:shift_manager', pk=(pay_period_count - 1))
+
+
+@login_required
+def shift_manager(request, pk):
+    """
+    Page to view, manage, and print all shifts in a given pay period.
+    """
+    # Check for valid pay periods.
+    populate_pay_periods()
+
+    # Pull models from database.
+    pay_period = get_object_or_404(models.PayPeriod, pk=pk)
+    complex_query = (
+        (
+            Q(groups__name='CAE Attendant') | Q(groups__name='CAE Admin') | Q(groups__name='CAE Programmer')
+        )
+        & Q(is_active=True)
+    )
+    users = get_user_model().objects.filter(complex_query).order_by('last_name', 'first_name')
+    shifts = models.EmployeeShift.objects.filter(pay_period=pay_period, employee__in=users)
+
+    # Determine pay period pks.
+    pay_period_count = models.PayPeriod.objects.count()
+
+    prev_pay_period = int(pk) - 1
+    if prev_pay_period < 1:
+        prev_pay_period = pay_period_count
+    curr_pay_period = pay_period_count - 1
+    next_pay_period = int(pk) + 1
+    if next_pay_period > pay_period_count:
+        next_pay_period = 1
+
+    return TemplateResponse(request, 'cae_web_core/employee/shift_manager.html', {
+        'users': users,
+        'pay_period': pay_period,
+        'shifts': shifts,
+        'prev_pay_period': prev_pay_period,
+        'curr_pay_period': curr_pay_period,
+        'next_pay_period': next_pay_period,
+    })
 
 #endregion Employee Views
 

@@ -2,6 +2,7 @@
 Models for CAE Web Core app.
 """
 
+import math
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -115,6 +116,43 @@ class EmployeeShift(models.Model):
         # Save model.
         self.full_clean()
         super(EmployeeShift, self).save(*args, **kwargs)
+
+    def get_time_worked(self):
+        """
+        Calculates total time worked, both total seconds and h/m/s.
+        :return: Tuple of (total_seconds, (hours, minutes, seconds)) worked.
+        """
+        return self.clock_out.timestamp() - self.clock_in.timestamp()
+
+    def get_time_worked_as_decimal(self, total_seconds=None):
+        """
+        Gets hours worked, in decimal format.
+        :param total_seconds:
+        :return: Decimal of hours worked.
+        """
+        # Populate seconds if none was provided.
+        if total_seconds is None:
+            total_seconds = self.get_time_worked()
+
+        return round((total_seconds / 60 / 60), 2)
+
+    def get_time_worked_as_hms(self, total_seconds=None):
+        """
+        Gets hours worked, in h/m/s format.
+        :param total_seconds: Total time worked in seconds. Defaults
+        :return: Tuple of hours, minutes, and seconds worked.
+        """
+        # Populate seconds if none was provided.
+        if total_seconds is None:
+            total_seconds = self.get_time_worked()
+
+        total_minutes = total_seconds / 60
+        total_hours = total_minutes / 60
+        hours = math.trunc(total_hours)
+        minutes = math.trunc(total_minutes - (hours * 60))
+        seconds = math.trunc(total_seconds - (minutes * 60) - (hours * 60 * 60))
+
+        return (hours, minutes, seconds)
 
 
 class RoomEvent(models.Model):

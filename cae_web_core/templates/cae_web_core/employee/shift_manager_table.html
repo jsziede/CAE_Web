@@ -1,0 +1,39 @@
+{% load cae_web_core_tags %}
+
+{% if display_only_web %}
+  <table class="display-only-web">
+{% else %}
+  <table class="display-only-print">
+{% endif %}
+  <thead>
+    {% if week_start and week_end %}
+      <tr>
+        <th colspan="4">
+          Week totals for {{ week_start|date:'M d, Y' }} - {{ week_end|date:'M d, Y' }}
+        </th>
+      </tr>
+    {% endif %}
+    <tr>
+      <th>Time In</th>
+      <th>Time Out</th>
+      <th>Hours/Minutes/Seconds</th>
+      <th>Time Paid</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for shift in shifts %}
+        <tr>
+          <td>{{ shift.clock_in }}</td>
+          <td>{{ shift.clock_out }}</td>
+          <td>{% print_time_worked_as_hms shift %}</td>
+          <td>{% print_time_worked_as_decimal shift %}</td>
+        </tr>
+    {% endfor %}
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="3">{{ week_hms.0 }} Hours &nbsp; {{ week_hms.1 }} Minutes &nbsp; {{ week_hms.2 }} Seconds</td>
+      <td>{{ week_decimal }}</td>
+    </tr>
+  </tfoot>
+</table>

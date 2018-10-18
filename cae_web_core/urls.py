@@ -14,6 +14,8 @@ urlpatterns = [
 
     # Employee Shift views.
     url(r'^employee/my_hours/$', views.my_hours, name='my_hours'),
+    url(r'^employee/shift_manager/$', views.shift_manager_redirect, name='shift_manager_redirect'),
+    url(r'^employee/shift_manager/(?P<pk>[0-9]+)/$', views.shift_manager, name='shift_manager'),
 
     # Room scheduler views.
     # TODO: Note, these schedule api urls are public. Should they be permission based?
