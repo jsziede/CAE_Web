@@ -4,6 +4,7 @@ Models for CAE Web Work Log app.
 
 from django.contrib.auth.models import Group
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 
@@ -96,7 +97,7 @@ class WorkLogEntry(models.Model):
     """
     # Relationship keys.
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    log_set = models.ForeignKey('WorkLogSet', on_delete=models.CASCADE)
+    log_set = models.ForeignKey('WorkLogSet', blank=True, on_delete=models.CASCADE)
 
     # Model fields.
     entry_date = models.DateField()
@@ -120,6 +121,27 @@ class WorkLogEntry(models.Model):
         """
         Custom cleaning implementation. Includes validation, setting fields, etc.
         """
+        # Automatically choose log_set if none provided. Defaults to weekly.
+        if not hasattr(self, 'log_set'):
+            valid_log_groups = [
+                Group.objects.get(name='CAE Admin'),
+                Group.objects.get(name='CAE Programmer'),
+            ]
+            user_log_group = None
+            for group in self.user.groups.all():
+                if group in valid_log_groups:
+                    user_log_group = group
+
+            timeframe_type = TimeFrameType.objects.get(name=TimeFrameType.WEEKLY)
+            if user_log_group is not None:
+                self.log_set = WorkLogSet.objects.filter(timeframe_type=timeframe_type).filter(group=user_log_group).first()
+            else:
+                raise ValidationError(
+                    'User group not set to one of {0}. Could not automatically assign log set. Please manually select a'
+                    'log set.'.format(valid_log_groups)
+                )
+
+        # Determine date values based on associated log_set timeframe.
         log_type = str(self.log_set.timeframe_type.full_name())
 
         # Don't modify log date on daily. On all others, set date to start of given timeframe period.
