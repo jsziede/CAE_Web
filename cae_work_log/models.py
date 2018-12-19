@@ -1,5 +1,5 @@
 """
-Models for CAE Web Work Log app.
+Models for CAE Work Log app.
 """
 
 from django.contrib.auth.models import Group

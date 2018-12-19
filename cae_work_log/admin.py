@@ -1,5 +1,5 @@
 """
-Admin views for CAE Web Work Log app.
+Admin views for CAE Work Log app.
 """
 
 from django.contrib import admin

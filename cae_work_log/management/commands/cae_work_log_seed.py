@@ -10,7 +10,7 @@ from django.utils import timezone
 from faker import Faker
 from random import randint
 
-from apps.CAE_Web.cae_web_work_log import models
+from apps.CAE_Web.cae_work_log import models
 from cae_home import models as cae_home_models
 
 
