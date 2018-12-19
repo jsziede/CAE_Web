@@ -5,7 +5,7 @@
     "fields": {
         "group": 6,
         "timeframe_type": 1,
-        "description": "Set of Daily CAE Programmer work logs.",
+        "description": "Daily CAE Programmer work logs.",
         "date_created": "2018-11-18T01:10:11.905Z",
         "date_modified": "2018-11-18T01:10:11.905Z"
     }
@@ -16,7 +16,7 @@
     "fields": {
         "group": 6,
         "timeframe_type": 2,
-        "description": "Set of Weekly CAE Programmer work logs.",
+        "description": "Weekly CAE Programmer work logs.",
         "date_created": "2018-11-18T01:10:11.905Z",
         "date_modified": "2018-11-18T01:10:11.905Z"
     }
@@ -27,7 +27,7 @@
     "fields": {
         "group": 6,
         "timeframe_type": 3,
-        "description": "Set of Monthly CAE Programmer work logs.",
+        "description": "Monthly CAE Programmer work logs.",
         "date_created": "2018-11-18T01:10:11.905Z",
         "date_modified": "2018-11-18T01:10:11.905Z"
     }
@@ -38,7 +38,7 @@
     "fields": {
         "group": 6,
         "timeframe_type": 4,
-        "description": "Set of Yearly CAE Programmer work logs.",
+        "description": "Yearly CAE Programmer work logs.",
         "date_created": "2018-11-18T01:10:11.905Z",
         "date_modified": "2018-11-18T01:10:11.905Z"
     }
@@ -49,7 +49,7 @@
     "fields": {
         "group": 5,
         "timeframe_type": 1,
-        "description": "Set of Daily CAE Admin work logs.",
+        "description": "Daily CAE Admin work logs.",
         "date_created": "2018-11-18T01:10:11.905Z",
         "date_modified": "2018-11-18T01:10:11.905Z"
     }
@@ -60,7 +60,7 @@
     "fields": {
         "group": 5,
         "timeframe_type": 2,
-        "description": "Set of Weekly CAE Admin work logs.",
+        "description": "Weekly CAE Admin work logs.",
         "date_created": "2018-11-18T01:10:11.905Z",
         "date_modified": "2018-11-18T01:10:11.905Z"
     }
@@ -71,7 +71,7 @@
     "fields": {
         "group": 5,
         "timeframe_type": 3,
-        "description": "Set of Monthly CAE Admin work logs.",
+        "description": "Monthly CAE Admin work logs.",
         "date_created": "2018-11-18T01:10:11.905Z",
         "date_modified": "2018-11-18T01:10:11.905Z"
     }
@@ -82,7 +82,7 @@
     "fields": {
         "group": 5,
         "timeframe_type": 4,
-        "description": "Set of Yearly CAE Admin work logs.",
+        "description": "Yearly CAE Admin work logs.",
         "date_created": "2018-11-18T01:10:11.905Z",
         "date_modified": "2018-11-18T01:10:11.905Z"
     }
