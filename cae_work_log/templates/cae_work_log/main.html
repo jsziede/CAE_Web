@@ -1,0 +1,22 @@
+{% extends 'cae_home/base.html' %}
+{% load staticfiles %}
+
+
+{% block title_site_name %}{% block title_app_name %}CAE Work Log{% endblock title_app_name %} | CAE Web{% endblock title_site_name %}
+
+
+{% block header %}
+  {% include 'cae_home/header.html' with app_nav='cae_web_core/app_nav.html' %}
+{% endblock header %}
+
+
+{% block extra_styles %}
+  <link rel="stylesheet" type="text/css" href="{% static 'cae_work_log/css/base.css' %}">
+{% endblock extra_styles %}
+
+
+{% block main %}
+  <main id="content" class="cae-work-log">
+    {% block content %}{% endblock content %}
+  </main>
+{% endblock %}

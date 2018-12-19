@@ -80,7 +80,7 @@ class WorkLogSet(models.Model):
         """
         Custom cleaning implementation. Includes validation, setting fields, etc.
         """
-        self.description = 'Set of {0} {1} work logs.'.format(self.timeframe_type.full_name(), self.group)
+        self.description = '{0} {1} work logs.'.format(self.timeframe_type.full_name(), self.group)
 
     def save(self, *args, **kwargs):
         """
@@ -113,6 +113,7 @@ class WorkLogEntry(models.Model):
         unique_together = (
             ('user', 'log_set', 'entry_date'),
         )
+        ordering = ('-entry_date', 'user',)
 
     def __str__(self):
         return '{0} {1}'.format(self.user, self.entry_date)
@@ -159,4 +160,3 @@ class WorkLogEntry(models.Model):
         # Save model.
         self.full_clean()
         super(WorkLogEntry, self).save(*args, **kwargs)
-
