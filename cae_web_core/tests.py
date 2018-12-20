@@ -268,22 +268,26 @@ class CAEWebCoreMiscTests(TestCase):
     """
     Misc CAE Web Core tests that don't fit into other classes.
     """
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.utc_timezone = pytz.timezone('UTC')
+        cls.server_timezone = pytz.timezone('America/Detroit')
+
     def test_normalize_for_daylight_savings(self):
         # As long as we pass midnight, this should always return local time midnight.
-        utc_timezone = pytz.timezone('UTC')
-        server_timezone = pytz.timezone('America/Detroit')
 
         # Test naive time.
         date_holder = datetime.datetime.strptime('2015 05 25 00 00 00', '%Y %m %d %H %M %S')
         normalized_date = normalize_for_daylight_savings(date_holder)
         self.assertEqual(normalized_date.replace(tzinfo=None), date_holder)
-        self.assertEqual(normalized_date, server_timezone.localize(date_holder))
+        self.assertEqual(normalized_date, self.server_timezone.localize(date_holder))
         self.assertEqual(normalized_date.hour, 0)
         self.assertEqual(normalized_date.minute, 0)
 
         # Test local timezone aware time.
         current_time = timezone.now()
-        date_holder = server_timezone.normalize(current_time.astimezone(server_timezone))
+        date_holder = self.server_timezone.normalize(current_time.astimezone(self.server_timezone))
         date_holder = date_holder.replace(hour=0, minute=0, second=0, microsecond=0)
         normalized_date = normalize_for_daylight_savings(date_holder)
         self.assertEqual(normalized_date.replace(tzinfo=None), date_holder.replace(tzinfo=None))
@@ -299,40 +303,79 @@ class CAEWebCoreMiscTests(TestCase):
         self.assertEqual(normalized_date.minute, 0)
 
     def test_populate_pay_periods(self):
-        # Auto create pay periods.
-        populate_pay_periods()
 
-        # Test first pay period.
-        date_start = datetime.datetime.strptime('2015 05 25 00 00 00', '%Y %m %d %H %M %S')
-        date_start = normalize_for_daylight_savings(date_start)
-        date_end = date_start + timezone.timedelta(days=14) - timezone.timedelta(milliseconds=1)
-        first_pay_period = models.PayPeriod.objects.last()
-        self.assertEqual(first_pay_period.period_start, date_start)
-        self.assertEqual(first_pay_period.period_end, date_end)
+        # Loop through twice.
+        # First test generating with clean slate.
+        # Then test generating with some periods already populated.
+        index = 0
+        deletion_count = 0
+        while index < 2:
+            if index is 1:
+                # On second loop through, delete and recreate first 5 pay periods.
+                while deletion_count < 5:
+                    last_pay_period = models.PayPeriod.objects.first()
+                    last_pay_period.delete()
+                    deletion_count += 1
+            index += 1
 
-        # Test current pay period.
-        date_start = timezone.now()
-        current_pay_period = models.PayPeriod.objects.get(period_start__lte=date_start, period_end__gte=date_start)
-        self.assertIsNotNone(current_pay_period)
-        self.assertIsNotNone(current_pay_period.period_start)
-        self.assertIsNotNone(current_pay_period.period_end)
+            # Auto create pay periods.
+            populate_pay_periods()
 
-        # Test last pay period (should be one after current).
-        date_start = normalize_for_daylight_savings(
-            current_pay_period.period_start + timezone.timedelta(days=14),
-            timezone_instance='UTC',
-        )
-        date_end = normalize_for_daylight_savings(
-            current_pay_period.period_end + timezone.timedelta(days=14),
-            timezone_instance='UTC',
-        )
-        last_pay_period = models.PayPeriod.objects.first()
-        current_pay_period_plus_1 = models.PayPeriod.objects.get(period_start=date_start, period_end=date_end)
-        self.assertEqual(last_pay_period, current_pay_period_plus_1)
+            # Test first pay period.
+            date_start = datetime.datetime.strptime('2015 05 25 00 00 00', '%Y %m %d %H %M %S')
+            date_start = normalize_for_daylight_savings(date_start)
+            date_end = date_start + timezone.timedelta(days=14) - timezone.timedelta(milliseconds=1)
+            first_pay_period = models.PayPeriod.objects.last()
+            self.assertEqual(first_pay_period.period_start, date_start)
+            self.assertEqual(first_pay_period.period_end, date_end)
+            # Test first pay period start values.
+            self.assertEqual(first_pay_period.period_start.tzinfo, self.utc_timezone)
+            pay_period_start = self.server_timezone.normalize(first_pay_period.period_start.astimezone(self.server_timezone))
+            self.assertEqual(pay_period_start.tzinfo.zone, self.server_timezone.zone)
+            self.assertEqual(pay_period_start.hour, 0)
+            self.assertEqual(pay_period_start.minute, 0)
+            self.assertEqual(pay_period_start.second, 0)
+            self.assertEqual(pay_period_start.microsecond, 0)
 
-        # Finally, check that there are at least 85 pay periods (this will only grow with time).
-        pay_periods = models.PayPeriod.objects.all()
-        self.assertGreater(len(pay_periods), 85)
+            # Test current pay period.
+            date_start = timezone.now()
+            current_pay_period = models.PayPeriod.objects.get(period_start__lte=date_start, period_end__gte=date_start)
+            self.assertIsNotNone(current_pay_period)
+            self.assertIsNotNone(current_pay_period.period_start)
+            self.assertIsNotNone(current_pay_period.period_end)
+            # Test current pay period start values.
+            self.assertEqual(current_pay_period.period_start.tzinfo, self.utc_timezone)
+            pay_period_start = self.server_timezone.normalize(current_pay_period.period_start.astimezone(self.server_timezone))
+            self.assertEqual(pay_period_start.tzinfo.zone, self.server_timezone.zone)
+            self.assertEqual(pay_period_start.hour, 0)
+            self.assertEqual(pay_period_start.minute, 0)
+            self.assertEqual(pay_period_start.second, 0)
+            self.assertEqual(pay_period_start.microsecond, 0)
+
+            # Test last pay period (should be one after current).
+            date_start = normalize_for_daylight_savings(
+                current_pay_period.period_start + timezone.timedelta(days=14),
+                timezone_instance='UTC',
+            )
+            date_end = normalize_for_daylight_savings(
+                current_pay_period.period_end + timezone.timedelta(days=14),
+                timezone_instance='UTC',
+            )
+            last_pay_period = models.PayPeriod.objects.first()
+            current_pay_period_plus_1 = models.PayPeriod.objects.get(period_start=date_start, period_end=date_end)
+            self.assertEqual(last_pay_period, current_pay_period_plus_1)
+            # Test last pay period start values.
+            self.assertEqual(last_pay_period.period_start.tzinfo, self.utc_timezone)
+            pay_period_start = self.server_timezone.normalize(last_pay_period.period_start.astimezone(self.server_timezone))
+            self.assertEqual(pay_period_start.tzinfo.zone, self.server_timezone.zone)
+            self.assertEqual(pay_period_start.hour, 0)
+            self.assertEqual(pay_period_start.minute, 0)
+            self.assertEqual(pay_period_start.second, 0)
+            self.assertEqual(pay_period_start.microsecond, 0)
+
+            # Finally, check that there are at least 85 pay periods (this will only grow with time).
+            # If 85 populate, then it's safe to assume the rest will too.
+            pay_periods = models.PayPeriod.objects.all()
+            self.assertGreater(len(pay_periods), 85)
 
 #endregion Other Tests
-

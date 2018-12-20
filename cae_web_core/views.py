@@ -54,7 +54,10 @@ def populate_pay_periods():
 
     # If both pay periods were not found, create new pay periods.
     if not pay_period_found:
-        last_pay_period = models.PayPeriod.objects.all().last()
+        try:
+            last_pay_period = models.PayPeriod.objects.latest('period_start')
+        except models.PayPeriod.DoesNotExist:
+            last_pay_period = None
 
         # If no pay periods found, manually create first one at 5-25-2015.
         if last_pay_period is None:
@@ -63,7 +66,7 @@ def populate_pay_periods():
             last_pay_period = models.PayPeriod.objects.create(period_start=date_holder)
 
         # Check that time is daylight savings compliant.
-        date_holder = normalize_for_daylight_savings(last_pay_period.period_start)
+        date_holder = normalize_for_daylight_savings(last_pay_period.period_start, timezone_instance='UTC')
 
         # Continue until pay_period + 1 is created.
         while not ((last_pay_period.period_start < plus_1_time) and (last_pay_period.period_end > plus_1_time)):
@@ -73,9 +76,10 @@ def populate_pay_periods():
 
 def normalize_for_daylight_savings(date_holder, timezone_instance='America/Detroit'):
     """
-    Checks and normalizes for daylight savings.
+    Checks and normalizes for daylight savings. Only works if it's an instance of local midnight.
     We want the date to always be midnight, regardless of time of year.
     :param date_holder: Should always be an instance of midnight.
+    :param timezone_instance: Timezone of passed date. Assumes local timezone of America/Detroit by default.
     :return: The same date, set to local time midnight, regardless of daylight savings.
     """
     # First get local server timezone.
