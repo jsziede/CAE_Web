@@ -174,9 +174,8 @@ def shift_manager_redirect(request):
     # Check for valid pay periods.
     populate_pay_periods()
 
-    pay_period_count = models.PayPeriod.objects.count()
-
-    return redirect('cae_web_core:shift_manager', pk=(pay_period_count - 1))
+    pay_period_pk = models.PayPeriod.objects.all()[1].pk
+    return redirect('cae_web_core:shift_manager', pk=pay_period_pk)
 
 
 @login_required
@@ -198,16 +197,44 @@ def shift_manager(request, pk):
     users = get_user_model().objects.filter(complex_query).order_by('last_name', 'first_name')
     shifts = models.EmployeeShift.objects.filter(pay_period=pay_period, employee__in=users)
 
-    # Determine pay period pks.
-    pay_period_count = models.PayPeriod.objects.count()
+    # Determine pay period pks. First/Last query calls are reverse due to ordering.
+    first_valid_pk = models.PayPeriod.objects.last().pk
+    last_valid_pk = models.PayPeriod.objects.first().pk
+    curr_pay_period = models.PayPeriod.objects.all()[1].pk
 
-    prev_pay_period = int(pk) - 1
-    if prev_pay_period < 1:
-        prev_pay_period = pay_period_count
-    curr_pay_period = pay_period_count - 1
-    next_pay_period = int(pk) + 1
-    if next_pay_period > pay_period_count:
-        next_pay_period = 1
+    # Calculate previous pk (necessary if pay periods are ever deleted).
+    prev_found = False
+    prev_pay_period = int(pk)
+    while not prev_found:
+        prev_found = True
+        prev_pay_period -= 1
+
+        # Check edge case.
+        if prev_pay_period < first_valid_pk:
+            prev_pay_period = last_valid_pk
+
+        # Check if pay period with pk exists. Necessary if pay periods are ever deleted.
+        try:
+            models.PayPeriod.objects.get(pk=prev_pay_period)
+        except models.PayPeriod.DoesNotExist:
+            prev_found = False
+
+    # Calculate next pk.
+    next_found = False
+    next_pay_period = int(pk)
+    while not next_found:
+        next_found = True
+        next_pay_period += 1
+
+        # Check edge case.
+        if next_pay_period > last_valid_pk:
+            next_pay_period = first_valid_pk
+
+        # Check if pay period with pk exists. Necessary if pay periods are ever deleted.
+        try:
+            models.PayPeriod.objects.get(pk=next_pay_period)
+        except models.PayPeriod.DoesNotExist:
+            next_found = False
 
     return TemplateResponse(request, 'cae_web_core/employee/shift_manager.html', {
         'users': users,
