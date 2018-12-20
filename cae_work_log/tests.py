@@ -9,7 +9,6 @@ from django.test import TestCase
 from django.utils import timezone
 
 from . import models
-from cae_home import models as cae_home_models
 from cae_home.management.commands.seeders.user import create_permission_groups, create_permission_group_users
 
 
@@ -53,7 +52,7 @@ class WorkLogSetModelTests(TestCase):
     def test_model_creation(self):
         self.assertEqual(
             self.test_log_set.description,
-            'Set of ' + self.timeframe_type.full_name() + ' ' + str(self.group) + ' work logs.'
+            self.timeframe_type.full_name() + ' ' + str(self.group) + ' work logs.'
         )
         self.assertEqual(self.test_log_set.timeframe_type, self.timeframe_type)
 
