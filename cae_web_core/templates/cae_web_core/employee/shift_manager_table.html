@@ -22,7 +22,7 @@
   </thead>
   <tbody>
     {% for shift in shifts %}
-        <tr>
+        <tr class="hover-highlight" onclick="window.location='{{ shift.get_absolute_url }}'">
           <td>{{ shift.clock_in }}</td>
           <td>{{ shift.clock_out }}</td>
           <td>{% print_time_worked_as_hms shift %}</td>

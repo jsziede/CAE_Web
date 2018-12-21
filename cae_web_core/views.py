@@ -4,19 +4,21 @@ Views for CAE_Web Core App.
 
 # System Imports.
 import datetime, dateutil.parser, json, pytz
+from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.core import serializers
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from django.http.response import JsonResponse
+from django.http.response import JsonResponse, HttpResponseRedirect
 from django.template.response import TemplateResponse
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html
 
 # User Class Imports.
-from . import models
+from . import forms, models
 from cae_home.models import Room
 
 
@@ -163,6 +165,34 @@ def my_hours(request):
         'json_pay_period': json_pay_period,
         'json_shifts': json_shifts,
         'json_last_shift': json_last_shift,
+    })
+
+def shift_edit(request, pk):
+    """
+
+    :param request:
+    :return:
+    """
+    # Pull models from database.
+    shift = get_object_or_404(models.EmployeeShift, id=pk)
+    form = forms.EmployeeShiftForm(instance=shift)
+
+    # Check if request is post.
+    if request.method == 'POST':
+        form = forms.EmployeeShiftForm(instance=shift, data=request.POST)
+        if form.is_valid():
+            shift = form.save()
+
+            # Render response for user.
+            messages.success(request, 'Successfully updated shift ({0})'.format(shift))
+            return HttpResponseRedirect(reverse('cae_web_core:shift_manager_redirect'))
+        else:
+            messages.warning(request, 'Failed to update shift.')
+
+    # Handle for non-post request.
+    return render(request, 'cae_web_core/employee/shift_edit.html', {
+        'form': form,
+        'shift': shift,
     })
 
 
