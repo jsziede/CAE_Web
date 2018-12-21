@@ -50,7 +50,8 @@ class EmployeeShiftTests(TestCase):
     """
     @classmethod
     def setUpTestData(cls):
-        cls.user = get_user_model().objects.create_user('temporary', 'temporary@gmail.com', 'temporary')
+        cls.user_1 = get_user_model().objects.create_user('temporary_1', 'temporary@gmail.com', 'temporary')
+        cls.user_2 = get_user_model().objects.create_user('temporary_2', 'temporary@gmail.com', 'temporary')
         cls.period_start = timezone.now() - timezone.timedelta(days=2, hours=12)
         cls.pay_period = models.PayPeriod.objects.create(period_start=cls.period_start)
 
@@ -59,21 +60,21 @@ class EmployeeShiftTests(TestCase):
         self.clock_out = self.clock_in + timezone.timedelta(hours=5, minutes=30)
         self.test_employee_shift = models.EmployeeShift.objects.create(
             pay_period=self.pay_period,
-            employee=self.user,
+            employee=self.user_1,
             clock_in=self.clock_in,
             clock_out=self.clock_out,
         )
 
     def test_model_creation(self):
         self.assertEqual(self.test_employee_shift.pay_period, self.pay_period)
-        self.assertEqual(self.test_employee_shift.employee, self.user)
+        self.assertEqual(self.test_employee_shift.employee, self.user_1)
         self.assertEqual(self.test_employee_shift.clock_in, self.clock_in)
         self.assertEqual(self.test_employee_shift.clock_out, self.clock_out)
 
     def test_string_representation(self):
         self.assertEqual(
             str(self.test_employee_shift),
-            '{0}: {1} to {2}'.format(self.user, self.clock_in, self.clock_out)
+            '{0}: {1} to {2}'.format(self.user_1, self.clock_in, self.clock_out)
         )
 
     def test_plural_representation(self):
@@ -85,60 +86,120 @@ class EmployeeShiftTests(TestCase):
         clock_in = self.clock_out
         with self.assertRaises(ValidationError):
             with transaction.atomic():
-                models.EmployeeShift.objects.create(employee=self.user, clock_in=clock_in, clock_out=self.clock_out)
+                models.EmployeeShift.objects.create(employee=self.user_1, clock_in=clock_in, clock_out=self.clock_out)
 
     def test_clock_in_after_clock_out(self):
         # Test clock in of 1 minute after clock out.
         clock_in = self.clock_out + timezone.timedelta(minutes=1)
         with self.assertRaises(ValidationError):
             with transaction.atomic():
-                models.EmployeeShift.objects.create(employee=self.user, clock_in=clock_in, clock_out=self.clock_out)
+                models.EmployeeShift.objects.create(employee=self.user_1, clock_in=clock_in, clock_out=self.clock_out)
 
-    def test_overlapping_shifts(self):
-        # Test clock in time between old shift.
+    def test_overlapping_shifts_clockin_between_clockout_same(self):
+        # Test with clock in time between old shift values. Clock out time is same.
         clock_in = self.clock_in + timezone.timedelta(minutes=1)
-        with self.assertRaises(ValidationError):
-            with transaction.atomic():
-                models.EmployeeShift.objects.create(
-                    employee=self.user,
-                    pay_period=self.pay_period,
-                    clock_in=clock_in
-                )
 
-        # Test clock out time between old shift.
-        clock_in = self.clock_in - timezone.timedelta(minutes=1)
-        clock_out = self.clock_in + timezone.timedelta(minutes=1)
+        # Different users. Should be okay.
+        shift = models.EmployeeShift.objects.create(
+            employee=self.user_2,
+            pay_period=self.pay_period,
+            clock_in=clock_in,
+            clock_out=self.clock_out,
+        )
+        self.assertGreater(shift.clock_in, self.test_employee_shift.clock_in)
+        self.assertLess(shift.clock_in, self.test_employee_shift.clock_out)
+        self.assertEqual(shift.clock_out, self.test_employee_shift.clock_out)
+        self.assertNotEqual(shift.employee, self.test_employee_shift.employee)
+
+        # Same user. Should fail.
         with self.assertRaises(ValidationError):
             with transaction.atomic():
                 models.EmployeeShift.objects.create(
-                    employee=self.user,
+                    employee=self.user_1,
                     pay_period=self.pay_period,
                     clock_in=clock_in,
-                    clock_out=clock_out
                 )
 
+    def test_overlapping_shifts_clockin_same_clockout_between(self):
+        # Test clock in time is same. Clock out time between old shift.
+        clock_out = self.clock_in + timezone.timedelta(minutes=1)
+
+        # Different users. Should be okay.
+        shift = models.EmployeeShift.objects.create(
+            employee=self.user_2,
+            pay_period=self.pay_period,
+            clock_in=self.clock_in,
+            clock_out=clock_out,
+        )
+        self.assertEqual(shift.clock_in, self.test_employee_shift.clock_in)
+        self.assertGreater(shift.clock_out, self.test_employee_shift.clock_in)
+        self.assertLess(shift.clock_out, self.test_employee_shift.clock_out)
+        self.assertNotEqual(shift.employee, self.test_employee_shift.employee)
+
+        # Same user. Should fail.
+        with self.assertRaises(ValidationError):
+            with transaction.atomic():
+                models.EmployeeShift.objects.create(
+                    employee=self.user_1,
+                    pay_period=self.pay_period,
+                    clock_in=self.clock_in,
+                    clock_out=clock_out,
+                )
+
+    def test_overlapping_shifts_new_shift_in_old(self):
         # Test new shift entirely inside old shift.
         clock_in = self.clock_in + timezone.timedelta(minutes=1)
         clock_out = self.clock_out - timezone.timedelta(minutes=1)
+
+        # Different users. Should be okay.
+        shift = models.EmployeeShift.objects.create(
+            employee=self.user_2,
+            pay_period=self.pay_period,
+            clock_in=clock_in,
+            clock_out=clock_out,
+        )
+        self.assertGreater(shift.clock_in, self.test_employee_shift.clock_in)
+        self.assertLess(shift.clock_in, self.test_employee_shift.clock_out)
+        self.assertGreater(shift.clock_out, self.test_employee_shift.clock_in)
+        self.assertLess(shift.clock_out, self.test_employee_shift.clock_out)
+        self.assertNotEqual(shift.employee, self.test_employee_shift.employee)
+
+        # Same user. Should fail.
         with self.assertRaises(ValidationError):
             with transaction.atomic():
                 models.EmployeeShift.objects.create(
-                    employee=self.user,
+                    employee=self.user_1,
                     pay_period=self.pay_period,
                     clock_in=clock_in,
-                    clock_out=clock_out
+                    clock_out=clock_out,
                 )
 
+    def test_overlapping_shifts_old_shift_in_new(self):
         # Test old shift entirely inside new shift.
         clock_in = self.clock_in - timezone.timedelta(minutes=1)
         clock_out = self.clock_out + timezone.timedelta(minutes=1)
+
+        # Different users. Should be okay.
+        shift = models.EmployeeShift.objects.create(
+            employee=self.user_2,
+            pay_period=self.pay_period,
+            clock_in=clock_in,
+            clock_out=clock_out,
+        )
+        self.assertLess(shift.clock_in, self.test_employee_shift.clock_in)
+        self.assertLess(shift.clock_in, self.test_employee_shift.clock_out)
+        self.assertGreater(shift.clock_out, self.test_employee_shift.clock_in)
+        self.assertGreater(shift.clock_out, self.test_employee_shift.clock_out)
+        self.assertNotEqual(shift.employee, self.test_employee_shift.employee)
+
+        # Same user. Should fail.
         with self.assertRaises(ValidationError):
             with transaction.atomic():
                 models.EmployeeShift.objects.create(
-                    employee=self.user,
+                    employee=self.user_1,
                     pay_period=self.pay_period,
                     clock_in=clock_in,
-                    clock_out=clock_out
+                    clock_out=clock_out,
                 )
 
     def test_outside_of_pay_period(self):
@@ -148,7 +209,7 @@ class EmployeeShiftTests(TestCase):
         with self.assertRaises(ValidationError):
             with transaction.atomic():
                 models.EmployeeShift.objects.create(
-                    employee=self.user,
+                    employee=self.user_1,
                     pay_period=self.pay_period,
                     clock_in=clock_in,
                     clock_out=clock_out,
@@ -160,7 +221,7 @@ class EmployeeShiftTests(TestCase):
         with self.assertRaises(ValidationError):
             with transaction.atomic():
                 models.EmployeeShift.objects.create(
-                    employee=self.user,
+                    employee=self.user_1,
                     pay_period=self.pay_period,
                     clock_in=clock_in,
                     clock_out=clock_out,
@@ -174,7 +235,7 @@ class EmployeeShiftTests(TestCase):
         clock_out = next_pay_period.period_start + timezone.timedelta(hours=1)
 
         test_shift = models.EmployeeShift.objects.create(
-            employee=self.user,
+            employee=self.user_1,
             pay_period=self.pay_period,
             clock_in=clock_in,
             clock_out=clock_out,
