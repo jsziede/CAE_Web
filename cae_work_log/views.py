@@ -2,6 +2,7 @@
 Views for CAE Work Log app.
 """
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
 from django.db.models import Q
@@ -71,7 +72,10 @@ def create_entry(request):
             entry = form.save()
 
             # Render response for user.
+            messages.success(request, 'Successfully created log entry ({0}).'.format(entry))
             return HttpResponseRedirect(reverse('cae_work_log:index'))
+        else:
+            messages.warning(request, 'Failed to create log entry.')
 
     # Handle for non-post request.
     return render(request, 'cae_work_log/log_entry_form.html', {
