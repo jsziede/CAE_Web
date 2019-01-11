@@ -2,6 +2,8 @@
 * React logic for my_hours page.
 */
 
+import Flatpickr from 'react-flatpickr'
+
 // See ScheduleConsumer for these constants
 const ACTION_GET_EVENTS = 'get-events'
 const ACTION_SEND_EVENTS = 'send-events'
@@ -226,7 +228,14 @@ class Schedule extends React.Component {
       <div>
         <button onClick={() => this.test()}>Test</button>
         <div className="schedule-header">
-          [put date selector here]
+          <Flatpickr
+            value={this.state.start.format('YYYY-MM-DD')}
+            onChange={this.onDateChange.bind(this)}
+            options={{
+              altInput: true,
+              altFormat: "F j, Y"
+            }}
+          />
         </div>
         <div className="schedule-grid">
           <div className="schedule-header-spacer"></div>
@@ -236,6 +245,37 @@ class Schedule extends React.Component {
         </div>
       </div>
     )
+  }
+
+  onDateChange(values) {
+    var oldStart = this.state.start
+    var oldEnd = this.state.end
+    var inputDate = moment(values[0])
+    oldStart.set({
+      'year': inputDate.year(),
+      'month': inputDate.month(),
+      'date': inputDate.date(),
+    })
+    oldEnd.set({
+      'year': inputDate.year(),
+      'month': inputDate.month(),
+      'date': inputDate.date(),
+    })
+
+    // Reset state
+    this.setState({
+      start: oldStart,
+      end: oldEnd,
+      events: [],
+    })
+
+    // Fetch events
+    this.props.socket.send(JSON.stringify({
+      'action': ACTION_GET_EVENTS,
+      'start_time': oldStart.format(),
+      'end_time': oldEnd.format(),
+      'notify': true,
+    }))
   }
 }
 

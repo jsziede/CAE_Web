@@ -8,6 +8,7 @@
 
 {% block extra_styles %}
   {{ block.super }}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <!--
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.css" crossorigin="anonymous">
@@ -92,7 +93,6 @@ body main #content {
   {{ block.super }}
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.21/moment-timezone.min.js" crossorigin="anonymous"></script>
-  <script src="{% static '/caeweb/js/schedule.js' %}"></script>
 
   <!-- React version -->
   <script src="{% static '/cae_web_core/js/schedule.js' %}" async defer></script>
@@ -110,7 +110,6 @@ body main #content {
     {% if request.user.is_anonymous %}
     <h1 style="color: red">You need to login for this work.</h1>
     {% endif %}
-    <h3>React Version:</h3>
     <div id="react-root"
       data-start="{{ start.isoformat }}"
       data-end="{{ end.isoformat }}"
@@ -120,29 +119,5 @@ body main #content {
       <h2>Something went wrong.</h2>
       <p>If you see this, then React did not load properly.</p>
     </div>
-    <hr>
-    <h3>Non React Version:</h3>
-    <div class="schedule-responsive">
-      <div id="schedule"></div>
-    </div>
-    <script>
-      $('#schedule').schedule({
-        startHour: 8,
-        endHour: 22,
-        start: "{{ start.isoformat }}",
-        end: "{{ end.isoformat }}",
-        resources: {{ rooms_json|safe }},
-        eventsURL: "{% url 'cae_web_core:api_room_schedule' %}",
-      });
-    </script>
-    <!--
-    <div id="calendar"></div>
-    <script type="text/javascript">
-      $('#calendar').fullCalendar({
-        events: '{% url "cae_web_core:schedule:api_occurrences" %}?calendar_slug=c-122&timezone={% if request.user.profile %}{{ request.user.profile.user_timezone }}{% else %}America/Detroit{% endif %}',
-        defaultDate: "2018-07-01",
-      })
-    </script>
-    -->
   </article>
 {% endblock content %}
