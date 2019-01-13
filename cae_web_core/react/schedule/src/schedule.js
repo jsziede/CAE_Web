@@ -81,13 +81,20 @@ class Schedule extends React.Component {
     })
   }
 
-  test() {
-    const events = this.state.events.slice()
-    events[0].title += "!"
-    this.setState({
-      events: events,
-      //start: moment("2018-09-08 13:05:00"),
-    })
+  onBtnTodayClick() {
+    this.onDateChange([moment().toDate()])
+  }
+
+  onBtnNextDayClick() {
+    var current = this.state.start.clone()
+    current.add(1, 'day');
+    this.onDateChange([current.toDate()])
+  }
+
+  onBtnPrevDayClick() {
+    var current = this.state.start.clone()
+    current.subtract(1, 'day');
+    this.onDateChange([current.toDate()])
   }
 
   createTimeHeadersAndGridLines() {
@@ -225,17 +232,32 @@ class Schedule extends React.Component {
     })
 
     return (
-      <div>
-        <button onClick={() => this.test()}>Test</button>
-        <div className="schedule-header">
-          <Flatpickr
-            value={this.state.start.format('YYYY-MM-DD')}
-            onChange={this.onDateChange.bind(this)}
-            options={{
-              altInput: true,
-              altFormat: "F j, Y"
-            }}
-          />
+      <div className="border">
+        <div className="schedule-header form-inline py-2 px-2">
+          <div className="btn-group">
+            <button
+              className="btn btn-secondary border border-top-0 border-bottom-0"
+              onClick={() => this.onBtnTodayClick()}>Today</button>
+            <button
+              className="btn btn-secondary border border-top-0 border-bottom-0"
+              onClick={() => this.onBtnPrevDayClick()}>&#9204;</button>
+            <button
+              className="btn btn-secondary border border-top-0 border-bottom-0"
+              onClick={() => this.onBtnNextDayClick()}>&#9205;</button>
+          </div>
+          <div className="input-group mx-2">
+            <div className="input-group-prepend">
+              <span className="input-group-text">&#128197;</span>
+            </div>
+            <Flatpickr
+              value={this.state.start.format('YYYY-MM-DD')}
+              onChange={this.onDateChange.bind(this)}
+              options={{
+                altInput: true,
+                altFormat: "F j, Y"
+              }}
+            />
+          </div>
         </div>
         <div className="schedule-grid">
           <div className="schedule-header-spacer"></div>

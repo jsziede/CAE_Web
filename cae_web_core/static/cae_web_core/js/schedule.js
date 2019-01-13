@@ -111,14 +111,23 @@ var Schedule = function (_React$Component2) {
   }
 
   _createClass(Schedule, [{
-    key: 'test',
-    value: function test() {
-      var events = this.state.events.slice();
-      events[0].title += "!";
-      this.setState({
-        events: events
-        //start: moment("2018-09-08 13:05:00"),
-      });
+    key: 'onBtnTodayClick',
+    value: function onBtnTodayClick() {
+      this.onDateChange([moment().toDate()]);
+    }
+  }, {
+    key: 'onBtnNextDayClick',
+    value: function onBtnNextDayClick() {
+      var current = this.state.start.clone();
+      current.add(1, 'day');
+      this.onDateChange([current.toDate()]);
+    }
+  }, {
+    key: 'onBtnPrevDayClick',
+    value: function onBtnPrevDayClick() {
+      var current = this.state.start.clone();
+      current.subtract(1, 'day');
+      this.onDateChange([current.toDate()]);
     }
   }, {
     key: 'createTimeHeadersAndGridLines',
@@ -254,25 +263,62 @@ var Schedule = function (_React$Component2) {
 
       return React.createElement(
         'div',
-        null,
-        React.createElement(
-          'button',
-          { onClick: function onClick() {
-              return _this3.test();
-            } },
-          'Test'
-        ),
+        { className: 'border' },
         React.createElement(
           'div',
-          { className: 'schedule-header' },
-          React.createElement(_reactFlatpickr2.default, {
-            value: this.state.start.format('YYYY-MM-DD'),
-            onChange: this.onDateChange.bind(this),
-            options: {
-              altInput: true,
-              altFormat: "F j, Y"
-            }
-          })
+          { className: 'schedule-header form-inline py-2 px-2' },
+          React.createElement(
+            'div',
+            { className: 'btn-group' },
+            React.createElement(
+              'button',
+              {
+                className: 'btn btn-secondary border border-top-0 border-bottom-0',
+                onClick: function onClick() {
+                  return _this3.onBtnTodayClick();
+                } },
+              'Today'
+            ),
+            React.createElement(
+              'button',
+              {
+                className: 'btn btn-secondary border border-top-0 border-bottom-0',
+                onClick: function onClick() {
+                  return _this3.onBtnPrevDayClick();
+                } },
+              '\u23F4'
+            ),
+            React.createElement(
+              'button',
+              {
+                className: 'btn btn-secondary border border-top-0 border-bottom-0',
+                onClick: function onClick() {
+                  return _this3.onBtnNextDayClick();
+                } },
+              '\u23F5'
+            )
+          ),
+          React.createElement(
+            'div',
+            { className: 'input-group mx-2' },
+            React.createElement(
+              'div',
+              { className: 'input-group-prepend' },
+              React.createElement(
+                'span',
+                { className: 'input-group-text' },
+                '\uD83D\uDCC5'
+              )
+            ),
+            React.createElement(_reactFlatpickr2.default, {
+              value: this.state.start.format('YYYY-MM-DD'),
+              onChange: this.onDateChange.bind(this),
+              options: {
+                altInput: true,
+                altFormat: "F j, Y"
+              }
+            })
+          )
         ),
         React.createElement(
           'div',
