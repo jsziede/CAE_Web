@@ -5,5 +5,17 @@
 
 
 {% block content %}
-  <h1>Welcome to the CAE Web Attendants page</h1>
+	<!-- this should probably be divided into pages instead of listing them all -->
+	<h1>Welcome to the CAE Web Attendants page</h1>
+	{% if room_checkout_list %}
+	<div id="room-checkout-table">
+		<ul>
+			{% for checkout in room_checkout_list %}
+			<li><b>{{ checkout.room}}</b> checked out by {{ checkout.student}} on {{ checkout.checkout_date | date:"F jS, Y" }} at {{ checkout.checkout_date | date:"P" }}</li>
+			{% endfor %}
+		</ul>
+	</div>
+	{% else %}
+	<p>No rooms have been checked out.</p>
+	{% endif %}
 {% endblock content %}
