@@ -71,7 +71,10 @@ class Command(BaseCommand):
             day = randint(1, 25)
             month = randint(1, 12)
             year = randint(2015, 2018)
-            random_date = datetime.datetime(year, month, day, tzinfo=pytz.UTC)
+            hour = randint(0, 23)
+            minute = randint(0, 3) * 15
+            second = 0
+            random_date = datetime.datetime(year, month, day, hour, minute, second, tzinfo=pytz.UTC)
             
             # Push
             try:
