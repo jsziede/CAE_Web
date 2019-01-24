@@ -89,3 +89,4 @@ class Command(BaseCommand):
                 pass
 
         print('Populated room checkout models.')
+        

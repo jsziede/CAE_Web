@@ -7,6 +7,9 @@
 {% block content %}
 	<!-- this should probably be divided into pages instead of listing them all -->
 	<h1>Welcome to the CAE Web Attendants page</h1>
+
+	{% include "./forms/room-checkout.html" %}
+
 	{% if room_checkout_list %}
 	<div id="room-checkout-table">
 		<ul>
