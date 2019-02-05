@@ -6,6 +6,7 @@ Views for CAE_Web Core App.
 import datetime, dateutil.parser, json, pytz
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.core import serializers
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
@@ -19,7 +20,7 @@ from django.utils.html import format_html
 
 # User Class Imports.
 from . import forms, models
-from cae_home.models import Room
+from cae_home import models as cae_home_models
 
 
 #region Standard Methods
@@ -103,8 +104,27 @@ def normalize_for_daylight_savings(date_holder, timezone_instance='America/Detro
 def index(request):
     """
     Root project url.
+    Displays contact info of current CAE Director and Associated Building Coordinators.
+    If user is logged in and admin or programmer, also shows contact info of other admins/programmers.
     """
-    return TemplateResponse(request, 'cae_web_core/index.html', {})
+    cae_phone_number = cae_home_models.PhoneNumber.objects.get(pk=1)
+    cae_directors = cae_home_models.User.objects.filter(groups__name='CAE Director')
+    cae_coordinators = cae_home_models.User.objects.filter(groups__name='CAE Building Coordinator')
+    cae_admins = None
+    cae_programmers = None
+
+    if request.user.is_authenticated:
+        if request.user.groups.filter(name='CAE Admin') or request.user.groups.filter(name='CAE Programmer'):
+            cae_admins = cae_home_models.User.objects.filter(groups__name='CAE Admin')
+            cae_programmers = cae_home_models.User.objects.filter(groups__name='CAE Programmer')
+
+    return TemplateResponse(request, 'cae_web_core/index.html', {
+        'cae_phone_number': cae_phone_number,
+        'cae_directors': cae_directors,
+        'cae_coordinators': cae_coordinators,
+        'cae_admins': cae_admins,
+        'cae_programmers': cae_programmers,
+    })
 
 
 #region Employee Views
@@ -281,7 +301,7 @@ def shift_manager(request, pk):
 #region Calendar Views
 
 def calendar_test(request):
-    rooms = Room.objects.all().order_by('room_type', 'name').values_list(
+    rooms = cae_home_models.Room.objects.all().order_by('room_type', 'name').values_list(
         'pk', 'name', 'capacity',
     )
     now = timezone.now() # UTC
