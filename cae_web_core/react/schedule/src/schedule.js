@@ -70,6 +70,7 @@ class Schedule extends React.Component {
       ],
       resourceIdToColumn: {},
     }
+    this.flatpickrRef = React.createRef();
 
     props.socket.addEventListener('message', (message) => {
       var data = JSON.parse(message.data);
@@ -233,31 +234,27 @@ class Schedule extends React.Component {
 
     return (
       <div className="border">
-        <div className="schedule-header form-inline py-2 px-2">
-          <div className="btn-group">
+        <div className="schedule-header">
+          <div className="buttons">
             <button
-              className="btn btn-secondary border border-top-0 border-bottom-0"
               onClick={() => this.onBtnTodayClick()}>Today</button>
             <button
-              className="btn btn-secondary border border-top-0 border-bottom-0"
-              onClick={() => this.onBtnPrevDayClick()}>&#9204;</button>
+              onClick={() => this.onBtnPrevDayClick()}>&#128896;</button>
             <button
-              className="btn btn-secondary border border-top-0 border-bottom-0"
-              onClick={() => this.onBtnNextDayClick()}>&#9205;</button>
+              onClick={() => this.onBtnNextDayClick()}>&#128898;</button>
           </div>
-          <div className="input-group mx-2">
-            <div className="input-group-prepend">
-              <span className="input-group-text">&#128197;</span>
-            </div>
-            <Flatpickr
-              value={this.state.start.format('YYYY-MM-DD')}
-              onChange={this.onDateChange.bind(this)}
-              options={{
-                altInput: true,
-                altFormat: "F j, Y"
-              }}
-            />
-          </div>
+          <button
+            className="button-calendar"
+            onClick={() => this.flatpickrRef.current.flatpickr._input.focus()}>&#128197;</button>
+          <Flatpickr
+            value={this.state.start.format('YYYY-MM-DD')}
+            onChange={this.onDateChange.bind(this)}
+            ref={this.flatpickrRef}
+            options={{
+              altInput: true,
+              altFormat: "F j, Y"
+            }}
+          />
         </div>
         <div className="schedule-grid">
           <div className="schedule-header-spacer"></div>

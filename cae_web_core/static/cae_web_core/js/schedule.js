@@ -98,6 +98,7 @@ var Schedule = function (_React$Component2) {
       }],
       resourceIdToColumn: {}
     };
+    _this2.flatpickrRef = React.createRef();
 
     props.socket.addEventListener('message', function (message) {
       var data = JSON.parse(message.data);
@@ -266,14 +267,13 @@ var Schedule = function (_React$Component2) {
         { className: 'border' },
         React.createElement(
           'div',
-          { className: 'schedule-header form-inline py-2 px-2' },
+          { className: 'schedule-header' },
           React.createElement(
             'div',
-            { className: 'btn-group' },
+            { className: 'buttons' },
             React.createElement(
               'button',
               {
-                className: 'btn btn-secondary border border-top-0 border-bottom-0',
                 onClick: function onClick() {
                   return _this3.onBtnTodayClick();
                 } },
@@ -282,43 +282,38 @@ var Schedule = function (_React$Component2) {
             React.createElement(
               'button',
               {
-                className: 'btn btn-secondary border border-top-0 border-bottom-0',
                 onClick: function onClick() {
                   return _this3.onBtnPrevDayClick();
                 } },
-              '\u23F4'
+              '\uD83D\uDF80'
             ),
             React.createElement(
               'button',
               {
-                className: 'btn btn-secondary border border-top-0 border-bottom-0',
                 onClick: function onClick() {
                   return _this3.onBtnNextDayClick();
                 } },
-              '\u23F5'
+              '\uD83D\uDF82'
             )
           ),
           React.createElement(
-            'div',
-            { className: 'input-group mx-2' },
-            React.createElement(
-              'div',
-              { className: 'input-group-prepend' },
-              React.createElement(
-                'span',
-                { className: 'input-group-text' },
-                '\uD83D\uDCC5'
-              )
-            ),
-            React.createElement(_reactFlatpickr2.default, {
-              value: this.state.start.format('YYYY-MM-DD'),
-              onChange: this.onDateChange.bind(this),
-              options: {
-                altInput: true,
-                altFormat: "F j, Y"
-              }
-            })
-          )
+            'button',
+            {
+              className: 'button-calendar',
+              onClick: function onClick() {
+                return _this3.flatpickrRef.current.flatpickr._input.focus();
+              } },
+            '\uD83D\uDCC5'
+          ),
+          React.createElement(_reactFlatpickr2.default, {
+            value: this.state.start.format('YYYY-MM-DD'),
+            onChange: this.onDateChange.bind(this),
+            ref: this.flatpickrRef,
+            options: {
+              altInput: true,
+              altFormat: "F j, Y"
+            }
+          })
         ),
         React.createElement(
           'div',

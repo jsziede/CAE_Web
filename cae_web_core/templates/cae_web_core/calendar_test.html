@@ -9,9 +9,9 @@
 {% block extra_styles %}
   {{ block.super }}
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
 <!--
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
+
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.css" crossorigin="anonymous">
 -->
 <style>
@@ -36,6 +36,53 @@ body main #content {
 
 .schedule-header {
   background-color: #e5e5e5;
+  padding: 2px;
+  display: flex;
+}
+
+.schedule-header > * {
+  margin: 0;
+}
+
+.schedule-header > .buttons {
+  display: flex;
+}
+
+.schedule-header > .buttons > button {
+  margin: 0;
+  border-radius: 0;
+  border: 1px solid #CCC;
+  border-right-width: 0;
+}
+
+.schedule-header > .buttons > *:first-child {
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+}
+
+.schedule-header > .buttons > *:last-child {
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+  border-right-width: 1px;
+}
+
+.schedule-header .button-calendar {
+  border-radius: 0;
+  border: 1px solid #CCC;
+  border-right-width: 0;
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+  margin-left: 4px;
+}
+
+.schedule-header .flatpickr-input {
+  border: 1px solid #CCC;
+  font-size: 1rem;
+  padding: 0 4px;
+  margin: 0;
+  background: #e5e5e5;
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
 }
 
 .schedule-header-spacer {
@@ -103,10 +150,11 @@ body main #content {
   <script src="{% static '/cae_web_core/js/schedule.js' %}" defer></script>
 
   <!-- Bootstrap dependencies -->
+<!--
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" crossorigin="anonymous"></script>
-<!--
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.js" crossorigin="anonymous"></script>
 -->
 {% endblock %}
