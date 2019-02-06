@@ -2,6 +2,8 @@
 * React logic for my_hours page.
 */
 
+import Flatpickr from 'react-flatpickr'
+
 // See ScheduleConsumer for these constants
 const ACTION_GET_EVENTS = 'get-events'
 const ACTION_SEND_EVENTS = 'send-events'
@@ -68,6 +70,7 @@ class Schedule extends React.Component {
       ],
       resourceIdToColumn: {},
     }
+    this.flatpickrRef = React.createRef();
 
     props.socket.addEventListener('message', (message) => {
       var data = JSON.parse(message.data);
@@ -79,13 +82,20 @@ class Schedule extends React.Component {
     })
   }
 
-  test() {
-    const events = this.state.events.slice()
-    events[0].title += "!"
-    this.setState({
-      events: events,
-      //start: moment("2018-09-08 13:05:00"),
-    })
+  onBtnTodayClick() {
+    this.onDateChange([moment().toDate()])
+  }
+
+  onBtnNextDayClick() {
+    var current = this.state.start.clone()
+    current.add(1, 'day');
+    this.onDateChange([current.toDate()])
+  }
+
+  onBtnPrevDayClick() {
+    var current = this.state.start.clone()
+    current.subtract(1, 'day');
+    this.onDateChange([current.toDate()])
   }
 
   createTimeHeadersAndGridLines() {
@@ -223,10 +233,28 @@ class Schedule extends React.Component {
     })
 
     return (
-      <div>
-        <button onClick={() => this.test()}>Test</button>
+      <div className="border">
         <div className="schedule-header">
-          [put date selector here]
+          <div className="buttons">
+            <button
+              onClick={() => this.onBtnTodayClick()}>Today</button>
+            <button
+              onClick={() => this.onBtnPrevDayClick()}>&#128896;</button>
+            <button
+              onClick={() => this.onBtnNextDayClick()}>&#128898;</button>
+          </div>
+          <button
+            className="button-calendar"
+            onClick={() => this.flatpickrRef.current.flatpickr._input.focus()}>&#128197;</button>
+          <Flatpickr
+            value={this.state.start.format('YYYY-MM-DD')}
+            onChange={this.onDateChange.bind(this)}
+            ref={this.flatpickrRef}
+            options={{
+              altInput: true,
+              altFormat: "F j, Y"
+            }}
+          />
         </div>
         <div className="schedule-grid">
           <div className="schedule-header-spacer"></div>
@@ -236,6 +264,37 @@ class Schedule extends React.Component {
         </div>
       </div>
     )
+  }
+
+  onDateChange(values) {
+    var oldStart = this.state.start
+    var oldEnd = this.state.end
+    var inputDate = moment(values[0])
+    oldStart.set({
+      'year': inputDate.year(),
+      'month': inputDate.month(),
+      'date': inputDate.date(),
+    })
+    oldEnd.set({
+      'year': inputDate.year(),
+      'month': inputDate.month(),
+      'date': inputDate.date(),
+    })
+
+    // Reset state
+    this.setState({
+      start: oldStart,
+      end: oldEnd,
+      events: [],
+    })
+
+    // Fetch events
+    this.props.socket.send(JSON.stringify({
+      'action': ACTION_GET_EVENTS,
+      'start_time': oldStart.format(),
+      'end_time': oldEnd.format(),
+      'notify': true,
+    }))
   }
 }
 

@@ -4,20 +4,23 @@ Views for CAE_Web Core App.
 
 # System Imports.
 import datetime, dateutil.parser, json, pytz
+from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.core import serializers
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from django.http.response import JsonResponse
+from django.http.response import JsonResponse, HttpResponseRedirect
 from django.template.response import TemplateResponse
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html
 
 # User Class Imports.
-from . import models
-from cae_home.models import Room
+from . import forms, models
+from cae_home import models as cae_home_models
 
 
 #region Standard Methods
@@ -54,7 +57,10 @@ def populate_pay_periods():
 
     # If both pay periods were not found, create new pay periods.
     if not pay_period_found:
-        last_pay_period = models.PayPeriod.objects.all().last()
+        try:
+            last_pay_period = models.PayPeriod.objects.latest('period_start')
+        except models.PayPeriod.DoesNotExist:
+            last_pay_period = None
 
         # If no pay periods found, manually create first one at 5-25-2015.
         if last_pay_period is None:
@@ -63,7 +69,7 @@ def populate_pay_periods():
             last_pay_period = models.PayPeriod.objects.create(period_start=date_holder)
 
         # Check that time is daylight savings compliant.
-        date_holder = normalize_for_daylight_savings(last_pay_period.period_start)
+        date_holder = normalize_for_daylight_savings(last_pay_period.period_start, timezone_instance='UTC')
 
         # Continue until pay_period + 1 is created.
         while not ((last_pay_period.period_start < plus_1_time) and (last_pay_period.period_end > plus_1_time)):
@@ -73,9 +79,10 @@ def populate_pay_periods():
 
 def normalize_for_daylight_savings(date_holder, timezone_instance='America/Detroit'):
     """
-    Checks and normalizes for daylight savings.
+    Checks and normalizes for daylight savings. Only works if it's an instance of local midnight.
     We want the date to always be midnight, regardless of time of year.
     :param date_holder: Should always be an instance of midnight.
+    :param timezone_instance: Timezone of passed date. Assumes local timezone of America/Detroit by default.
     :return: The same date, set to local time midnight, regardless of daylight savings.
     """
     # First get local server timezone.
@@ -97,8 +104,30 @@ def normalize_for_daylight_savings(date_holder, timezone_instance='America/Detro
 def index(request):
     """
     Root project url.
+    Displays contact info of current CAE Director and Associated Building Coordinators.
+    If user is logged in and admin or programmer, also shows contact info of other admins/programmers.
     """
-    return TemplateResponse(request, 'cae_web_core/index.html', {})
+    try:
+        cae_phone_number = cae_home_models.PhoneNumber.objects.get(pk=1)
+    except ObjectDoesNotExist:
+        cae_phone_number = None
+    cae_directors = cae_home_models.User.objects.filter(groups__name='CAE Director')
+    cae_coordinators = cae_home_models.User.objects.filter(groups__name='CAE Building Coordinator')
+    cae_admins = None
+    cae_programmers = None
+
+    if request.user.is_authenticated:
+        if request.user.groups.filter(name='CAE Admin') or request.user.groups.filter(name='CAE Programmer'):
+            cae_admins = cae_home_models.User.objects.filter(groups__name='CAE Admin')
+            cae_programmers = cae_home_models.User.objects.filter(groups__name='CAE Programmer')
+
+    return TemplateResponse(request, 'cae_web_core/index.html', {
+        'cae_phone_number': cae_phone_number,
+        'cae_directors': cae_directors,
+        'cae_coordinators': cae_coordinators,
+        'cae_admins': cae_admins,
+        'cae_programmers': cae_programmers,
+    })
 
 
 #region Employee Views
@@ -161,6 +190,34 @@ def my_hours(request):
         'json_last_shift': json_last_shift,
     })
 
+def shift_edit(request, pk):
+    """
+
+    :param request:
+    :return:
+    """
+    # Pull models from database.
+    shift = get_object_or_404(models.EmployeeShift, id=pk)
+    form = forms.EmployeeShiftForm(instance=shift)
+
+    # Check if request is post.
+    if request.method == 'POST':
+        form = forms.EmployeeShiftForm(instance=shift, data=request.POST)
+        if form.is_valid():
+            shift = form.save()
+
+            # Render response for user.
+            messages.success(request, 'Successfully updated shift ({0})'.format(shift))
+            return HttpResponseRedirect(reverse('cae_web_core:shift_manager_redirect'))
+        else:
+            messages.warning(request, 'Failed to update shift.')
+
+    # Handle for non-post request.
+    return render(request, 'cae_web_core/employee/shift_edit.html', {
+        'form': form,
+        'shift': shift,
+    })
+
 
 @login_required
 def shift_manager_redirect(request):
@@ -170,9 +227,8 @@ def shift_manager_redirect(request):
     # Check for valid pay periods.
     populate_pay_periods()
 
-    pay_period_count = models.PayPeriod.objects.count()
-
-    return redirect('cae_web_core:shift_manager', pk=(pay_period_count - 1))
+    pay_period_pk = models.PayPeriod.objects.all()[1].pk
+    return redirect('cae_web_core:shift_manager', pk=pay_period_pk)
 
 
 @login_required
@@ -194,16 +250,44 @@ def shift_manager(request, pk):
     users = get_user_model().objects.filter(complex_query).order_by('last_name', 'first_name')
     shifts = models.EmployeeShift.objects.filter(pay_period=pay_period, employee__in=users)
 
-    # Determine pay period pks.
-    pay_period_count = models.PayPeriod.objects.count()
+    # Determine pay period pks. First/Last query calls are reverse due to ordering.
+    first_valid_pk = models.PayPeriod.objects.last().pk
+    last_valid_pk = models.PayPeriod.objects.first().pk
+    curr_pay_period = models.PayPeriod.objects.all()[1].pk
 
-    prev_pay_period = int(pk) - 1
-    if prev_pay_period < 1:
-        prev_pay_period = pay_period_count
-    curr_pay_period = pay_period_count - 1
-    next_pay_period = int(pk) + 1
-    if next_pay_period > pay_period_count:
-        next_pay_period = 1
+    # Calculate previous pk (necessary if pay periods are ever deleted).
+    prev_found = False
+    prev_pay_period = int(pk)
+    while not prev_found:
+        prev_found = True
+        prev_pay_period -= 1
+
+        # Check edge case.
+        if prev_pay_period < first_valid_pk:
+            prev_pay_period = last_valid_pk
+
+        # Check if pay period with pk exists. Necessary if pay periods are ever deleted.
+        try:
+            models.PayPeriod.objects.get(pk=prev_pay_period)
+        except models.PayPeriod.DoesNotExist:
+            prev_found = False
+
+    # Calculate next pk.
+    next_found = False
+    next_pay_period = int(pk)
+    while not next_found:
+        next_found = True
+        next_pay_period += 1
+
+        # Check edge case.
+        if next_pay_period > last_valid_pk:
+            next_pay_period = first_valid_pk
+
+        # Check if pay period with pk exists. Necessary if pay periods are ever deleted.
+        try:
+            models.PayPeriod.objects.get(pk=next_pay_period)
+        except models.PayPeriod.DoesNotExist:
+            next_found = False
 
     return TemplateResponse(request, 'cae_web_core/employee/shift_manager.html', {
         'users': users,
@@ -220,7 +304,7 @@ def shift_manager(request, pk):
 #region Calendar Views
 
 def calendar_test(request):
-    rooms = Room.objects.all().order_by('room_type', 'name').values_list(
+    rooms = cae_home_models.Room.objects.all().order_by('room_type', 'name').values_list(
         'pk', 'name', 'capacity',
     )
     now = timezone.now() # UTC

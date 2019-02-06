@@ -47,8 +47,12 @@ def employee_pay_period_tables(context):
 
     # Get total time worked during entire pay period. Used in print view.
     pay_period_total_seconds = week_1_total_seconds + week_2_total_seconds
-    pay_period_hms = context['shifts'][0].get_time_worked_as_hms(pay_period_total_seconds)
-    pay_period_decimal = context['shifts'][0].get_time_worked_as_decimal(pay_period_total_seconds)
+    if context['shifts']:
+        pay_period_hms = context['shifts'][0].get_time_worked_as_hms(pay_period_total_seconds)
+        pay_period_decimal = context['shifts'][0].get_time_worked_as_decimal(pay_period_total_seconds)
+    else:
+        pay_period_hms = 0
+        pay_period_decimal = 0
 
     return {
         'user': context['user'],

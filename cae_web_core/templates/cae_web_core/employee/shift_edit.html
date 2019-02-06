@@ -1,0 +1,17 @@
+{% extends 'cae_web_core/main.html' %}
+
+{% block sub_title %}Form{% endblock sub_title %}
+
+{% block content %}
+  {% if shift %}
+    <h1>Edit Employee Shift</h1>
+  {% else %}
+    <h1>Create Employee Shift</h1>
+  {% endif %}
+
+  <form method="POST" action="">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Submit">
+  </form>
+{% endblock content %}

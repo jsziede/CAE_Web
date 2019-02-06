@@ -5,6 +5,7 @@ Models for CAE Web Core app.
 import math
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.urlresolvers import reverse
 from django.db import models
 from django.utils import timezone
 
@@ -85,18 +86,30 @@ class EmployeeShift(models.Model):
         # Check that clock times do not overlap previous shifts for user.
         # Check clock in is not inside other shift.
         if self.clock_in is not None:
-            previous_shifts = EmployeeShift.objects.filter(clock_in__lte=self.clock_in, clock_out__gte=self.clock_in)
+            previous_shifts = EmployeeShift.objects.filter(
+                employee=self.employee,
+                clock_in__lte=self.clock_in,
+                clock_out__gte=self.clock_in
+            ).exclude(id=self.id)
             if len(previous_shifts) is not 0:
                 raise ValidationError('Users cannot have overlapping shift times.')
 
         if self.clock_out is not None:
             # Check clock out is not inside other shift.
-            previous_shifts = EmployeeShift.objects.filter(clock_in__lte=self.clock_out, clock_out__gte=self.clock_out)
+            previous_shifts = EmployeeShift.objects.filter(
+                employee=self.employee,
+                clock_in__lte=self.clock_out,
+                clock_out__gte=self.clock_out
+            ).exclude(id=self.id)
             if len(previous_shifts) is not 0:
                 raise ValidationError('Users cannot have overlapping shift times.')
 
             # Check old shift is not entirely inside new shift.
-            previous_shifts = EmployeeShift.objects.filter(clock_in__gte=self.clock_in, clock_out__lte=self.clock_out)
+            previous_shifts = EmployeeShift.objects.filter(
+                employee=self.employee,
+                clock_in__gte=self.clock_in,
+                clock_out__lte=self.clock_out
+            ).exclude(id=self.id)
             if len(previous_shifts) is not 0:
                 raise ValidationError('Users cannot have overlapping shift times.')
 
