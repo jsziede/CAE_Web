@@ -107,7 +107,10 @@ def index(request):
     Displays contact info of current CAE Director and Associated Building Coordinators.
     If user is logged in and admin or programmer, also shows contact info of other admins/programmers.
     """
-    cae_phone_number = cae_home_models.PhoneNumber.objects.get(pk=1)
+    try:
+        cae_phone_number = cae_home_models.PhoneNumber.objects.get(pk=1)
+    except ObjectDoesNotExist:
+        cae_phone_number = None
     cae_directors = cae_home_models.User.objects.filter(groups__name='CAE Director')
     cae_coordinators = cae_home_models.User.objects.filter(groups__name='CAE Building Coordinator')
     cae_admins = None
