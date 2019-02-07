@@ -1,0 +1,8 @@
+.selected-room {
+    border: solid 2px gray;
+}
+
+.room-option {
+    display: inline;
+    background-color: yellow;
+}
