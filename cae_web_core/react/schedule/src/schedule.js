@@ -8,6 +8,23 @@ import Flatpickr from 'react-flatpickr'
 const ACTION_GET_EVENTS = 'get-events'
 const ACTION_SEND_EVENTS = 'send-events'
 
+function DialogBox(props) {
+  return (
+    <div className="dialog panel" hidden={props.hidden ? "hidden" : ""}>
+      <div className="header">
+        <div>Event</div>
+        <button onClick={(e) => props.onClose(e)}>X</button>
+      </div>
+      <div className="content">
+        <p>Hello</p>
+      </div>
+      <div className="footer">
+        <p>Hello</p>
+      </div>
+    </div>
+  )
+}
+
 function Resource(props) {
   return (
     <div className="schedule-resource"
@@ -69,6 +86,7 @@ class Schedule extends React.Component {
         },
       ],
       resourceIdToColumn: {},
+      dialogHidden: true,
     }
     this.flatpickrRef = React.createRef();
 
@@ -98,6 +116,13 @@ class Schedule extends React.Component {
     this.onDateChange([current.toDate()])
   }
 
+  onDialogBoxEventClose(e) {
+    console.log(e)
+    this.setState({
+      dialogHidden: true,
+    })
+  }
+
   createTimeHeadersAndGridLines() {
     const children = []
 
@@ -124,9 +149,12 @@ class Schedule extends React.Component {
       for (var j = 0; j < totalHours * 4; ++j) {
         var row = j + 2
         const key="grid-line-" + gridLineKey++
+        // TODO: have click event figure out where to add event (resource and time)
+        // and then open event dialog.
         children.push(
           <div
             key={key}
+            onDoubleClick={() => console.log(i, j)}
             className="schedule-grid-line"
             style={{
               gridColumn: '' + column + ' / span 2',
@@ -233,7 +261,7 @@ class Schedule extends React.Component {
     })
 
     return (
-      <div className="border">
+      <div className="">
         <div className="schedule-header">
           <div className="buttons">
             <button
@@ -262,6 +290,7 @@ class Schedule extends React.Component {
           {this.createTimeHeadersAndGridLines()}
           {events}
         </div>
+        <DialogBox hidden={this.state.dialogHidden} onClose={(e) => this.onDialogBoxEventClose(e)}/>
       </div>
     )
   }
@@ -286,6 +315,7 @@ class Schedule extends React.Component {
       start: oldStart,
       end: oldEnd,
       events: [],
+      dialogHidden: false, // for debugging
     })
 
     // Fetch events

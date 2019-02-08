@@ -21,6 +21,47 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 var ACTION_GET_EVENTS = 'get-events';
 var ACTION_SEND_EVENTS = 'send-events';
 
+function DialogBox(props) {
+  return React.createElement(
+    'div',
+    { className: 'dialog panel', hidden: props.hidden ? "hidden" : "" },
+    React.createElement(
+      'div',
+      { className: 'header' },
+      React.createElement(
+        'div',
+        null,
+        'Event'
+      ),
+      React.createElement(
+        'button',
+        { onClick: function onClick(e) {
+            return props.onClose(e);
+          } },
+        'X'
+      )
+    ),
+    React.createElement(
+      'div',
+      { className: 'content' },
+      React.createElement(
+        'p',
+        null,
+        'Hello'
+      )
+    ),
+    React.createElement(
+      'div',
+      { className: 'footer' },
+      React.createElement(
+        'p',
+        null,
+        'Hello'
+      )
+    )
+  );
+}
+
 function Resource(props) {
   return React.createElement('div', { className: 'schedule-resource',
     dangerouslySetInnerHTML: { __html: props.resource.html }
@@ -96,7 +137,8 @@ var Schedule = function (_React$Component2) {
       }, {
         id: 3, html: "C-124<br>34"
       }],
-      resourceIdToColumn: {}
+      resourceIdToColumn: {},
+      dialogHidden: true
     };
     _this2.flatpickrRef = React.createRef();
 
@@ -131,6 +173,14 @@ var Schedule = function (_React$Component2) {
       this.onDateChange([current.toDate()]);
     }
   }, {
+    key: 'onDialogBoxEventClose',
+    value: function onDialogBoxEventClose(e) {
+      console.log(e);
+      this.setState({
+        dialogHidden: true
+      });
+    }
+  }, {
     key: 'createTimeHeadersAndGridLines',
     value: function createTimeHeadersAndGridLines() {
       var children = [];
@@ -158,8 +208,13 @@ var Schedule = function (_React$Component2) {
         for (var j = 0; j < totalHours * 4; ++j) {
           var row = j + 2;
           var _key = "grid-line-" + gridLineKey++;
+          // TODO: have click event figure out where to add event (resource and time)
+          // and then open event dialog.
           children.push(React.createElement('div', {
             key: _key,
+            onDoubleClick: function onDoubleClick() {
+              return console.log(i, j);
+            },
             className: 'schedule-grid-line',
             style: {
               gridColumn: '' + column + ' / span 2',
@@ -264,7 +319,7 @@ var Schedule = function (_React$Component2) {
 
       return React.createElement(
         'div',
-        { className: 'border' },
+        { className: '' },
         React.createElement(
           'div',
           { className: 'schedule-header' },
@@ -322,7 +377,10 @@ var Schedule = function (_React$Component2) {
           resources,
           this.createTimeHeadersAndGridLines(),
           events
-        )
+        ),
+        React.createElement(DialogBox, { hidden: this.state.dialogHidden, onClose: function onClose(e) {
+            return _this3.onDialogBoxEventClose(e);
+          } })
       );
     }
   }, {
@@ -346,7 +404,8 @@ var Schedule = function (_React$Component2) {
       this.setState({
         start: oldStart,
         end: oldEnd,
-        events: []
+        events: [],
+        dialogHidden: false // for debugging
       });
 
       // Fetch events
