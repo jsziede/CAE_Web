@@ -5,9 +5,9 @@ Test for CAE Web Core app.
 import datetime, pytz
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.test import TestCase
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
