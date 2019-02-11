@@ -10,16 +10,45 @@ const ACTION_SEND_EVENTS = 'send-events'
 
 function DialogBox(props) {
   return (
-    <div className="dialog panel" hidden={props.hidden ? "hidden" : ""}>
-      <div className="header">
-        <div>Event</div>
-        <button onClick={(e) => props.onClose(e)}>X</button>
-      </div>
-      <div className="content">
-        <p>Hello</p>
-      </div>
-      <div className="footer">
-        <p>Hello</p>
+    <div className="dialog-container" hidden={props.hidden ? "hidden" : ""}>
+      <div className="dialog panel">
+        <div className="header">
+          <div>Event</div>
+          <button onClick={(e) => props.onClose(e)}>X</button>
+        </div>
+        <div className="content">
+          <label>Title</label>
+          <input type="text"/>
+          <label>Start</label>
+          <input type="text"/>
+          <label>End</label>
+          <input type="text"/>
+          <label>Repeat</label>
+          <select>
+            <option value="1">Never</option>
+            <option value="1">Daily</option>
+            <option value="1">Weekly</option>
+          </select>
+          <label>Description</label>
+          <textarea></textarea>
+          <label>Host</label>
+          <input type="text"/>
+          <label>Type</label>
+          <select>
+            <option value="1">Class</option>
+            <option value="1">None</option>
+            <option value="1">Event</option>
+          </select>
+          <label>Room</label>
+          <select>
+            <option value="1">C-136</option>
+            <option value="1">C-137</option>
+            <option value="1">D-123</option>
+          </select>
+        </div>
+        <div className="footer">
+          <p>Hello</p>
+        </div>
       </div>
     </div>
   )
