@@ -1,7 +1,7 @@
 """
 Models for CAE Web Attendants app.
 """
-from datetime import datetime
+from django.utils import timezone
 from django.db import models
 
 class RoomCheckout(models.Model):
@@ -15,7 +15,7 @@ class RoomCheckout(models.Model):
     student = models.ForeignKey('cae_home.WmuUser', on_delete=models.CASCADE)
 
     # Fields specific to RoomCheckout model
-    checkout_date = models.DateTimeField(default=datetime.now)
+    checkout_date = models.DateTimeField(default=timezone.now)
 
     # Self-setting/Non-user-editable fields.
     date_created = models.DateTimeField(auto_now_add=True)

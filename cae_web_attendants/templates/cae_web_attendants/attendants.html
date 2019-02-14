@@ -5,10 +5,12 @@
 
 {% block extra_styles %}
 <link rel="stylesheet" type="text/css" href="{% static 'cae_web_attendants/css/room_select.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'cae_web_attendants/css/attendants.css' %}">
 {% endblock extra_styles %}
 
 {% block base_scripts %}
 <script>let roomInputId = "{{ form.room.id_for_label }}";</script>
+<script>let userId = "{{ user.get_username }}";</script>
 {% endblock base_scripts %}
 
 {% block content %}
@@ -18,12 +20,15 @@
 	{% include "./forms/room-checkout.html" %}
 
 	{% if room_checkout_list %}
-	<div id="room-checkout-table">
-		<ul>
+	<div class="panel info">
+		<div class="header">
+			<p>Room Checkouts</p>
+		</div>
+		<div class="content">
 			{% for checkout in room_checkout_list %}
-			<li><b>{{ checkout.room}}</b> checked out by {{ checkout.student}} on {{ checkout.checkout_date | date:"F jS, Y" }} at {{ checkout.checkout_date | date:"P" }}</li>
+				<div class="room-checkout {% cycle 'light' 'dark' %}"><b>{{ checkout.room}}</b> checked out by {{ checkout.employee}} on {{ checkout.checkout_date | date:"F jS, Y" }} at {{ checkout.checkout_date | date:"P" }}</div>
 			{% endfor %}
-		</ul>
+		</div>
 	</div>
 	{% else %}
 	<p>No rooms have been checked out.</p>
@@ -32,4 +37,6 @@
 
 {% block extra_scripts_body %}
 <script src="{% static 'cae_web_attendants/js/room_select.js' %}"></script>
+<script src="{% static 'cae_web_attendants/js/select_default_user.js' %}"></script>
+<script>selectDefaultUser(userId)</script>
 {% endblock extra_scripts_body %}

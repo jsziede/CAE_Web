@@ -1,0 +1,11 @@
+.room-checkout {
+    padding: 10px;
+}
+
+.room-checkout.dark {
+    background-color: #ddddf4;
+}
+
+.content {
+    padding: 0 !important;
+}
