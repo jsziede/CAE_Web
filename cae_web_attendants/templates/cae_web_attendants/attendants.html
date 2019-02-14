@@ -11,24 +11,46 @@
 {% block base_scripts %}
 <script>let roomInputId = "{{ form.room.id_for_label }}";</script>
 <script>let userId = "{{ user.get_username }}";</script>
+<script>let roomCheckoutList = "{{ room_checkout_list }}";</script>
 {% endblock base_scripts %}
 
 {% block content %}
-	<!-- this should probably be divided into pages instead of listing them all -->
 	<h1>Welcome to the CAE Web Attendants page</h1>
 
 	{% include "./forms/room-checkout.html" %}
 
-	{% if room_checkout_list %}
+	{% if room_checkouts %}
 	<div class="panel info">
 		<div class="header">
 			<p>Room Checkouts</p>
+			<div class="pagination">
+				<span class="step-links">
+					{% if room_checkouts.has_previous %}
+					<a class="button" href="?page=1">◀◀</a>
+					<a class="button" href="?page={{ room_checkouts.previous_page_number }}">◀</a>
+					{% else %}
+					<button>◀◀</button>
+					<button>◀</button>
+					{% endif %}
+
+					<span class="current">
+						{{ room_checkouts.number }} / {{ room_checkouts.paginator.num_pages }}
+					</span>
+
+					{% if room_checkouts.has_next %}
+					<a class="button" href="?page={{ room_checkouts.next_page_number }}">▶</a>
+					<a class="button" href="?page={{ room_checkouts.paginator.num_pages }}">▶▶</a>
+					{% else %}
+					<button>▶</button>
+					<button>▶▶</button>
+					{% endif %}
+				</span>
+			</div>
 		</div>
 		<div class="content">
-			{% for checkout in room_checkout_list %}
+			{% for checkout in room_checkouts %}
 				<div class="room-checkout {% cycle 'light' 'dark' %}"><b>{{ checkout.room}}</b> checked out by {{ checkout.employee}} on {{ checkout.checkout_date | date:"F jS, Y" }} at {{ checkout.checkout_date | date:"P" }}</div>
 			{% endfor %}
-		</div>
 	</div>
 	{% else %}
 	<p>No rooms have been checked out.</p>
