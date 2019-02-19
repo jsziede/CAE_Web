@@ -18,9 +18,9 @@ function DialogBox(props) {
         </div>
         <div className="content">
           <label>Title</label>
-          <input type="text"/>
+          <input type="text" defaultValue={props.event.title}/>
           <label>Start</label>
-          <input type="text"/>
+          <input type="text" defaultValue={props.event.start}/>
           <label>End</label>
           <input type="text"/>
           <label>Repeat</label>
@@ -30,11 +30,12 @@ function DialogBox(props) {
             <option value="1">Weekly</option>
           </select>
           <label>Description</label>
-          <textarea></textarea>
+          <textarea value={props.event.description}/>
           <label>Host</label>
           <input type="text"/>
           <label>Type</label>
           <select>
+            {/* TODO: Get values from django as json  */}
             <option value="1">Class</option>
             <option value="1">None</option>
             <option value="1">Event</option>
@@ -78,7 +79,7 @@ class Event extends React.Component {
         }}
       >
         <div className="schedule-event-toolbar">
-          <button type="button" title="Edit">&#9881;</button>
+          <button type="button" title="Edit" onClick={() => this.props.onEventEditButtonClick(this.props.event)}>&#9881;</button>
         </div>
         {moment(this.props.event.start).format('LT')}<br/>
         {this.props.event.title}<br/>
@@ -116,6 +117,10 @@ class Schedule extends React.Component {
       ],
       resourceIdToColumn: {},
       dialogHidden: true,
+      dialogEvent: {
+        id: null, resource: null, description: "", title: "",
+        start: null, end: null,
+      },
     }
     this.flatpickrRef = React.createRef();
 
@@ -152,6 +157,21 @@ class Schedule extends React.Component {
     })
   }
 
+  onGridLineDoubleClick(resourceIndex, timeOffset) {
+    console.log(resourceIndex, timeOffset)
+    this.setState({
+      dialogHidden: false,
+    })
+  }
+
+  onEventEditButtonClick(event) {
+    console.log(event)
+    this.setState({
+      dialogHidden: false,
+      dialogEvent: event,
+    })
+  }
+
   createTimeHeadersAndGridLines() {
     const children = []
 
@@ -177,13 +197,15 @@ class Schedule extends React.Component {
       var column = i * 2 + 2
       for (var j = 0; j < totalHours * 4; ++j) {
         var row = j + 2
+        const resourceIndex = i;
+        const timeOffset = j;
         const key="grid-line-" + gridLineKey++
         // TODO: have click event figure out where to add event (resource and time)
         // and then open event dialog.
         children.push(
           <div
             key={key}
-            onDoubleClick={() => console.log(i, j)}
+            onDoubleClick={() => this.onGridLineDoubleClick(resourceIndex, timeOffset)}
             className="schedule-grid-line"
             style={{
               gridColumn: '' + column + ' / span 2',
@@ -285,6 +307,7 @@ class Schedule extends React.Component {
           gridColumn={data.gridColumn}
           rowStart={data.rowStart}
           span15Min={data.span15Min}
+          onEventEditButtonClick={(event) => this.onEventEditButtonClick(event)}
         />
       )
     })
@@ -319,7 +342,11 @@ class Schedule extends React.Component {
           {this.createTimeHeadersAndGridLines()}
           {events}
         </div>
-        <DialogBox hidden={this.state.dialogHidden} onClose={(e) => this.onDialogBoxEventClose(e)}/>
+        <DialogBox
+          hidden={this.state.dialogHidden}
+          onClose={(e) => this.onDialogBoxEventClose(e)}
+          event={this.state.dialogEvent}
+        />
       </div>
     )
   }
@@ -344,7 +371,6 @@ class Schedule extends React.Component {
       start: oldStart,
       end: oldEnd,
       events: [],
-      dialogHidden: false, // for debugging
     })
 
     // Fetch events

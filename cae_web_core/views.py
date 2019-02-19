@@ -327,7 +327,6 @@ def calendar_test(request):
     })
 
 
-@login_required
 def api_room_schedule(request):
     """Get room events"""
     start = request.GET.get('startdate', None)
