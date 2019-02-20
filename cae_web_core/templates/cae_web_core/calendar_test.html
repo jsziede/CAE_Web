@@ -171,8 +171,7 @@ div.dialog {
 </style>
 {% endblock %}
 
-{% block extra_scripts %}
-  {{ block.super }}
+{% block extra_scripts_body %}
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.21/moment-timezone.min.js" crossorigin="anonymous"></script>
 
@@ -187,7 +186,7 @@ div.dialog {
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.js" crossorigin="anonymous"></script>
 -->
-{% endblock %}
+{% endblock extra_scripts_body %}
 
 {% block content %}
   <article id="content">
