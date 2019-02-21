@@ -190,6 +190,7 @@ def my_hours(request):
         'json_last_shift': json_last_shift,
     })
 
+
 def shift_edit(request, pk):
     """
 

@@ -66,10 +66,10 @@ class Command(BaseCommand):
         pre_initialized_count = len(models.EmployeeShift.objects.all())
 
         # Get all related models.
-        users = cae_home_models.User.objects.all()
-        pay_periods = models.PayPeriod.objects.all()[:model_count/20]
-
         date_holder = timezone.now()
+        users = cae_home_models.User.objects.all()
+        pay_periods = models.PayPeriod.objects.filter(period_end__lte=date_holder)[:model_count/20]
+
         # Generate models equal to model count.
         for i in range(model_count - pre_initialized_count):
             # Get User.

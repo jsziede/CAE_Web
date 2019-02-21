@@ -208,10 +208,6 @@ exports.default = Shift;
 },{}],3:[function(require,module,exports){
 'use strict';
 
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _current_shift = require('./current_shift');
@@ -233,34 +229,43 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /**
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Core of React rendering for my_hours page.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * React logic for my_hours page.
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 */
 
-var EmployeeShiftManager = function (_React$Component) {
-    _inherits(EmployeeShiftManager, _React$Component);
+var ACTION_GET_EVENTS = 'get-events';
+var ACTION_SEND_EVENTS = 'send-events';
+
+var MyHoursManager = function (_React$Component) {
+    _inherits(MyHoursManager, _React$Component);
 
     /**
      * Constructor for component.
      */
-    function EmployeeShiftManager(props) {
-        _classCallCheck(this, EmployeeShiftManager);
+    function MyHoursManager(props) {
+        _classCallCheck(this, MyHoursManager);
 
-        var _this = _possibleConstructorReturn(this, (EmployeeShiftManager.__proto__ || Object.getPrototypeOf(EmployeeShiftManager)).call(this, props));
+        var _this = _possibleConstructorReturn(this, (MyHoursManager.__proto__ || Object.getPrototypeOf(MyHoursManager)).call(this, props));
 
         _this.state = {
+            // Socket management variables.
+            socket: new WebSocket('ws://' + domain + '/ws/caeweb/employee/my_hours/'),
+            awaiting_socket_data: true,
+
+            // Date management variables.
             current_time: new Date(),
-            date_string_options: { month: "short", day: "2-digit", hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true },
+            date_string_options: { month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true },
 
-            current_pay_period: json_pay_period[0],
-            displayed_pay_period: json_pay_period[0],
+            // Passed socket variables.
+            current_pay_period: null,
+            displayed_pay_period: null,
+            shifts: null,
+            last_shift: null,
 
-            shifts: json_shifts,
+            // Calculated variables.
             week_1_shifts: [],
             week_2_shifts: [],
             week_1_hours: 0,
             week_2_hours: 0,
-            last_shift: json_last_shift[0],
-
             current_shift_hours: 0,
             current_shift_minutes: 0,
             current_shift_seconds: 0
@@ -274,32 +279,77 @@ var EmployeeShiftManager = function (_React$Component) {
     }
 
     /**
-     * Logic to run before component load.
+     * Logic for component initializing.
+     * Runs before component load in.
      */
 
 
-    _createClass(EmployeeShiftManager, [{
+    _createClass(MyHoursManager, [{
         key: 'componentWillMount',
         value: function componentWillMount() {
-            // If no shiffts are defined yet for this pay period, create a dummy "last shift" to prevent render errors.
-            if (this.state.last_shift == null) {
+            // Set base socket event handler functions.
+            var socket = this.state.socket;
+
+            /**
+             * Socket start.
+             */
+            this.state.socket.onopen = function (event) {
+                // console.log('Socket opened.');
+
+                // Send message to socket.
+                this.state.socket.send(JSON.stringify({
+                    'action': ACTION_GET_EVENTS,
+                    'notify': true
+                }));
+
+                // console.log('Initialization data sent.');
+            }.bind(this);
+
+            /**
+             * Get socket message.
+             */
+            this.state.socket.onmessage = function (event) {
+                // console.log('Recieved socket message.');
+                var data = JSON.parse(event.data);
+
+                // Save values from data as state.
+                if (this.state.current_pay_period == null) {
+                    this.setState({
+                        current_pay_period: JSON.parse(data['pay_period'])[0]
+                    });
+                }
 
                 this.setState({
-                    last_shift: {
-                        pk: -1,
-                        fields: {
-                            "clock_in": new Date(),
-                            "clock_out": new Date()
-                        }
-                    }
+                    displayed_pay_period: JSON.parse(data['pay_period'])[0],
+                    shifts: JSON.parse(data['shifts']),
+                    last_shift: JSON.parse(data['last_shift'])[0]
                 });
-            }
 
-            this.calculateWeeksInPayPeriod();
+                if (this.state.awaiting_socket_data == false) {
+                    this.calculatePayPeriodWeeks();
+                }
+            }.bind(this);
+
+            /**
+             * Socket error.
+             */
+            this.state.socket.onerror = function (event) {}
+            // console.log('An error occured.');
+            // console.log(event);
+
+
+            /**
+             * Socket terminated.
+             */
+            ;this.state.socket.onclose = function (event) {
+                // console.log('Socket closed.');
+                // console.log(event);
+            };
         }
 
         /**
-         * Logic to run on component load.
+         * Logic for component post-initialization.
+         * Runs after component load in.
          */
 
     }, {
@@ -308,16 +358,17 @@ var EmployeeShiftManager = function (_React$Component) {
             var _this2 = this;
 
             // Ensure that the page processes a tick immediately on load.
-            this.tick();
+            this.loadTimerTick();
 
             // Set component to run an update tick every second.
             this.intervalId = setInterval(function () {
-                return _this2.tick();
+                return _this2.loadTimerTick();
             }, 1000);
         }
 
         /**
-         * Logic to run on component unload.
+         * Logic for component deconstruction.
+         * Runs just before component destruction.
          */
 
     }, {
@@ -327,20 +378,168 @@ var EmployeeShiftManager = function (_React$Component) {
         }
 
         /**
-         * Functions to run on each tick.
+         * Tick to check for data from socket on page load.
          */
 
     }, {
-        key: 'tick',
-        value: function tick() {
+        key: 'loadTimerTick',
+        value: function loadTimerTick() {
+            var _this3 = this;
+
+            // Tick and do nothing until state data is populated.
+            if (this.state.current_pay_period != null && this.state.shifts != null) {
+                // Clear tick timer.
+                clearInterval(this.intervalId);
+
+                // Process recieved data.
+                this.processSocketData();
+
+                this.setState({
+                    awaiting_socket_data: false
+                });
+
+                this.calculatePayPeriodWeeks();
+
+                // Set new tick timer for app run.
+                this.intervalId = setInterval(function () {
+                    return _this3.runAppTick();
+                }, 1000);
+            }
+        }
+
+        /**
+         * Tick to manage and run app.
+         */
+
+    }, {
+        key: 'runAppTick',
+        value: function runAppTick() {
+            // Update current time.
             this.setState({
                 current_time: new Date()
             });
 
+            // Recalculate hours worked.
+            this.processSocketData();
+        }
+
+        /**
+         * Calculate values based on passed data.
+         */
+
+    }, {
+        key: 'processSocketData',
+        value: function processSocketData() {
+            if (this.state.last_shift.length == 0) {
+                // No shifts exist for user in pay period. Create dummy shift.
+                var current_time = this.state.current_time;
+                this.setState({
+                    last_shift: {
+                        pk: -1,
+                        fields: {
+                            'clock_in': current_time,
+                            'clock_out': current_time
+                        }
+                    }
+                });
+            }
+
+            this.calculateCurrentShift();
+            this.calculateTotalHoursWorked();
+        }
+
+        /**
+         * Sorts shifts based on week in pay period.
+         */
+
+    }, {
+        key: 'calculatePayPeriodWeeks',
+        value: function calculatePayPeriodWeeks() {
+
+            var week_1_shifts = [];
+            var week_2_shifts = [];
+
+            // Calculate end of first week.
+            var week_1_end = new Date(this.state.displayed_pay_period.fields['period_start']);
+            week_1_end = week_1_end.setDate(week_1_end.getDate() + 7);
+
+            // Loop through all shifts. Determine which week they belong to.
+            this.state.shifts.forEach(function (shift) {
+                if (new Date(shift.fields['clock_in']).getTime() < week_1_end) {
+                    week_1_shifts.push(shift);
+                } else {
+                    week_2_shifts.push(shift);
+                }
+            });
+
+            // Save weeks as state.
+            this.setState({
+                week_1_shifts: week_1_shifts,
+                week_2_shifts: week_2_shifts
+            });
+
+            this.calculateCurrentShift();
+            this.calculateTotalHoursWorked();
+        }
+
+        /**
+         * Calculates total hours worked, by week.
+         */
+
+    }, {
+        key: 'calculateTotalHoursWorked',
+        value: function calculateTotalHoursWorked() {
+            var _this4 = this;
+
+            var shift_start;
+            var shift_end;
+            var total_time = 0;
+
+            // Calculate for week 1.
+            this.state.week_1_shifts.forEach(function (shift) {
+                shift_start = new Date(shift.fields['clock_in']).getTime();
+
+                // If clockout is null, use current time as calculation.
+                if (shift.fields['clock_out'] != null) {
+                    shift_end = new Date(shift.fields['clock_out']).getTime();
+                } else {
+                    shift_end = new Date(_this4.state.current_time);
+                }
+
+                total_time += shift_end - shift_start;
+            });
+
+            this.setState({ week_1_hours: total_time });
+
+            // Calculate for week 2.
+            total_time = 0;
+            this.state.week_2_shifts.forEach(function (shift) {
+                shift_start = new Date(shift.fields['clock_in']).getTime();
+
+                // If clockout is null, use current time as calculation.
+                if (shift.fields['clock_out'] != null) {
+                    shift_end = new Date(shift.fields['clock_out']).getTime();
+                } else {
+                    shift_end = new Date(_this4.state.current_time);
+                }
+
+                total_time += shift_end - shift_start;
+            });
+
+            this.setState({ week_2_hours: total_time });
+        }
+
+        /**
+         * Calculates total hours in current shift.
+         */
+
+    }, {
+        key: 'calculateCurrentShift',
+        value: function calculateCurrentShift() {
             // Check if currently clocked in.
             if (this.state.last_shift.fields['clock_out'] == null) {
 
-                // Calculate shift time trackers.
+                // Clocked in. Calculate current_shift time trackers.
                 var shift_total = this.state.current_time - new Date(this.state.last_shift.fields['clock_in']);
                 var shift_hours = Math.trunc(shift_total / this.one_hour);
                 var shift_minutes = Math.trunc((shift_total - shift_hours * this.one_hour) / this.one_minute);
@@ -353,62 +552,13 @@ var EmployeeShiftManager = function (_React$Component) {
                     current_shift_seconds: shift_seconds
                 });
             } else {
-                // Reset all trackers if currently set.
+                // Not clocked in. Reset all current_shift trackers if currently set.
                 this.setState({
                     current_shift_hours: 0,
                     current_shift_minutes: 0,
                     current_shift_seconds: 0
                 });
             }
-
-            this.calculateWeeksInPayPeriod();
-        }
-
-        /**
-         *Handle clock in/out button click.
-         */
-
-    }, {
-        key: 'handleShiftClick',
-        value: function handleShiftClick() {
-            // Establish socket connection.
-            var socket = new WebSocket('ws://' + domain + '/ws/caeweb/employee/my_hours/');
-
-            socket.beforeunload = function () {
-                socket.close();
-            };
-
-            // Handle incoming socket message event. Note the bind(this) to access React object state within function.
-            socket.onmessage = function (message) {
-                var data = JSON.parse(message.data);
-                this.setState({
-                    shifts: JSON.parse(data.json_shifts),
-                    last_shift: JSON.parse(data.json_last_shift)[0],
-                    displayed_pay_period: this.state.current_pay_period
-                });
-            }.bind(this);
-
-            // Send message to socket.
-            socket.onopen = function (event) {
-                socket.send(JSON.stringify({
-                    'shift_submit': true
-                }));
-            };
-        }
-    }, {
-        key: 'handlePrevPeriodClick',
-        value: function handlePrevPeriodClick() {
-            this.getNewPayPeriod(this.state.displayed_pay_period.pk - 1);
-        }
-    }, {
-        key: 'handleCurrPeriodClick',
-        value: function handleCurrPeriodClick() {
-            this.getNewPayPeriod(this.state.current_pay_period.pk);
-        }
-    }, {
-        key: 'handleNextPeriodClick',
-        value: function handleNextPeriodClick() {
-            this.getNewPayPeriod(this.state.displayed_pay_period.pk + 1);
         }
 
         /**
@@ -418,98 +568,58 @@ var EmployeeShiftManager = function (_React$Component) {
     }, {
         key: 'getNewPayPeriod',
         value: function getNewPayPeriod(pay_period_index) {
-            // Establish socket connection.
-            var socket = new WebSocket('ws://' + domain + '/ws/caeweb/employee/my_hours/');
-
-            socket.beforeunload = function () {
-                socket.close();
-            };
-
-            // Handle incoming socket message event. Note the bind(this) to access React object state within function.
-            socket.onmessage = function (message) {
-                var data = JSON.parse(message.data);
-                this.setState({
-                    displayed_pay_period: JSON.parse(data.json_pay_period)[0],
-                    shifts: JSON.parse(data.json_shifts)
-                });
-                this.calculateWeeksInPayPeriod();
-            }.bind(this);
-
             // Send message to socket.
-            socket.onopen = function (event) {
-                socket.send(JSON.stringify({
-                    'pay_period': pay_period_index
-                }));
-            };
+            this.state.socket.send(JSON.stringify({
+                'action': ACTION_SEND_EVENTS,
+                'pay_period_pk': pay_period_index,
+                'notify': true
+            }));
         }
 
         /**
-         * Sorts shifts based on week in pay period.
+         * Gets and displays previous period.
+         * Note that this intentionally blocks until response is received.
          */
 
     }, {
-        key: 'calculateWeeksInPayPeriod',
-        value: function calculateWeeksInPayPeriod() {
-
-            var week_1_shifts = [];
-            var week_2_shifts = [];
-            var week_1_end = new Date(this.state.displayed_pay_period.fields['period_start']);
-
-            week_1_end = week_1_end.setDate(week_1_end.getDate() + 7);
-
-            this.state.shifts.forEach(function (shift) {
-                if (new Date(shift.fields['clock_in']).getTime() < week_1_end) {
-                    week_1_shifts.push(shift);
-                } else {
-                    week_2_shifts.push(shift);
-                }
-            });
-
-            this.setState({
-                week_1_shifts: week_1_shifts,
-                week_2_shifts: week_2_shifts
-            });
-
-            this.calculateHoursWorked();
+        key: 'handlePrevPeriodClick',
+        value: function handlePrevPeriodClick() {
+            this.getNewPayPeriod(this.state.displayed_pay_period.pk - 1);
         }
 
         /**
-         * Calculates total hours worked, by week.
+         * Gets and displays current pay period.
          */
 
     }, {
-        key: 'calculateHoursWorked',
-        value: function calculateHoursWorked() {
-            var _this3 = this;
+        key: 'handleCurrPeriodClick',
+        value: function handleCurrPeriodClick() {
+            this.getNewPayPeriod(this.state.current_pay_period.pk);
+        }
 
-            var shift_start;
-            var shift_end;
-            var total_time = 0;
+        /**
+         * Gets and displays next pay period.
+         */
 
-            // Calculate for week 1.
-            this.state.week_1_shifts.forEach(function (shift) {
-                shift_start = new Date(shift.fields['clock_in']).getTime();
-                if (shift.fields['clock_out'] != null) {
-                    shift_end = new Date(shift.fields['clock_out']).getTime();
-                } else {
-                    shift_end = new Date(_this3.state.current_time);
-                }
-                total_time += shift_end - shift_start;
-            });
-            this.setState({ week_1_hours: total_time });
-            total_time = 0;
+    }, {
+        key: 'handleNextPeriodClick',
+        value: function handleNextPeriodClick() {
+            this.getNewPayPeriod(this.state.displayed_pay_period.pk + 1);
+        }
 
-            // Calculate for week 2.
-            this.state.week_2_shifts.forEach(function (shift) {
-                shift_start = new Date(shift.fields['clock_in']).getTime();
-                if (shift.fields['clock_out'] != null) {
-                    shift_end = new Date(shift.fields['clock_out']).getTime();
-                } else {
-                    shift_end = new Date(_this3.state.current_time);
-                }
-                total_time += shift_end - shift_start;
-            });
-            this.setState({ week_2_hours: total_time });
+        /**
+         *Handle clock in/out button click.
+         */
+
+    }, {
+        key: 'handleShiftClick',
+        value: function handleShiftClick() {
+            // Send message to socket.
+            this.state.socket.send(JSON.stringify({
+                'action': ACTION_SEND_EVENTS,
+                'submit_shift': true,
+                'notify': true
+            }));
         }
 
         /**
@@ -519,128 +629,123 @@ var EmployeeShiftManager = function (_React$Component) {
     }, {
         key: 'render',
         value: function render() {
-            var _this4 = this;
-
-            var pay_period_start_display = new Date(this.state.displayed_pay_period.fields['period_start']);
-            var pay_period_end_display = new Date(this.state.displayed_pay_period.fields['period_end']);
-            var pay_period_string_options = { month: "short", day: "2-digit", year: 'numeric' };
-
-            var total_time = this.state.week_1_hours + this.state.week_2_hours;
-            var total_hours = Math.trunc(total_time / this.one_hour);
-            var total_minutes = Math.trunc((total_time - total_hours * this.one_hour) / this.one_minute);
+            var _this5 = this;
 
             // Elements to render for client.
-            return React.createElement(
-                'div',
-                { className: 'center' },
-                React.createElement(_current_shift2.default, {
-                    clock_in: this.state.last_shift.fields['clock_in'],
-                    clock_out: this.state.last_shift.fields['clock_out'],
-                    shift_hours: this.state.current_shift_hours,
-                    shift_minutes: this.state.current_shift_minutes,
-                    shift_seconds: this.state.current_shift_seconds,
-                    date_string_options: this.state.date_string_options,
-                    onClick: function onClick() {
-                        return _this4.handleShiftClick();
-                    }
-                }),
-                React.createElement(
+            if (this.state.awaiting_socket_data) {
+                return React.createElement(
+                    'h2',
+                    null,
+                    'Loading, please wait...'
+                );
+            } else {
+                var pay_period_start_display = new Date(this.state.displayed_pay_period.fields['period_start']);
+                var pay_period_end_display = new Date(this.state.displayed_pay_period.fields['period_end']);
+                var pay_period_string_options = { month: 'short', day: '2-digit', year: 'numeric' };
+
+                var total_time = this.state.week_1_hours + this.state.week_2_hours;
+                var total_hours = Math.trunc(total_time / this.one_hour);
+                var total_minutes = Math.trunc((total_time - total_hours * this.one_hour) / this.one_minute);
+
+                return React.createElement(
                     'div',
-                    { className: 'pay-period center' },
-                    React.createElement(
-                        'h2',
-                        null,
-                        'Pay Period of\xA0',
-                        pay_period_start_display.toLocaleDateString('en-US', pay_period_string_options),
-                        '\xA0Through\xA0',
-                        pay_period_end_display.toLocaleDateString('en-US', pay_period_string_options)
-                    ),
+                    { className: 'center' },
+                    React.createElement(_current_shift2.default, {
+                        clock_in: this.state.last_shift.fields['clock_in'],
+                        clock_out: this.state.last_shift.fields['clock_out'],
+                        shift_hours: this.state.current_shift_hours,
+                        shift_minutes: this.state.current_shift_minutes,
+                        shift_seconds: this.state.current_shift_seconds,
+                        date_string_options: this.state.date_string_options,
+                        onClick: function onClick() {
+                            return _this5.handleShiftClick();
+                        }
+                    }),
                     React.createElement(
                         'div',
-                        null,
-                        React.createElement('input', {
-                            id: 'prev_pay_period_button',
-                            type: 'button',
-                            value: '\u23F4',
-                            onClick: function onClick() {
-                                return _this4.handlePrevPeriodClick();
-                            }
+                        { className: 'pay-period center' },
+                        React.createElement(
+                            'h2',
+                            null,
+                            'Pay Period of\xA0',
+                            pay_period_start_display.toLocaleDateString('en-US', pay_period_string_options),
+                            '\xA0Through\xA0',
+                            pay_period_end_display.toLocaleDateString('en-US', pay_period_string_options)
+                        ),
+                        React.createElement(
+                            'div',
+                            null,
+                            React.createElement('input', {
+                                id: 'prev_pay_period_button',
+                                type: 'button',
+                                value: '\u23F4',
+                                onClick: function onClick() {
+                                    return _this5.handlePrevPeriodClick();
+                                }
+                            }),
+                            React.createElement('input', {
+                                id: 'curr_pay_period_button',
+                                type: 'button',
+                                value: 'Current Pay Period',
+                                onClick: function onClick() {
+                                    return _this5.handleCurrPeriodClick();
+                                }
+                            }),
+                            React.createElement('input', {
+                                id: 'next_pay_period_button', type: 'button',
+                                value: '\u23F5',
+                                onClick: function onClick() {
+                                    return _this5.handleNextPeriodClick();
+                                }
+                            })
+                        ),
+                        React.createElement(
+                            'p',
+                            null,
+                            'Total Pay Period Hours: ',
+                            total_hours,
+                            ' Hours ',
+                            total_minutes,
+                            ' Minutes'
+                        ),
+                        React.createElement(_pay_period2.default, {
+                            table_title: 'Week 1',
+                            displayed_pay_period: this.state.displayed_pay_period,
+                            shifts: this.state.week_1_shifts,
+                            current_shift_hours: this.state.current_shift_hours,
+                            current_shift_minutes: this.state.current_shift_minutes,
+                            week_total: this.state.week_1_hours,
+                            date_string_options: this.state.date_string_options
                         }),
-                        React.createElement('input', {
-                            id: 'curr_pay_period_button',
-                            type: 'button',
-                            value: 'Current Pay Period',
-                            onClick: function onClick() {
-                                return _this4.handleCurrPeriodClick();
-                            }
-                        }),
-                        React.createElement('input', {
-                            id: 'next_pay_period_button', type: 'button',
-                            value: '\u23F5',
-                            onClick: function onClick() {
-                                return _this4.handleNextPeriodClick();
-                            }
+                        React.createElement(_pay_period2.default, {
+                            table_title: 'Week 2',
+                            displayed_pay_period: this.state.displayed_pay_period,
+                            shifts: this.state.week_2_shifts,
+                            current_shift_hours: this.state.current_shift_hours,
+                            current_shift_minutes: this.state.current_shift_minutes,
+                            week_total: this.state.week_2_hours,
+                            date_string_options: this.state.date_string_options
                         })
-                    ),
-                    React.createElement(
-                        'p',
-                        null,
-                        'Total Pay Period Hours: ',
-                        total_hours,
-                        ' Hours ',
-                        total_minutes,
-                        ' Minutes'
-                    ),
-                    React.createElement(_pay_period2.default, {
-                        table_title: 'Week 1',
-                        displayed_pay_period: this.state.displayed_pay_period,
-                        shifts: this.state.week_1_shifts,
-                        current_shift_hours: this.state.current_shift_hours,
-                        current_shift_minutes: this.state.current_shift_minutes,
-                        week_total: this.state.week_1_hours,
-                        date_string_options: this.state.date_string_options
-                    }),
-                    React.createElement(_pay_period2.default, {
-                        table_title: 'Week 2',
-                        displayed_pay_period: this.state.displayed_pay_period,
-                        shifts: this.state.week_2_shifts,
-                        current_shift_hours: this.state.current_shift_hours,
-                        current_shift_minutes: this.state.current_shift_minutes,
-                        week_total: this.state.week_2_hours,
-                        date_string_options: this.state.date_string_options
-                    })
-                )
-            );
+                    )
+                );
+            }
         }
     }]);
 
-    return EmployeeShiftManager;
+    return MyHoursManager;
 }(React.Component);
 
-exports.default = EmployeeShiftManager;
-
-},{"./current_shift":1,"./employee_shift":2,"./pay_period":5}],4:[function(require,module,exports){
-'use strict';
-
-var _employee_shift_manager = require('./employee_shift_manager');
-
-var _employee_shift_manager2 = _interopRequireDefault(_employee_shift_manager);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
 // Start of React logic.
+
+
 function App() {
-    return React.createElement(_employee_shift_manager2.default, null);
+    return React.createElement(MyHoursManager, null);
 }
 
 // Render to page.
-/**
- * React logic for my_hours page.
- */
-
 ReactDOM.render(App(), document.getElementById('react-root'));
 
-},{"./employee_shift_manager":3}],5:[function(require,module,exports){
+},{"./current_shift":1,"./employee_shift":2,"./pay_period":4}],4:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -787,4 +892,4 @@ var EmployeeShiftManager = function (_React$Component) {
 
 exports.default = EmployeeShiftManager;
 
-},{"./current_shift":1,"./employee_shift":2}]},{},[4]);
+},{"./current_shift":1,"./employee_shift":2}]},{},[3]);
