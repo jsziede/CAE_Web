@@ -3,6 +3,12 @@
 <li><a href="{% url 'cae_web_core:calendar_test' %}">Calendar Test</a></li>
 {% if user.is_authenticated %}
 <li>
+  <p href="">Attendants</p>
+  <ul>
+    <li><a href="{% url 'cae_web_attendants:checkout' %}">Room Checkout</a></li>
+  </ul>
+</li>
+<li>
   <p href="">Employee</p>
   <ul>
     <li><a href="{% url 'cae_web_core:my_hours' %}">My Hours</a></li>

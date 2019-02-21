@@ -10,5 +10,5 @@ from . import views
 app_name = 'cae_web_attendants'
 urlpatterns = [
     # Home page.
-    url(r'^attendants', views.attendants, name='attendants'),
+    url(r'^checkout', views.attendants, name='checkout'),
 ]

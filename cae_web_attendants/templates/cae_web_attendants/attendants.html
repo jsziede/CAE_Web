@@ -20,7 +20,7 @@
 	{% include "./forms/room-checkout.html" %}
 
 	{% if room_checkouts %}
-	<div class="panel info">
+	<div class="panel">
 		<div class="header">
 			<p>Room Checkouts</p>
 			<div class="pagination">
@@ -49,7 +49,7 @@
 		</div>
 		<div class="content">
 			{% for checkout in room_checkouts %}
-				<div class="room-checkout {% cycle 'light' 'dark' %}"><b>{{ checkout.room}}</b> checked out by {{ checkout.employee}} on {{ checkout.checkout_date | date:"F jS, Y" }} at {{ checkout.checkout_date | date:"P" }}</div>
+				<div class="room-checkout {% cycle 'light' 'dark' %}"><b>{{ checkout.room}}</b> checked out by {{ checkout.student.first_name }} {{ checkout.student.last_name }} on {{ checkout.checkout_date | date:"F jS, Y" }} at {{ checkout.checkout_date | date:"P" }}</div>
 			{% endfor %}
 	</div>
 	{% else %}

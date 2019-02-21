@@ -9,13 +9,13 @@ from django.core.serializers.json import DjangoJSONEncoder
 from . import forms, models
 from cae_home import models as cae_home_models
 
-# Home page of the CAE_Web_Attendants app.
+# Gets all the objects from the RoomCheckout model to show on the home page and provides a form to submit a new room checkout
 @login_required
 def attendants(request):
-	# Gets all the objects from the RoomCheckout model to show on the home page.
-	# perhaps only a certain number of models should be retrieved instead of all?
+	# Splits the room checkout list into pages using GET data
+	checkouts_per_page = 25
 	room_checkout_list = models.RoomCheckout.objects.all()
-	paginator = Paginator(room_checkout_list, 25)
+	paginator = Paginator(room_checkout_list, checkouts_per_page)
 	page = request.GET.get('page')
 	room_checkouts = paginator.get_page(page)
 
@@ -26,6 +26,7 @@ def attendants(request):
 
 	if request.method == 'POST':
 		form = forms.RoomCheckoutForm(request.POST)
+
 		if form.is_valid():
 			checkout = form.save()
 
