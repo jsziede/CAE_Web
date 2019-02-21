@@ -31,13 +31,14 @@ class RoomCheckoutForm(forms.ModelForm):
                 params={'date': input_date},
             )
         
-        print(input_date)
+        # gets all instances of the input room that have been checked out for the input date, should only return one object at most
         current_room_checkouts = models.RoomCheckout.objects.filter(
             Q(room__exact=input_room) &
             Q(checkout_date__year=input_date.year) &
             Q(checkout_date__month=input_date.month) &
             Q(checkout_date__day=input_date.day))
 
+        # raise validation error if any checkouts are found
         if current_room_checkouts:
             raise ValidationError(
                 _('Invalid room: %(room_name)s has already been checked out on %(month)s/%(day)s/%(year)s'),
