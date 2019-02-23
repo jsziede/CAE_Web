@@ -237,6 +237,30 @@ def shift_manager(request, pk):
 
 #region Calendar Views
 
+
+def room_schedule(request):
+    rooms = cae_home_models.Room.objects.all().order_by('room_type', 'name').values_list(
+        'pk', 'name', 'capacity',
+    )
+    now = timezone.now() # UTC
+    now = now.astimezone(pytz.timezone('America/Detroit')) # EST/EDT
+    start = now.replace(hour=8, minute=0, second=0)
+    end = now.replace(hour=22, minute=0, second=0)
+
+    rooms_json = []
+    for pk, name, capacity in rooms:
+        rooms_json.append({
+            'id': pk,
+            'html': format_html('{}<br>{}'.format(name, capacity)),
+        })
+
+    return TemplateResponse(request, 'cae_web_core/room_schedule/room_schedule.html', {
+        'rooms': rooms,
+        'rooms_json': json.dumps(rooms_json),
+        'start': start,
+        'end': end,
+    })
+
 def calendar_test(request):
     rooms = cae_home_models.Room.objects.all().order_by('room_type', 'name').values_list(
         'pk', 'name', 'capacity',

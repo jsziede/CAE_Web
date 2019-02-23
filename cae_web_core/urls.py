@@ -24,4 +24,5 @@ urlpatterns = [
     url(r'^schedule/', include(('schedule.urls', 'schedule'), namespace='schedule')),
     url(r'^room-schedule/api/$', views.api_room_schedule, name='api_room_schedule'),
     url(r'^calendar-test/$', views.calendar_test, name='calendar_test'),
+    url(r'^room-schedule/$', views.room_schedule, name='room_schedule'),
 ]
