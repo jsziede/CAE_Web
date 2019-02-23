@@ -44,8 +44,17 @@ var schedule = (function() {
 
         // Create grid lines
         var gridLineDivs = '';
-
-        gridLineDivs += '<div class="schedule-grid-line" style="grid-area: 2 / 2 / auto / span 2;"></div>';
+        for (var i = 0; i < resources.length; ++i) {
+            var column = i * 2 + 2;
+            for (var j = 0; j < totalHours * 4; ++j) {
+                var row = j + 2
+                var resourceIndex = i;
+                var timeOffset = j;
+                // TODO: have click event figure out where to add event (resource and time)
+                // and then open event dialog.
+                gridLineDivs += `<div class="schedule-grid-line" style="grid-area: ${row} / ${column} / auto / span 2"></div>`
+            }
+        }
 
         grid = $('<div>', {
             class: "schedule-grid",
