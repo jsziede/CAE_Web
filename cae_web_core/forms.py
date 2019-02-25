@@ -19,3 +19,17 @@ class EmployeeShiftForm(forms.ModelForm):
             'clock_in',
             'clock_out',
         }
+
+
+class RoomEventForm(forms.ModelForm):
+    class Meta:
+        model = models.RoomEvent
+        fields = [
+            'title',
+            'start_time',
+            'end_time',
+            'rrule',
+            'description',
+            'event_type',
+            'room',
+        ]

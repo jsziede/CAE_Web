@@ -169,7 +169,7 @@ var createSchedule = function(container) {
             const data = processedEvents[eventId];
             const style = `grid-area: ${data.rowStart} / ${data.column} / span ${data.span15Min} / span ${data.columnSpan}`;
             // TODO: Only show edit button if user can edit events
-            const toolbar = `<div class="schedule-event-toolbar"><button title="edit"><i class="fas fa-pencil-alt"></i></button></div>`;
+            const toolbar = `<div class="schedule-event-toolbar"><button title="edit" class="schedule-btn-edit-event"><i class="fas fa-pencil-alt"></i></button></div>`;
             const contents = `
                 ${moment(data.event.start).format('LT')}<br/>
                 ${data.event.title}<br/>
@@ -178,6 +178,9 @@ var createSchedule = function(container) {
         }
 
         grid.append(eventDivs);
+
+        // Add event handler for edit button
+        container.find('.schedule-btn-edit-event').on('click', onBtnEditEventClicked);
     }
 
 
@@ -223,6 +226,14 @@ var createSchedule = function(container) {
         changeDate(current.toDate());
     }
 
+    function onBtnEditEventClicked(event) {
+        console.log(event.target);
+        // TODO: Update event modal dialog
+
+
+        show_overlay_modal();
+    }
+
     // Initialize
     container.empty();
     var header = createHeader();
@@ -253,8 +264,10 @@ var createSchedule = function(container) {
 };
 
 $(function() {
-    //schedule.initAll();
     $('.schedule-container').each(function() {
         var schedule = createSchedule(this);
     });
+
+    // Move event form into modal dialog
+    $('#div_event_form').appendTo('#overlay-modal').show();
 });

@@ -258,11 +258,14 @@ def room_schedule(request):
             'html': format_html('{}<br>{}'.format(name, capacity)),
         })
 
+    form = forms.RoomEventForm()
+
     return TemplateResponse(request, 'cae_web_core/room_schedule/room_schedule.html', {
         'rooms': rooms,
         'rooms_json': json.dumps(rooms_json),
         'start': start,
         'end': end,
+        'form': form,
     })
 
 def calendar_test(request):
