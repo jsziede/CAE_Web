@@ -239,11 +239,15 @@ def shift_manager(request, pk):
 
 
 def room_schedule(request):
+    date_string = request.GET.get('date')
     rooms = cae_home_models.Room.objects.all().order_by('room_type', 'name').values_list(
         'pk', 'name', 'capacity',
     )
     now = timezone.now() # UTC
     now = now.astimezone(pytz.timezone('America/Detroit')) # EST/EDT
+    if date_string:
+        date_obj = datetime.datetime.strptime(date_string, '%Y-%m-%d')
+        now = now.replace(year=date_obj.year, month=date_obj.month, day=date_obj.day)
     start = now.replace(hour=8, minute=0, second=0)
     end = now.replace(hour=22, minute=0, second=0)
 

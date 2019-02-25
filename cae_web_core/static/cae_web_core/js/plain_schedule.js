@@ -113,7 +113,7 @@ var createSchedule = function(container) {
             var column = resourceIdToColumn[event.resource];
             const startDiff = Math.round(eventStart.diff(start, 'second') / 3600); // hours
             const endDiff = Math.round(eventEnd.diff(end, 'second') / 3600); // hours
-            const rowStart = Math.max(0, startDiff) * 4 + 2;
+            const rowStart = Math.max(0, startDiff) * 4;
             var spanHours = Math.round(eventEnd.diff(eventStart, 'second') / 3600);
             if (startDiff < 0) {
                 // Reduce span if we cut off the start (Add a negative)
@@ -180,6 +180,49 @@ var createSchedule = function(container) {
         grid.append(eventDivs);
     }
 
+
+    function changeDate(dateString) {
+        var inputDate = moment(dateString)
+        start.set({
+          'year': inputDate.year(),
+          'month': inputDate.month(),
+          'date': inputDate.date(),
+        })
+        end.set({
+          'year': inputDate.year(),
+          'month': inputDate.month(),
+          'date': inputDate.date(),
+        })
+
+        history.replaceState({}, start.format('L'), '?date=' + start.format('YYYY-MM-DD'));
+
+        dateFlatpickr.setDate(start.format('YYYY-MM-DD'));
+
+        // Fetch events
+        socket.send(JSON.stringify({
+          'action': ACTION_GET_EVENTS,
+          'start_time': start.format(),
+          'end_time': end.format(),
+          'notify': true,
+        }))
+      }
+
+    function onBtnTodayClicked(event) {
+        changeDate(moment().toDate());
+    }
+
+    function onBtnPrevClicked(event) {
+        var current = start.clone()
+        current.subtract(1, 'day');
+        changeDate(current.toDate());
+    }
+
+    function onBtnNextClicked(event) {
+        var current = start.clone()
+        current.add(1, 'day');
+        changeDate(current.toDate());
+    }
+
     // Initialize
     container.empty();
     var header = createHeader();
@@ -187,6 +230,20 @@ var createSchedule = function(container) {
 
     container.append(header);
     container.append(grid);
+
+    // Add event handlers
+    container.find('.schedule-btn-today').on('click', onBtnTodayClicked);
+    container.find('.schedule-btn-prev').on('click', onBtnPrevClicked);
+    container.find('.schedule-btn-next').on('click', onBtnNextClicked);
+
+    // Setup flatpickr
+    var dateFlatpickr = container.find('.schedule-txt-date').flatpickr({
+        altInput: true,
+        altFormat: "F j, Y",
+        onChange: function(selectedDates) {
+            changeDate(selectedDates[0]);
+        },
+    });
 
     return {
         dummy: function() {
@@ -199,11 +256,5 @@ $(function() {
     //schedule.initAll();
     $('.schedule-container').each(function() {
         var schedule = createSchedule(this);
-    });
-
-    // Run flatpickr for all date inputs
-    $('.schedule-txt-date').flatpickr({
-        altInput: true,
-        altFormat: "F j, Y",
     });
 });
