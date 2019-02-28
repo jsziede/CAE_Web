@@ -140,55 +140,8 @@ def my_hours(request):
     # Check for valid pay periods.
     populate_pay_periods()
 
-    # Pull models from database.
-    current_time = timezone.now()
-    user_timezone = pytz.timezone(request.user.profile.user_timezone)
-    pay_period = models.PayPeriod.objects.get(period_start__lte=current_time, period_end__gte=current_time)
-    shifts = models.EmployeeShift.objects.filter(employee=request.user, pay_period=pay_period)
-
-    # Try to get shift with no clock out. If none exist, then use last shift in current pay period.
-    try:
-        last_shift = models.EmployeeShift.objects.get(employee=request.user, clock_out=None)
-    except ObjectDoesNotExist:
-        last_shift = shifts.last()
-
-    # Convert shift values to user's local time.
-    for shift in shifts:
-        shift.clock_in = user_timezone.normalize(shift.clock_in.astimezone(user_timezone))
-        if shift.clock_out is not None:
-            shift.clock_out = user_timezone.normalize(shift.clock_out.astimezone(user_timezone))
-
-    # Convert to json format for React.
-    json_pay_period = serializers.serialize(
-        'json',
-        [pay_period],
-        fields=('period_start', 'period_end',)
-    )
-
-    json_shifts = serializers.serialize(
-        'json',
-        shifts,
-        fields=('clock_in', 'clock_out',)
-    )
-
-    if last_shift is not None:
-        json_last_shift = serializers.serialize(
-            'json',
-            [last_shift],
-            fields=('clock_in', 'clock_out',)
-        )
-    else:
-        json_last_shift = serializers.serialize(
-            'json',
-            [],
-        )
-
     # Send to template for user display.
-    return TemplateResponse(request, 'cae_web_core/employee/my_hours.html', {
-        'json_pay_period': json_pay_period,
-        'json_shifts': json_shifts,
-        'json_last_shift': json_last_shift,
-    })
+    return TemplateResponse(request, 'cae_web_core/employee/my_hours.html', {})
 
 
 def shift_edit(request, pk):

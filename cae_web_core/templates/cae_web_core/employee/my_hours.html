@@ -28,11 +28,6 @@
 
 {% block extra_scripts_body %}
   <script>
-      // Get json list of django models as JavaScript variable.
-      var json_pay_period = {{ json_pay_period|safe }};
-      var json_shifts = {{ json_shifts|safe }};
-      var json_last_shift = {{ json_last_shift|safe }};
-
       // Grab root project url.
       var domain = "{{ domain }}";
     </script>
