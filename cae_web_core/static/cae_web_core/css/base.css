@@ -1,53 +1,3 @@
-#content.cae-web .current-shift {
-  display: -webkit-box;
-  display: -moz-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
-  -webkit-flex-direction: column;
-  -moz-flex-direction: column;
-  -ms-flex-direction: column;
-  flex-direction: column;
-  -webkit-align-items: center;
-  -moz-align-items: center;
-  -ms-align-items: center;
-  align-items: center;
-  padding-bottom: 15px;
-  margin-top: 10px; }
-  #content.cae-web .current-shift .time-display {
-    display: -webkit-box;
-    display: -moz-box;
-    display: -ms-flexbox;
-    display: -webkit-flex;
-    display: flex;
-    -webkit-flex-direction: column;
-    -moz-flex-direction: column;
-    -ms-flex-direction: column;
-    flex-direction: column;
-    -webkit-justify-content: space-around;
-    -moz-justify-content: space-around;
-    -ms-justify-content: space-around;
-    justify-content: space-around;
-    -webkit-align-items: center;
-    -moz-align-items: center;
-    -ms-align-items: center;
-    align-items: center;
-    width: 100%; }
-#content.cae-web .pay-period div {
-  margin-top: 10px;
-  margin-bottom: 10px; }
-#content.cae-web .pay-period table {
-  margin-top: 10px;
-  min-width: 90%; }
-  @media only screen and (min-width: 869px) {
-    #content.cae-web .pay-period table {
-      min-width: 50%; } }
-  #content.cae-web .pay-period table th, #content.cae-web .pay-period table td {
-    width: 33.33%; }
-
-@media only print {
-  #content.cae-web .shift-manager-buttons {
-    display: none; } }
 #content.cae-web .shift-manager-list div {
   display: -webkit-box;
   display: -moz-box;
@@ -66,37 +16,8 @@
   margin-right: auto;
   margin-bottom: 20px;
   margin-left: auto; }
-#content.cae-web .shift-manager-list h3 {
-  padding: 10px;
-  margin: 10px; }
-#content.cae-web .shift-manager-list table {
-  width: 80%;
-  margin-top: 20px;
-  margin-bottom: 20px; }
-  #content.cae-web .shift-manager-list table th, #content.cae-web .shift-manager-list table td {
-    width: 25%; }
 
 #content.cae-web .shift-manager-list div {
   font-weight: bold; }
-#content.cae-web .shift-manager-list table tfoot {
-  font-weight: bold; }
-
-#content.cae-web .current-shift {
-  border: 1px solid #cccccc; }
-#content.cae-web .pay-period {
-  border: 1px solid #cccccc; }
-
-#content.cae-web .shift-manager-list h3 {
-  border: 1px solid #cccccc; }
-#content.cae-web .shift-manager-list div {
-  border: 1px solid #cccccc; }
-#content.cae-web .shift-manager-list table {
-  border: 0; }
-  #content.cae-web .shift-manager-list table th, #content.cae-web .shift-manager-list table td {
-    border: 0; }
-  #content.cae-web .shift-manager-list table th {
-    border-bottom: 1px solid #cccccc; }
-  #content.cae-web .shift-manager-list table tfoot {
-    border-top: 1px solid #cccccc; }
 
 /*# sourceMappingURL=base.css.map */

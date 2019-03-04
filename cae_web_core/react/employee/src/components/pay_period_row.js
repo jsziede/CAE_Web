@@ -2,7 +2,7 @@
  * A single employee shift.
  */
 
-class Shift extends React.Component {
+class PayPeriodRow extends React.Component {
 
     /**
      * Constructor for component.
@@ -50,22 +50,22 @@ class Shift extends React.Component {
         return (
             <tr>
                 { clock_in ? (
-                        <td>{ clock_in.toLocaleDateString('en-US', this.props.date_string_options) }</td>
+                        <td><a href=''>{ clock_in.toLocaleDateString('en-US', this.props.date_string_options) }</a></td>
                     ) : (
-                        <td>N/A</td>
+                        <td><a href=''>N/A</a></td>
                     )
                 }
                 { clock_out ? (
-                        <td>{ clock_out.toLocaleDateString('en-US', this.props.date_string_options) }</td>
+                        <td><a href=''>{ clock_out.toLocaleDateString('en-US', this.props.date_string_options) }</a></td>
                     ) : (
-                        <td>N/A</td>
+                        <td><a href=''>N/A</a></td>
                     )
                 }
-                <td>{ shift_time_display }</td>
+                <td><a href=''>{ shift_time_display }</a></td>
             </tr>
         )
     }
 }
 
 
-export default Shift;
+export default PayPeriodRow;

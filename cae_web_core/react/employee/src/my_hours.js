@@ -3,9 +3,8 @@
  */
 
 
-import CurrentShift from './current_shift';
-import EmployeeShift from './employee_shift';
-import PayPeriod from './pay_period';
+import CurrentShift from './components/current_shift';
+import PayPeriod from './components/pay_period';
 
 
 const ACTION_GET_EVENTS = 'get-events';

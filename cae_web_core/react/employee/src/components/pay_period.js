@@ -3,10 +3,10 @@
  */
 
 import CurrentShift from './current_shift';
-import EmployeeShift from './employee_shift';
+import PayPeriodRow from './pay_period_row';
 
 
-class EmployeeShiftManager extends React.Component {
+class PayPeriod extends React.Component {
 
     /**
      * Constructor for component.
@@ -30,7 +30,7 @@ class EmployeeShiftManager extends React.Component {
         if (this.props.shifts.length > 0) {
             this.props.shifts.forEach((shift) => {
                 shifts.push(
-                    <EmployeeShift
+                    <PayPeriodRow
                         key={ shift.pk }
                         clock_in={ shift.fields['clock_in'] }
                         clock_out={ shift.fields['clock_out'] }
@@ -42,7 +42,7 @@ class EmployeeShiftManager extends React.Component {
             });
         } else {
             shifts.push(
-                <EmployeeShift
+                <PayPeriodRow
                     key='N/A'
                     clock_in={ null }
                     clock_out={ null }
@@ -63,24 +63,26 @@ class EmployeeShiftManager extends React.Component {
             <table>
                 <thead>
                     <tr>
-                        <th colSpan="3">{ this.props.table_title }</th>
+                        <th colSpan="3"><h3>{ this.props.table_title }</h3></th>
                     </tr>
                     <tr>
-                        <th>Clock In</th>
-                        <th>Clock Out</th>
-                        <th>Shift Length</th>
+                        <th><h4>Clock In</h4></th>
+                        <th><h4>Clock Out</h4></th>
+                        <th><h4>Shift Length</h4></th>
                     </tr>
                 </thead>
                 <tbody>
                     { shifts }
-                    <tr>
-                        <td colSpan="3">Week Total: { week_hours } Hours { week_minutes } Minutes</td>
-                    </tr>
                 </tbody>
+                <tfoot>
+                    <tr>
+                        <th colSpan="3"><h3>Week Total: { week_hours } Hours { week_minutes } Minutes</h3></th>
+                    </tr>
+                </tfoot>
             </table>
         )
     }
 }
 
 
-export default EmployeeShiftManager;
+export default PayPeriod;

@@ -30,69 +30,11 @@
 // overflow, overflow-x, overflow-y, clip, clear                                  //
 //================================================================================//
 
-//==============================//
-//==== START My Hours Block ====//
-//==============================//
-
-#content.cae-web {
-
-    .current-shift {
-        @include display-flex;
-        @include flex-direction(column);
-        @include align-items(center);
-
-        padding-bottom: 15px;
-        margin-top: 10px;
-
-        .time-display {
-            @include display-flex;
-            @include flex-direction(column);
-            @include justify-content(space-around);
-            @include align-items(center);
-
-            width: 100%;
-        }
-    }
-
-    .pay-period {
-
-        div {
-            margin-top: 10px;
-            margin-bottom: 10px;
-        }
-
-        table {
-            margin-top: 10px;
-            min-width: 90%;
-
-            @media only screen and (min-width: $screen-tablet-mid) {
-                min-width: 50%;
-            }
-
-            th, td {
-                width: 33.33%;
-            }
-        }
-    }
-}
-
-//==============================//
-//===== END My Hours Block =====//
-//==============================//
-
-
 //===================================//
 //==== START Shift Manager Block ====//
 //===================================//
 
 #content.cae-web {
-
-    .shift-manager-buttons {
-
-        @media only print {
-            display: none;
-        }
-    }
 
     .shift-manager-list {
 
@@ -105,21 +47,6 @@
             margin-right: auto;
             margin-bottom: 20px;
             margin-left: auto;
-        }
-
-        h3 {
-            padding: 10px;
-            margin: 10px;
-        }
-
-        table {
-            width: 80%;
-            margin-top: 20px;
-            margin-bottom: 20px;
-
-            th, td {
-                width: 25%;
-            }
         }
     }
 }
@@ -143,9 +70,9 @@
 // word-break, word-wrap, white-space                                             //
 //================================================================================//
 
-//===========================//
-//==== START ----- Block ====//
-//===========================//
+//===================================//
+//==== START Shift Manager Block ====//
+//===================================//
 
 #content.cae-web {
 
@@ -154,19 +81,12 @@
         div {
             font-weight: bold;
         }
-
-        table {
-
-            tfoot {
-                font-weight: bold;
-            }
-        }
     }
 }
 
-//===========================//
-//===== END ----- Block =====//
-//===========================//
+//===================================//
+//===== END Shift Manager Block =====//
+//===================================//
 
 
 //================================================================================//
@@ -197,63 +117,15 @@
 // zoom                                                                           //
 //================================================================================//
 
-//==============================//
-//==== START My Hours Block ====//
-//==============================//
-
-#content.cae-web {
-
-    .current-shift {
-        border: 1px solid $theme-border;
-    }
-
-    .pay-period {
-        border: 1px solid $theme-border;
-    }
-}
-
-//==============================//
-//===== END My Hours Block =====//
-//==============================//
+//===========================//
+//==== START ----- Block ====//
+//===========================//
 
 
-//===================================//
-//==== START Shift Manager Block ====//
-//===================================//
 
-#content.cae-web {
-
-    .shift-manager-list {
-
-        h3 {
-            border: 1px solid $theme-border;
-        }
-
-        div {
-            border: 1px solid $theme-border;
-        }
-
-        table {
-            border: 0;
-
-            th, td {
-                border: 0;
-            }
-
-            th {
-                border-bottom: 1px solid $theme-border;
-            }
-
-            tfoot {
-                border-top: 1px solid $theme-border;
-            }
-        }
-    }
-}
-
-//===================================//
-//===== END Shift Manager Block =====//
-//===================================//
+//===========================//
+//===== END ----- Block =====//
+//===========================//
 
 
 //================================================================================//

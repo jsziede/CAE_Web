@@ -12,7 +12,6 @@ class CurrentShift extends React.Component {
     }
 
 
-
     /**
      * Rendering and last minute calculations for client display.
      */
@@ -40,15 +39,19 @@ class CurrentShift extends React.Component {
         }
 
         return (
-            <div className="current-shift">
-                <h2>Current Shift</h2>
-                { time_display }
-                <input
-                    id="shift-submit"
-                    type="button"
-                    value={ submit_value }
-                    onClick={() => this.props.onClick() }
-                />
+            <div className="panel current-shift">
+                <div className='header center'>
+                    <h2>Current Shift</h2>
+                </div>
+                <div className='body'>
+                    { time_display }
+                    <input
+                        id="shift-submit"
+                        type="button"
+                        value={ submit_value }
+                        onClick={() => this.props.onClick() }
+                    />
+                </div>
             </div>
         )
     }

@@ -75,21 +75,29 @@ var CurrentShift = function (_React$Component) {
 
             return React.createElement(
                 "div",
-                { className: "current-shift" },
+                { className: "panel current-shift" },
                 React.createElement(
-                    "h2",
-                    null,
-                    "Current Shift"
+                    "div",
+                    { className: "header center" },
+                    React.createElement(
+                        "h2",
+                        null,
+                        "Current Shift"
+                    )
                 ),
-                time_display,
-                React.createElement("input", {
-                    id: "shift-submit",
-                    type: "button",
-                    value: submit_value,
-                    onClick: function onClick() {
-                        return _this2.props.onClick();
-                    }
-                })
+                React.createElement(
+                    "div",
+                    { className: "body" },
+                    time_display,
+                    React.createElement("input", {
+                        id: "shift-submit",
+                        type: "button",
+                        value: submit_value,
+                        onClick: function onClick() {
+                            return _this2.props.onClick();
+                        }
+                    })
+                )
             );
         }
     }]);
@@ -108,27 +116,35 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _current_shift = require('./current_shift');
+
+var _current_shift2 = _interopRequireDefault(_current_shift);
+
+var _pay_period_row = require('./pay_period_row');
+
+var _pay_period_row2 = _interopRequireDefault(_pay_period_row);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Core of React rendering for my_hours page.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
 
-/**
- * A single employee shift.
- */
-
-var Shift = function (_React$Component) {
-    _inherits(Shift, _React$Component);
+var PayPeriod = function (_React$Component) {
+    _inherits(PayPeriod, _React$Component);
 
     /**
      * Constructor for component.
      */
-    function Shift(props) {
-        _classCallCheck(this, Shift);
+    function PayPeriod(props) {
+        _classCallCheck(this, PayPeriod);
 
         // Static variables.
-        var _this = _possibleConstructorReturn(this, (Shift.__proto__ || Object.getPrototypeOf(Shift)).call(this, props));
+        var _this = _possibleConstructorReturn(this, (PayPeriod.__proto__ || Object.getPrototypeOf(PayPeriod)).call(this, props));
 
         _this.one_second = 1000;
         _this.one_minute = 60 * _this.one_second;
@@ -141,7 +157,170 @@ var Shift = function (_React$Component) {
      */
 
 
-    _createClass(Shift, [{
+    _createClass(PayPeriod, [{
+        key: 'render',
+        value: function render() {
+            var _this2 = this;
+
+            // Calculate list of shifts.
+            var shifts = [];
+            if (this.props.shifts.length > 0) {
+                this.props.shifts.forEach(function (shift) {
+                    shifts.push(React.createElement(_pay_period_row2.default, {
+                        key: shift.pk,
+                        clock_in: shift.fields['clock_in'],
+                        clock_out: shift.fields['clock_out'],
+                        current_shift_hours: _this2.props.current_shift_hours,
+                        current_shift_minutes: _this2.props.current_shift_minutes,
+                        date_string_options: _this2.props.date_string_options
+                    }));
+                });
+            } else {
+                shifts.push(React.createElement(_pay_period_row2.default, {
+                    key: 'N/A',
+                    clock_in: null,
+                    clock_out: null,
+                    date_string_options: this.props.date_string_options
+                }));
+            }
+
+            // Date to string display.
+            var pay_period_display = new Date(this.props.displayed_pay_period.fields['period_start']);
+            var pay_period_string_options = { month: "short", day: "2-digit", year: 'numeric' };
+
+            // Calculate week hours.
+            var week_hours = Math.trunc(this.props.week_total / this.one_hour);
+            var week_minutes = Math.trunc((this.props.week_total - week_hours * this.one_hour) / this.one_minute);
+
+            return React.createElement(
+                'table',
+                null,
+                React.createElement(
+                    'thead',
+                    null,
+                    React.createElement(
+                        'tr',
+                        null,
+                        React.createElement(
+                            'th',
+                            { colSpan: '3' },
+                            React.createElement(
+                                'h3',
+                                null,
+                                this.props.table_title
+                            )
+                        )
+                    ),
+                    React.createElement(
+                        'tr',
+                        null,
+                        React.createElement(
+                            'th',
+                            null,
+                            React.createElement(
+                                'h4',
+                                null,
+                                'Clock In'
+                            )
+                        ),
+                        React.createElement(
+                            'th',
+                            null,
+                            React.createElement(
+                                'h4',
+                                null,
+                                'Clock Out'
+                            )
+                        ),
+                        React.createElement(
+                            'th',
+                            null,
+                            React.createElement(
+                                'h4',
+                                null,
+                                'Shift Length'
+                            )
+                        )
+                    )
+                ),
+                React.createElement(
+                    'tbody',
+                    null,
+                    shifts
+                ),
+                React.createElement(
+                    'tfoot',
+                    null,
+                    React.createElement(
+                        'tr',
+                        null,
+                        React.createElement(
+                            'th',
+                            { colSpan: '3' },
+                            React.createElement(
+                                'h3',
+                                null,
+                                'Week Total: ',
+                                week_hours,
+                                ' Hours ',
+                                week_minutes,
+                                ' Minutes'
+                            )
+                        )
+                    )
+                )
+            );
+        }
+    }]);
+
+    return PayPeriod;
+}(React.Component);
+
+exports.default = PayPeriod;
+
+},{"./current_shift":1,"./pay_period_row":3}],3:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/**
+ * A single employee shift.
+ */
+
+var PayPeriodRow = function (_React$Component) {
+    _inherits(PayPeriodRow, _React$Component);
+
+    /**
+     * Constructor for component.
+     */
+    function PayPeriodRow(props) {
+        _classCallCheck(this, PayPeriodRow);
+
+        // Static variables.
+        var _this = _possibleConstructorReturn(this, (PayPeriodRow.__proto__ || Object.getPrototypeOf(PayPeriodRow)).call(this, props));
+
+        _this.one_second = 1000;
+        _this.one_minute = 60 * _this.one_second;
+        _this.one_hour = 60 * _this.one_minute;
+        return _this;
+    }
+
+    /**
+     * Rendering and last minute calculations for client display.
+     */
+
+
+    _createClass(PayPeriodRow, [{
         key: 'render',
         value: function render() {
             var clock_in = null;
@@ -176,49 +355,65 @@ var Shift = function (_React$Component) {
                 clock_in ? React.createElement(
                     'td',
                     null,
-                    clock_in.toLocaleDateString('en-US', this.props.date_string_options)
+                    React.createElement(
+                        'a',
+                        { href: '' },
+                        clock_in.toLocaleDateString('en-US', this.props.date_string_options)
+                    )
                 ) : React.createElement(
                     'td',
                     null,
-                    'N/A'
+                    React.createElement(
+                        'a',
+                        { href: '' },
+                        'N/A'
+                    )
                 ),
                 clock_out ? React.createElement(
                     'td',
                     null,
-                    clock_out.toLocaleDateString('en-US', this.props.date_string_options)
+                    React.createElement(
+                        'a',
+                        { href: '' },
+                        clock_out.toLocaleDateString('en-US', this.props.date_string_options)
+                    )
                 ) : React.createElement(
                     'td',
                     null,
-                    'N/A'
+                    React.createElement(
+                        'a',
+                        { href: '' },
+                        'N/A'
+                    )
                 ),
                 React.createElement(
                     'td',
                     null,
-                    shift_time_display
+                    React.createElement(
+                        'a',
+                        { href: '' },
+                        shift_time_display
+                    )
                 )
             );
         }
     }]);
 
-    return Shift;
+    return PayPeriodRow;
 }(React.Component);
 
-exports.default = Shift;
+exports.default = PayPeriodRow;
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _current_shift = require('./current_shift');
+var _current_shift = require('./components/current_shift');
 
 var _current_shift2 = _interopRequireDefault(_current_shift);
 
-var _employee_shift = require('./employee_shift');
-
-var _employee_shift2 = _interopRequireDefault(_employee_shift);
-
-var _pay_period = require('./pay_period');
+var _pay_period = require('./components/pay_period');
 
 var _pay_period2 = _interopRequireDefault(_pay_period);
 
@@ -745,151 +940,4 @@ function App() {
 // Render to page.
 ReactDOM.render(App(), document.getElementById('react-root'));
 
-},{"./current_shift":1,"./employee_shift":2,"./pay_period":4}],4:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _current_shift = require('./current_shift');
-
-var _current_shift2 = _interopRequireDefault(_current_shift);
-
-var _employee_shift = require('./employee_shift');
-
-var _employee_shift2 = _interopRequireDefault(_employee_shift);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /**
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Core of React rendering for my_hours page.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
-
-var EmployeeShiftManager = function (_React$Component) {
-    _inherits(EmployeeShiftManager, _React$Component);
-
-    /**
-     * Constructor for component.
-     */
-    function EmployeeShiftManager(props) {
-        _classCallCheck(this, EmployeeShiftManager);
-
-        // Static variables.
-        var _this = _possibleConstructorReturn(this, (EmployeeShiftManager.__proto__ || Object.getPrototypeOf(EmployeeShiftManager)).call(this, props));
-
-        _this.one_second = 1000;
-        _this.one_minute = 60 * _this.one_second;
-        _this.one_hour = 60 * _this.one_minute;
-        return _this;
-    }
-
-    /**
-     * Rendering and last minute calculations for client display.
-     */
-
-
-    _createClass(EmployeeShiftManager, [{
-        key: 'render',
-        value: function render() {
-            var _this2 = this;
-
-            // Calculate list of shifts.
-            var shifts = [];
-            if (this.props.shifts.length > 0) {
-                this.props.shifts.forEach(function (shift) {
-                    shifts.push(React.createElement(_employee_shift2.default, {
-                        key: shift.pk,
-                        clock_in: shift.fields['clock_in'],
-                        clock_out: shift.fields['clock_out'],
-                        current_shift_hours: _this2.props.current_shift_hours,
-                        current_shift_minutes: _this2.props.current_shift_minutes,
-                        date_string_options: _this2.props.date_string_options
-                    }));
-                });
-            } else {
-                shifts.push(React.createElement(_employee_shift2.default, {
-                    key: 'N/A',
-                    clock_in: null,
-                    clock_out: null,
-                    date_string_options: this.props.date_string_options
-                }));
-            }
-
-            // Date to string display.
-            var pay_period_display = new Date(this.props.displayed_pay_period.fields['period_start']);
-            var pay_period_string_options = { month: "short", day: "2-digit", year: 'numeric' };
-
-            // Calculate week hours.
-            var week_hours = Math.trunc(this.props.week_total / this.one_hour);
-            var week_minutes = Math.trunc((this.props.week_total - week_hours * this.one_hour) / this.one_minute);
-
-            return React.createElement(
-                'table',
-                null,
-                React.createElement(
-                    'thead',
-                    null,
-                    React.createElement(
-                        'tr',
-                        null,
-                        React.createElement(
-                            'th',
-                            { colSpan: '3' },
-                            this.props.table_title
-                        )
-                    ),
-                    React.createElement(
-                        'tr',
-                        null,
-                        React.createElement(
-                            'th',
-                            null,
-                            'Clock In'
-                        ),
-                        React.createElement(
-                            'th',
-                            null,
-                            'Clock Out'
-                        ),
-                        React.createElement(
-                            'th',
-                            null,
-                            'Shift Length'
-                        )
-                    )
-                ),
-                React.createElement(
-                    'tbody',
-                    null,
-                    shifts,
-                    React.createElement(
-                        'tr',
-                        null,
-                        React.createElement(
-                            'td',
-                            { colSpan: '3' },
-                            'Week Total: ',
-                            week_hours,
-                            ' Hours ',
-                            week_minutes,
-                            ' Minutes'
-                        )
-                    )
-                )
-            );
-        }
-    }]);
-
-    return EmployeeShiftManager;
-}(React.Component);
-
-exports.default = EmployeeShiftManager;
-
-},{"./current_shift":1,"./employee_shift":2}]},{},[3]);
+},{"./components/current_shift":1,"./components/pay_period":2}]},{},[4]);
