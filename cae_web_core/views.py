@@ -6,14 +6,12 @@ Views for CAE_Web Core App.
 import datetime, dateutil.parser, json, pytz
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
-from django.core import serializers
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http.response import JsonResponse, HttpResponseRedirect
 from django.template.response import TemplateResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html
@@ -146,7 +144,7 @@ def my_hours(request):
 
 def shift_edit(request, pk):
     """
-
+    Edit view for a single shift.
     :param request:
     :return:
     """
@@ -167,7 +165,7 @@ def shift_edit(request, pk):
             messages.warning(request, 'Failed to update shift.')
 
     # Handle for non-post request.
-    return render(request, 'cae_web_core/employee/shift_edit.html', {
+    return TemplateResponse(request, 'cae_web_core/employee/shift_edit.html', {
         'form': form,
         'shift': shift,
     })

@@ -6,6 +6,7 @@ import math
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.urls import reverse
 from django.utils import timezone
 
 
@@ -73,6 +74,11 @@ class EmployeeShift(models.Model):
     def __str__(self):
         return '{0}: {1} to {2}'.format(self.employee, self.clock_in, self.clock_out)
 
+    def get_absolute_url(self):
+        return reverse('cae_web_core:shift_edit', kwargs={
+            'pk': self.pk,
+        })
+
     def clean(self, *args, **kwargs):
         """
         Custom cleaning implementation. Includes validation, setting fields, etc.
@@ -134,7 +140,10 @@ class EmployeeShift(models.Model):
         Calculates total time worked, both total seconds and h/m/s.
         :return: Tuple of (total_seconds, (hours, minutes, seconds)) worked.
         """
-        return self.clock_out.timestamp() - self.clock_in.timestamp()
+        if self.clock_out is not None:
+            return self.clock_out.timestamp() - self.clock_in.timestamp()
+        else:
+            return timezone.now().timestamp() - self.clock_in.timestamp()
 
     def get_time_worked_as_decimal(self, total_seconds=None):
         """
