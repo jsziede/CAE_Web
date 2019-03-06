@@ -24,21 +24,22 @@ class RoomCheckoutForm(forms.ModelForm):
         input_date = cleaned_data['checkout_date']
         input_room = cleaned_data['room']
 
-        if input_date < timezone.now():
+        # allows a room checkout if it is from the current day or in the future, even if the time has passed
+        # simply comment out or remove this block of code if retroactive checkouts are allowed
+        if input_date.day < timezone.now().day:
             raise ValidationError(
                 _('Invalid date %(date)s: date cannot be from the past'),
                 code='invalid',
                 params={'date': input_date},
             )
         
-        # gets all instances of the input room that have been checked out for the input date, should only return one object at most
+        print(input_date)
         current_room_checkouts = models.RoomCheckout.objects.filter(
             Q(room__exact=input_room) &
             Q(checkout_date__year=input_date.year) &
             Q(checkout_date__month=input_date.month) &
             Q(checkout_date__day=input_date.day))
 
-        # raise validation error if any checkouts are found
         if current_room_checkouts:
             raise ValidationError(
                 _('Invalid room: %(room_name)s has already been checked out on %(month)s/%(day)s/%(year)s'),

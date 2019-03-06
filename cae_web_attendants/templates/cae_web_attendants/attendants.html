@@ -12,6 +12,7 @@
 <script>let roomInputId = "{{ form.room.id_for_label }}";</script>
 <script>let userId = "{{ user.get_username }}";</script>
 <script>let roomCheckoutList = "{{ room_checkout_list }}";</script>
+<script>let datetimeInputId = "{{ form.checkout_date.id_for_label }}";</script>
 {% endblock base_scripts %}
 
 {% block content %}
@@ -60,5 +61,6 @@
 {% block extra_scripts_body %}
 <script src="{% static 'cae_web_attendants/js/room_select.js' %}"></script>
 <script src="{% static 'cae_web_attendants/js/select_default_user.js' %}"></script>
+<script src="{% static 'cae_web_attendants/js/create_datetime_string.js' %}"></script>
 <script>selectDefaultUser(userId)</script>
 {% endblock extra_scripts_body %}
