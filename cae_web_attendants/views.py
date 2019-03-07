@@ -2,10 +2,6 @@ from django.shortcuts import get_object_or_404, render
 from django.template.response import TemplateResponse
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.db.models.functions import Lower
-
-import json
-from django.core.serializers.json import DjangoJSONEncoder
 
 from . import forms, models
 from cae_home import models as cae_home_models
