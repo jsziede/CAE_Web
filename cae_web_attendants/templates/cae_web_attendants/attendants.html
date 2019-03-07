@@ -21,38 +21,90 @@
 	{% include "./forms/room-checkout.html" %}
 
 	{% if room_checkouts %}
-	<div class="panel">
-		<div class="header">
-			<p>Room Checkouts</p>
-			<div class="pagination">
-				<span class="step-links">
-					{% if room_checkouts.has_previous %}
-					<a class="button" href="?page=1">◀◀</a>
-					<a class="button" href="?page={{ room_checkouts.previous_page_number }}">◀</a>
-					{% else %}
-					<button>◀◀</button>
-					<button>◀</button>
-					{% endif %}
+	<table>
+		<thead>
+			<tr>
+				<th colspan="2" class="table-caption-left">
+					Room Checkouts
+				</th>
+				<th class="table-caption-right">
+					<span class="step-links">
+						{% if room_checkouts.has_previous %}
+						<a class="button" href="?page=1&order_by={{ order_by }}&direction={{ direction }}"><i class="fas fa-angle-double-left"></i></a>
+						<a class="button" href="?page={{ room_checkouts.previous_page_number }}&order_by={{ order_by }}&direction={{ direction }}"><i class="fas fa-angle-left"></i></a>
+						{% else %}
+						<button><i class="fas fa-angle-double-left"></i></button>
+						<button><i class="fas fa-angle-left"></i></button>
+						{% endif %}
 
-					<span class="current">
-						{{ room_checkouts.number }} / {{ room_checkouts.paginator.num_pages }}
+						<span class="current">
+							{{ room_checkouts.number }} / {{ room_checkouts.paginator.num_pages }}
+						</span>
+
+						{% if room_checkouts.has_next %}
+						<a class="button" href="?page={{ room_checkouts.next_page_number }}&order_by={{ order_by }}&direction={{ direction }}"><i class="fas fa-angle-right"></i></a>
+						<a class="button" href="?page={{ room_checkouts.paginator.num_pages }}&order_by={{ order_by }}&direction={{ direction }}"><i class="fas fa-angle-double-right"></i></a>
+						{% else %}
+						<button><i class="fas fa-angle-right"></i></button>
+						<button><i class="fas fa-angle-double-right"></i></button>
+						{% endif %}
 					</span>
-
-					{% if room_checkouts.has_next %}
-					<a class="button" href="?page={{ room_checkouts.next_page_number }}">▶</a>
-					<a class="button" href="?page={{ room_checkouts.paginator.num_pages }}">▶▶</a>
+				</th>
+			</tr>
+			<tr>
+				<th>
+					{% if order_by == "room" %}
+						{% if direction == "asc" %}
+							<a href="?order_by=room&direction=desc"><i class="fas fa-arrow-circle-up"></i> Room</a>
+						{% elif direction == "desc" %}
+							<a href="?order_by=room&direction=asc"><i class="fas fa-arrow-circle-down"></i> Room</a>
+						{% else %}
+							<a href="?order_by=room&direction=desc">Room</a>
+						{% endif %}
 					{% else %}
-					<button>▶</button>
-					<button>▶▶</button>
+						<a href="?order_by=room&direction=desc">Room</a>
 					{% endif %}
-				</span>
-			</div>
-		</div>
-		<div class="content">
+				</th>
+				<th>
+					{% if order_by == "student" %}
+						{% if direction == "asc" %}
+							<a href="?order_by=student&direction=desc"><i class="fas fa-arrow-circle-up"></i> Student</a>
+						{% elif direction == "desc" %}
+							<a href="?order_by=student&direction=asc"><i class="fas fa-arrow-circle-down"></i> Student</a>
+						{% else %}
+							<a href="?order_by=student&direction=desc">Student</a>
+						{% endif %}
+					{% else %}
+						<a href="?order_by=student&direction=desc">Student</a>
+					{% endif %}
+				</th>
+				<th>
+					{% if order_by == "checkout_date" %}
+						{% if direction == "asc" %}
+							<a href="?order_by=checkout_date&direction=desc"><i class="fas fa-arrow-circle-up"></i> Date</a>
+						{% elif direction == "desc" %}
+							<a href="?order_by=checkout_date&direction=asc"><i class="fas fa-arrow-circle-down"></i> Date</a>
+						{% else %}
+							<a href="?order_by=checkout_date&direction=asc">Date</a>
+						{% endif %}
+					{% elif not order_by and not direction  %}
+						<a href="?order_by=checkout_date&direction=asc"><i class="fas fa-arrow-circle-down"></i> Date</a>
+					{% else %}
+						<a href="?order_by=checkout_date&direction=desc">Date</a>
+					{% endif %}
+				</th>
+			</tr>
+		</thead>
+		<tbody>
 			{% for checkout in room_checkouts %}
-				<div class="room-checkout {% cycle 'light' 'dark' %}"><b>{{ checkout.room}}</b> checked out by {{ checkout.student.first_name }} {{ checkout.student.last_name }} on {{ checkout.checkout_date | date:"F jS, Y" }} at {{ checkout.checkout_date | date:"P" }}</div>
+			<tr>
+				<td>{{ checkout.room}}</td>
+				<td>{{ checkout.student.first_name }} {{ checkout.student.last_name }} ({{ checkout.student.bronco_net }})</td>
+				<td>{{ checkout.checkout_date | date:"F jS, Y" }} @ {{ checkout.checkout_date | date:"P" }}</td>
+			</tr>
 			{% endfor %}
-	</div>
+		</tbody>
+	</table>
 	{% else %}
 	<p>No rooms have been checked out.</p>
 	{% endif %}

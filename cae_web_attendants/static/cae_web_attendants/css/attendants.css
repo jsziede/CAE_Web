@@ -1,11 +1,13 @@
-.room-checkout {
-    padding: 10px;
+.table-caption-left {
+    text-align: left;
+    border: 0 !important;
 }
 
-.room-checkout.dark {
-    background-color: #ddddf4;
+.table-caption-right {
+    text-align: right;
+    border: 0 !important;
 }
 
-.content {
-    padding: 0 !important;
+th > a {
+    text-decoration: none;
 }
