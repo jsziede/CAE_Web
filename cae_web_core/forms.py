@@ -22,6 +22,7 @@ class EmployeeShiftForm(forms.ModelForm):
 
 
 class RoomEventForm(forms.ModelForm):
+    room_event_pk = forms.IntegerField(widget=forms.HiddenInput)
     class Meta:
         model = models.RoomEvent
         fields = [

@@ -259,6 +259,21 @@ def room_schedule(request):
         })
 
     form = forms.RoomEventForm()
+    if request.POST:
+        pk = request.POST.get('room_event_pk')
+        delete = request.POST.get('_delete')
+        instance = get_object_or_404(models.RoomEvent, pk=pk)
+        if delete:
+            instance.delete()
+            messages.success(request, "Event deleted")
+            return redirect(reverse('cae_web_core:room_schedule') + '?date=' + date_string)
+        form = forms.RoomEventForm(request.POST, instance=instance)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Event updated")
+            return redirect(reverse('cae_web_core:room_schedule') + '?date=' + date_string)
+        else:
+            messages.error(request, "There were errors updating the event.")
 
     return TemplateResponse(request, 'cae_web_core/room_schedule/room_schedule.html', {
         'rooms': rooms,

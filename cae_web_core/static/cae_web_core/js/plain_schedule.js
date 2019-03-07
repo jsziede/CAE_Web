@@ -1,3 +1,6 @@
+var dialogEventStart = null;
+var dialogEventEnd = null;
+
 var createSchedule = function(container) {
     // See ScheduleConsumer for these constants
     const ACTION_GET_EVENTS = 'get-events'
@@ -174,7 +177,7 @@ var createSchedule = function(container) {
                 ${moment(data.event.start).format('LT')}<br/>
                 ${data.event.title}<br/>
                 ${moment(data.event.end).format('LT')}`;
-            eventDivs += `<div class="schedule-event" title="${data.event.description}" style="${style}">${toolbar}${contents}</div>`;
+            eventDivs += `<div class="schedule-event" title="${data.event.description}" style="${style}" data-event="${escape(JSON.stringify(data.event))}">${toolbar}${contents}</div>`;
         }
 
         grid.append(eventDivs);
@@ -227,8 +230,16 @@ var createSchedule = function(container) {
     }
 
     function onBtnEditEventClicked(event) {
-        console.log(event.target);
         // TODO: Update event modal dialog
+        var event = JSON.parse(unescape($(event.target).closest('.schedule-event').data('event')));
+        console.log(event);
+        $('#id_room_event_pk').val(event.id);
+        $('#id_title').val(event.title);
+        dialogEventStart.setDate(moment(event.start).format('YYYY-MM-DD HH:mm'));
+        dialogEventEnd.setDate(moment(event.end).format('YYYY-MM-DD HH:mm'));
+        $('#id_description').val(event.title);
+        $('#id_event_type').val(event.event_type); // TODO: Have socket give event type
+        $('#id_room').val(event.resource);
 
 
         show_overlay_modal();
@@ -268,6 +279,28 @@ $(function() {
         var schedule = createSchedule(this);
     });
 
-    // Move event form into modal dialog
-    $('#div_event_form').appendTo('#overlay-modal').show();
+    // Move event dialog into modal dialog
+    $('#div_event_dialog').appendTo('#overlay-modal').show();
+    dialogEventStart = $('#id_start_time').flatpickr({
+        enableTime: true,
+        altInput: true,
+        dateFormat: "Y-m-d H:i",
+        altFormat: "F j, Y h:i K",
+    });
+    dialogEventEnd = $('#id_end_time').flatpickr({
+        enableTime: true,
+        altInput: true,
+        dateFormat: "Y-m-d H:i",
+        altFormat: "F j, Y h:i K",
+    });
+
+    // Close dialog when cancel clicked
+    $('#btn_cancel').on('click', function() {
+        hide_overlay_modal();
+    });
+
+    // Check if we have errors from previous POST
+    if ($('#div_event_dialog[data-errors]').length) {
+        show_overlay_modal();
+    }
 });
