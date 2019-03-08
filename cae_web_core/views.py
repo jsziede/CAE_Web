@@ -111,11 +111,13 @@ def index(request):
         cae_phone_number = None
     cae_directors = cae_home_models.User.objects.filter(groups__name='CAE Director')
     cae_coordinators = cae_home_models.User.objects.filter(groups__name='CAE Building Coordinator')
+    cae_attendants = None
     cae_admins = None
     cae_programmers = None
 
     if request.user.is_authenticated:
-        if request.user.groups.filter(name='CAE Admin') or request.user.groups.filter(name='CAE Programmer'):
+        if request.user.groups.filter(name='CAE Attendant') or request.user.groups.filter(name='CAE Admin') or request.user.groups.filter(name='CAE Programmer'):
+            cae_attendants = cae_home_models.User.objects.filter(groups__name='CAE Attendant')
             cae_admins = cae_home_models.User.objects.filter(groups__name='CAE Admin')
             cae_programmers = cae_home_models.User.objects.filter(groups__name='CAE Programmer')
 
@@ -123,6 +125,7 @@ def index(request):
         'cae_phone_number': cae_phone_number,
         'cae_directors': cae_directors,
         'cae_coordinators': cae_coordinators,
+        'cae_attendants': cae_attendants,
         'cae_admins': cae_admins,
         'cae_programmers': cae_programmers,
     })

@@ -6,137 +6,135 @@
 
 {% block content %}
   <h1>CAE Center Contact Info</h1>
-  <div class="panel">
-    <div class="head">
-      <h2>CAE Center</h2>
-    </div>
-    <div class="content">
-      <p>Contact for help with IT, A/V, or other building issues on WMU's Engineering Campus.</p>
-      <br>
-      <p>Room: C-225</p>
-      <p>Phone: <a href="tel:{{ cae_phone_number.display_int }}">{{ cae_phone_number.display }}</a></p>
-      <p>Email: <a href="mailto:ceas_cae@wmich.edu">ceas_cae@wmich.edu</a></p>
-    </div>
-  </div>
-
-  {% if cae_directors.count == 0 %}
-    <div class="panel">
+  <article>
+    <div class="panel primary">
       <div class="head">
-        <h2>CAE Director - Replacement Pending</h2>
+        <h2>CAE Center</h2>
       </div>
       <div class="content">
-        <p>Please contact CAE Center or Building Coordinators for further information.</p>
+        <p>Contact for help with IT, A/V, or other building issues on WMU's Engineering Campus.</p>
+        <br>
+        <p>Room: C-225</p>
+        <p>Phone: <a href="tel:{{ cae_phone_number.display_int }}">{{ cae_phone_number.display }}</a></p>
+        <p>Email: <a href="mailto:ceas_cae@wmich.edu">ceas_cae@wmich.edu</a></p>
       </div>
     </div>
+  </article>
 
-  {% elif cae_directors.count == 1 %}
-    <div class="panel">
-      <div class="head">
-        {% if cae_directors.first.first_name and cae_directors.first.last_name %}
-          <h2>CAE Director - {{ cae_directors.first.first_name }} {{ cae_directors.first.last_name }}</h2>
-        {% else %}
-          <h2>CAE Director - {{ cae_directors.first.username }}</h2>
-        {% endif %}
-      </div>
-      <div class="content">
-        {% if cae_directors.first.profile.phone_number %}
-          <p>Phone:
-            <a href="tel:{{ cae_directors.first.profile.phone_number.display_int }}">
-              {{ cae_directors.first.profile.phone_number.display }}
-            </a>
-          </p>
-        {% else %}
-          <p>Phone: N/A</p>
-        {% endif %}
-        {% if cae_directors.first.email %}
-          <p>Email: <a href="mailto:{{ cae_directors.first.email }}">{{ cae_directors.first.email }}</a></p>
-        {% else %}
-          <p>Email: N/A</p>
-        {% endif %}
-      </div>
-    </div>
-  {% else %}
-    <div class="panel">
-      <div class="head">
-        <h2>CAE Directors</h2>
-      </div>
-
-      {% for director in cae_directors %}
-
-        <div class="panel">
-          <div class="head">
-            {% if director.first_name and director.last_name %}
-              <h3>{{ director.first_name }} {{ director.last_name }}</h3>
-            {% else %}
-              <h3>{{ director.username }}</h3>
-            {% endif %}
-          </div>
-          <div class="content">
-            {% if director.profile.phone_number %}
-              <p>Phone:
-                <a href="tel:{{ director.profile.phone_number.display_int }}">
-                  {{ director.profile.phone_number.display }}
-                </a>
-              </p>
-            {% else %}
-              <p>Phone: N/A</p>
-            {% endif %}
-            {% if director.email %}
-              <p>Email: <a href="mailto:{{ director.email }}">{{ director.email }}</a></p>
-            {% else %}
-              <p>Email: N/A</p>
-            {% endif %}
-          </div>
+  <article>
+    {% if cae_directors.count == 0 %}
+      <div class="panel primary">
+        <div class="head">
+          <h2>CAE Director - Replacement Pending</h2>
         </div>
-      {% endfor %}
+        <div class="content">
+          <p>Please contact CAE Center or Building Coordinators for further information.</p>
+        </div>
+      </div>
 
-    </div>
-  {% endif %}
+    {% elif cae_directors.count == 1 %}
+      <div class="panel primary">
+        <div class="head">
+          {% if cae_directors.first.first_name and cae_directors.first.last_name %}
+            <h2>CAE Director - {{ cae_directors.first.first_name }} {{ cae_directors.first.last_name }}</h2>
+          {% else %}
+            <h2>CAE Director - {{ cae_directors.first.username }}</h2>
+          {% endif %}
+        </div>
+        <div class="content">
+          {% if cae_directors.first.profile.phone_number %}
+            <p>Phone:
+              <a href="tel:{{ cae_directors.first.profile.phone_number.display_int }}">
+                {{ cae_directors.first.profile.phone_number.display }}
+              </a>
+            </p>
+          {% else %}
+            <p>Phone: N/A</p>
+          {% endif %}
+          {% if cae_directors.first.email %}
+            <p>Email: <a href="mailto:{{ cae_directors.first.email }}">{{ cae_directors.first.email }}</a></p>
+          {% else %}
+            <p>Email: N/A</p>
+          {% endif %}
+        </div>
+      </div>
+    {% else %}
+        <h2>CAE Directors</h2>
 
-  {% if cae_coordinators.count == 0 %}
-    <div class="panel">
-      <div class="head">
-        <h2>Building Coordinators - Replacement Pending</h2>
-      </div>
-      <div class="content">
-        <p>Please contact CAE Center or CAE Director for further information.</p>
-      </div>
-    </div>
+        {% for director in cae_directors %}
 
-  {% elif cae_coordinators.count == 1 %}
-    <div class="panel">
-      <div class="head">
-        {% if cae_coordinators.first.first_name and cae_coordinators.first.last_name %}
-          <h2>CAE Director - {{ cae_coordinators.first.first_name }} {{ cae_coordinators.first.last_name }}</h2>
-        {% else %}
-          <h2>CAE Director - {{ cae_coordinators.first.username }}</h2>
-        {% endif %}
-      </div>
-      <div class="content">
-        {% if cae_coordinators.first.profile.phone_number %}
-          <p>Phone:
-            <a href="tel:{{ cae_coordinators.first.profile.phone_number.display_int }}">
-              {{ cae_coordinators.first.profile.phone_number.display }}
-            </a>
-          </p>
-        {% else %}
-          <p>Phone: N/A</p>
-        {% endif %}
-        {% if cae_coordinators.first.email %}
-          <p>Email: <a href="mailto:{{ cae_coordinators.first.email }}">{{ cae_coordinators.first.email }}</a></p>
-        {% else %}
-          <p>Email: N/A</p>
-        {% endif %}
-      </div>
-    </div>
+          <div class="panel primary">
+            <div class="head">
+              {% if director.first_name and director.last_name %}
+                <h3>{{ director.first_name }} {{ director.last_name }}</h3>
+              {% else %}
+                <h3>{{ director.username }}</h3>
+              {% endif %}
+            </div>
+            <div class="content">
+              {% if director.profile.phone_number %}
+                <p>Phone:
+                  <a href="tel:{{ director.profile.phone_number.display_int }}">
+                    {{ director.profile.phone_number.display }}
+                  </a>
+                </p>
+              {% else %}
+                <p>Phone: N/A</p>
+              {% endif %}
+              {% if director.email %}
+                <p>Email: <a href="mailto:{{ director.email }}">{{ director.email }}</a></p>
+              {% else %}
+                <p>Email: N/A</p>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
 
-  {% else %}
-    <div class="panel">
-      <div class="head">
-        <h2>Building Coordinators</h2>
+    {% endif %}
+  </article>
+
+  <article>
+    {% if cae_coordinators.count == 0 %}
+      <div class="panel primary">
+        <div class="head">
+          <h2>Building Coordinators - Replacement Pending</h2>
+        </div>
+        <div class="content">
+          <p>Please contact CAE Center or CAE Director for further information.</p>
+        </div>
       </div>
+
+    {% elif cae_coordinators.count == 1 %}
+      <div class="panel primary">
+        <div class="head">
+          {% if cae_coordinators.first.first_name and cae_coordinators.first.last_name %}
+            <h2>CAE Director - {{ cae_coordinators.first.first_name }} {{ cae_coordinators.first.last_name }}</h2>
+          {% else %}
+            <h2>CAE Director - {{ cae_coordinators.first.username }}</h2>
+          {% endif %}
+        </div>
+        <div class="content">
+          {% if cae_coordinators.first.profile.phone_number %}
+            <p>Phone:
+              <a href="tel:{{ cae_coordinators.first.profile.phone_number.display_int }}">
+                {{ cae_coordinators.first.profile.phone_number.display }}
+              </a>
+            </p>
+          {% else %}
+            <p>Phone: N/A</p>
+          {% endif %}
+          {% if cae_coordinators.first.email %}
+            <p>Email: <a href="mailto:{{ cae_coordinators.first.email }}">{{ cae_coordinators.first.email }}</a></p>
+          {% else %}
+            <p>Email: N/A</p>
+          {% endif %}
+        </div>
+      </div>
+
+    {% else %}
+      <h2>Building Coordinators</h2>
       {% for coordinator in cae_coordinators %}
-        <div class="panel">
+        <div class="panel primary">
           <div class="head">
             {% if coordinator.first_name and coordinator.last_name %}
               <h3>{{ coordinator.first_name }} {{ coordinator.last_name }}</h3>
@@ -162,54 +160,87 @@
           </div>
         </div>
       {% endfor %}
-    </div>
-  {% endif %}
+    {% endif %}
+  </article>
 
   {% if cae_admins %}
-    <div class="panel">
-      <div class="head">
-        <h2>CAE Admins</h2>
-      </div>
+    <article>
+      <h2>CAE Admins</h2>
 
       {% for admin in cae_admins %}
-      <div class="panel">
-        <div class="head">
-          {% if admin.first_name and admin.last_name %}
-            <h3>{{ admin.first_name }} {{ admin.last_name }}</h3>
-          {% else %}
-            <h3>{{ admin.username }}</h3>
-          {% endif %}
+        <div class="panel primary">
+          <div class="head">
+            {% if admin.first_name and admin.last_name %}
+              <h3>{{ admin.first_name }} {{ admin.last_name }}</h3>
+            {% else %}
+              <h3>{{ admin.username }}</h3>
+            {% endif %}
+          </div>
+          <div class="content">
+            {% if admin.profile.phone_number %}
+              <p>Phone:
+                <a href="tel:{{ admin.profile.phone_number.display_int }}">
+                  {{ admin.profile.phone_number.display }}
+                </a>
+              </p>
+            {% else %}
+              <p>Phone: N/A</p>
+            {% endif %}
+            {% if admin.email %}
+              <p>Email: <a href="mailto:{{ admin.email }}">{{ admin.email }}</a></p>
+            {% else %}
+              <p>Email: N/A</p>
+            {% endif %}
+          </div>
         </div>
-        <div class="content">
-          {% if admin.profile.phone_number %}
-            <p>Phone:
-              <a href="tel:{{ admin.profile.phone_number.display_int }}">
-                {{ admin.profile.phone_number.display }}
-              </a>
-            </p>
-          {% else %}
-            <p>Phone: N/A</p>
-          {% endif %}
-          {% if admin.email %}
-            <p>Email: <a href="mailto:{{ admin.email }}">{{ admin.email }}</a></p>
-          {% else %}
-            <p>Email: N/A</p>
-          {% endif %}
-        </div>
-      </div>
       {% endfor %}
 
-    </div>
+    </article>
   {% endif %}
 
+
+  {% if cae_attendants %}
+    <article>
+      <h2>CAE Attendants</h2>
+
+      {% for attendant in cae_attendants %}
+        <div class="panel primary">
+          <div class="head">
+            {% if attendant.first_name and attendant.last_name %}
+              <h3>{{ attendant.first_name }} {{ attendant.last_name }}</h3>
+            {% else %}
+              <h3>{{ attendant.username }}</h3>
+            {% endif %}
+          </div>
+          <div class="content">
+            {% if attendant.profile.phone_number %}
+              <p>Phone:
+                <a href="tel:{{ attendant.profile.phone_number.display_int }}">
+                  {{ attendant.profile.phone_number.display }}
+                </a>
+              </p>
+            {% else %}
+              <p>Phone: N/A</p>
+            {% endif %}
+            {% if attendant.email %}
+              <p>Email: <a href="mailto:{{ admin.email }}">{{ attendant.email }}</a></p>
+            {% else %}
+              <p>Email: N/A</p>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+
+    </article>
+  {% endif %}
+
+
   {% if cae_programmers %}
-    <div class="panel">
-      <div class="head">
-        <h2>CAE Programmers</h2>
-      </div>
+    <article>
+      <h2>CAE Programmers</h2>
 
       {% for programmer in cae_programmers %}
-        <div class="panel">
+        <div class="panel primary">
           <div class="head">
             {% if programmer.first_name and programmer.last_name %}
               <h3>{{ programmer.first_name }} {{ programmer.last_name }}</h3>
@@ -236,7 +267,7 @@
         </div>
       {% endfor %}
 
-    </div>
+    </article>
   {% endif %}
 
 {% endblock content %}
