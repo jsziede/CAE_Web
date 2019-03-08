@@ -15,9 +15,9 @@
   <article>
     <div class="display-only-web center">
       <form class="center">
-        <button type="submit" formaction="{% url 'cae_web_core:shift_manager' pk=prev_pay_period %}">&#9204;</button>
-        <button type="submit" formaction="{% url 'cae_web_core:shift_manager' pk=curr_pay_period %}">Current Pay Period</button>
-        <button type="submit" formaction="{% url 'cae_web_core:shift_manager' pk=next_pay_period %}">&#9205;</button>
+        <button class="primary" type="submit" formaction="{% url 'cae_web_core:shift_manager' pk=prev_pay_period %}">&#9204;</button>
+        <button class="primary" type="submit" formaction="{% url 'cae_web_core:shift_manager' pk=curr_pay_period %}">Current Pay Period</button>
+        <button class="primary" type="submit" formaction="{% url 'cae_web_core:shift_manager' pk=next_pay_period %}">&#9205;</button>
       </form>
     </div>
     <div class="shift-manager-list center">

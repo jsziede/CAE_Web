@@ -48,11 +48,11 @@ var CurrentShift = function (_React$Component) {
                 clock_in = new Date(this.props.clock_in);
                 time_display = React.createElement(
                     "div",
-                    { className: "time-display" },
+                    null,
                     React.createElement(
                         "p",
                         null,
-                        "Clocked in: ",
+                        "Clocked In: ",
                         clock_in.toLocaleDateString('en-US', this.props.date_string_options)
                     ),
                     React.createElement(
@@ -75,7 +75,7 @@ var CurrentShift = function (_React$Component) {
 
             return React.createElement(
                 "div",
-                { className: "panel current-shift" },
+                { className: "panel primary" },
                 React.createElement(
                     "div",
                     { className: "header center" },

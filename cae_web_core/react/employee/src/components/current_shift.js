@@ -23,8 +23,8 @@ class CurrentShift extends React.Component {
         // Handle display differently if clocked in or clocked out.
         if (this.props.clock_out == null) {
             clock_in = new Date(this.props.clock_in);
-            time_display = <div className="time-display">
-                <p>Clocked in: { clock_in.toLocaleDateString('en-US', this.props.date_string_options) }</p>
+            time_display = <div>
+                <p>Clocked In: { clock_in.toLocaleDateString('en-US', this.props.date_string_options) }</p>
                 <p>
                     Shift Length: &nbsp;
                     { this.props.shift_hours.toString() } Hours &nbsp;
@@ -39,7 +39,7 @@ class CurrentShift extends React.Component {
         }
 
         return (
-            <div className="panel current-shift">
+            <div className="panel primary">
                 <div className='header center'>
                     <h2>Current Shift</h2>
                 </div>
