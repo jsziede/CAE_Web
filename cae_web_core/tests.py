@@ -316,9 +316,6 @@ class CAEWebCoreViewTests(TestCase):
         self.client.login(username='temporary', password='temporary')
         response = self.client.get(reverse('cae_web_core:my_hours'))
         self.assertEqual(response.status_code, 200)
-        self.assertTrue('json_pay_period' in response.context)
-        self.assertTrue('json_shifts' in response.context)
-        self.assertTrue('json_last_shift' in response.context)
 
 #endregion View Tests
 
