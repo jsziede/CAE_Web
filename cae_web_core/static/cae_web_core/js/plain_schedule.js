@@ -238,7 +238,7 @@ var createSchedule = function(container) {
         dialogEventStart.setDate(moment(event.start).format('YYYY-MM-DD HH:mm'));
         dialogEventEnd.setDate(moment(event.end).format('YYYY-MM-DD HH:mm'));
         $('#id_description').val(event.title);
-        $('#id_event_type').val(event.event_type); // TODO: Have socket give event type
+        $('#id_event_type').val(event.event_type);
         $('#id_room').val(event.resource);
 
 

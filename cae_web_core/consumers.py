@@ -364,7 +364,8 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
             'start': start.isoformat(),
             'end': end.isoformat(),
             'title': title,
-            'description': description
+            'description': description,
+            'event_type': event_type,
         } for pk, room_id, event_type, start, end, title, description, rrule in events]
 
         return events
