@@ -77,9 +77,12 @@ var createSchedule = function(container) {
                 var row = j + 2
                 var resourceIndex = i;
                 var timeOffset = j;
-                // TODO: have click event figure out where to add event (resource and time)
-                // and then open event dialog.
-                gridLineDivs += `<div class="schedule-grid-line" style="grid-area: ${row} / ${column} / auto / span 2"></div>`
+                gridLineDivs += `<div
+                    class="schedule-grid-line"
+                    style="grid-area: ${row} / ${column} / auto / span 2"
+                    data-resource-index=${resourceIndex}
+                    data-time-offset=${timeOffset}
+                ></div>`
             }
         }
 
@@ -114,10 +117,10 @@ var createSchedule = function(container) {
             }
 
             var column = resourceIdToColumn[event.resource];
-            const startDiff = Math.round(eventStart.diff(start, 'second') / 3600); // hours
-            const endDiff = Math.round(eventEnd.diff(end, 'second') / 3600); // hours
-            const rowStart = Math.max(0, startDiff) * 4;
-            var spanHours = Math.round(eventEnd.diff(eventStart, 'second') / 3600);
+            const startDiff = (eventStart.diff(start, 'second') / 3600).toFixed(2); // hours
+            const endDiff = (eventEnd.diff(end, 'second') / 3600).toFixed(2); // hours
+            const rowStart = Math.max(0, startDiff) * 4 + 2; // +2 for header
+            var spanHours = (eventEnd.diff(eventStart, 'second') / 3600).toFixed(2);
             if (startDiff < 0) {
                 // Reduce span if we cut off the start (Add a negative)
                 spanHours += startDiff;
@@ -171,7 +174,6 @@ var createSchedule = function(container) {
         for (var eventId in processedEvents) {
             const data = processedEvents[eventId];
             const style = `grid-area: ${data.rowStart} / ${data.column} / span ${data.span15Min} / span ${data.columnSpan}`;
-            // TODO: Only show edit button if user can edit events
             const toolbar = `<div class="schedule-event-toolbar"><button title="edit" class="schedule-btn-edit-event"><i class="fas fa-pencil-alt"></i></button></div>`;
             const contents = `
                 ${moment(data.event.start).format('LT')}<br/>
@@ -219,28 +221,52 @@ var createSchedule = function(container) {
 
     function onBtnPrevClicked(event) {
         var current = start.clone()
-        current.subtract(1, 'day');
+        current.subtract(1, 'days');
         changeDate(current.toDate());
     }
 
     function onBtnNextClicked(event) {
         var current = start.clone()
-        current.add(1, 'day');
+        current.add(1, 'days');
         changeDate(current.toDate());
     }
 
     function onBtnEditEventClicked(event) {
-        // TODO: Update event modal dialog
         var event = JSON.parse(unescape($(event.target).closest('.schedule-event').data('event')));
         console.log(event);
         $('#id_room_event_pk').val(event.id);
         $('#id_title').val(event.title);
         dialogEventStart.setDate(moment(event.start).format('YYYY-MM-DD HH:mm'));
         dialogEventEnd.setDate(moment(event.end).format('YYYY-MM-DD HH:mm'));
-        $('#id_description').val(event.title);
+        $('#id_description').val(event.description);
         $('#id_event_type').val(event.event_type);
         $('#id_room').val(event.resource);
 
+        show_overlay_modal();
+    }
+
+    function onGridLineDblClicked(event) {
+        var gridLine = $(event.target);
+        var resourceIndex = gridLine.data('resource-index');
+        var resource = resources[resourceIndex];
+        var timeOffset = gridLine.data('time-offset');
+
+        var eventStart = start.clone();
+
+        for (var i = 0; i < timeOffset; ++i) {
+            eventStart.add(15, 'minutes');
+        }
+
+        var eventEnd = eventStart.clone();
+        eventEnd.add(1, 'hours');
+
+        $('#id_room_event_pk').val('');
+        $('#id_title').val('New Event');
+        dialogEventStart.setDate(eventStart.format('YYYY-MM-DD HH:mm'));
+        dialogEventEnd.setDate(eventEnd.format('YYYY-MM-DD HH:mm'));
+        $('#id_description').val('New Event Description');
+        //$('#id_event_type').val(); // Just use whatever last value was
+        $('#id_room').val(resource.id);
 
         show_overlay_modal();
     }
@@ -257,6 +283,7 @@ var createSchedule = function(container) {
     container.find('.schedule-btn-today').on('click', onBtnTodayClicked);
     container.find('.schedule-btn-prev').on('click', onBtnPrevClicked);
     container.find('.schedule-btn-next').on('click', onBtnNextClicked);
+    container.find('.schedule-grid-line').on('dblclick', onGridLineDblClicked);
 
     // Setup flatpickr
     var dateFlatpickr = container.find('.schedule-txt-date').flatpickr({

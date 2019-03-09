@@ -259,10 +259,12 @@ def room_schedule(request):
         })
 
     form = forms.RoomEventForm()
-    if request.POST:
+    if request.POST: # TODO: Check user has permission to edit/create events
         pk = request.POST.get('room_event_pk')
         delete = request.POST.get('_delete')
-        instance = get_object_or_404(models.RoomEvent, pk=pk)
+        instance = None # New event
+        if pk:
+            instance = get_object_or_404(models.RoomEvent, pk=pk)
         if delete:
             instance.delete()
             messages.success(request, "Event deleted")
