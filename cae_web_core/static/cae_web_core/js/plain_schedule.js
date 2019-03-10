@@ -117,10 +117,10 @@ var createSchedule = function(container) {
             }
 
             var column = resourceIdToColumn[event.resource];
-            const startDiff = (eventStart.diff(start, 'second') / 3600).toFixed(2); // hours
-            const endDiff = (eventEnd.diff(end, 'second') / 3600).toFixed(2); // hours
+            const startDiff = Number((eventStart.diff(start, 'second') / 3600).toFixed(2)); // hours
+            const endDiff = Number((eventEnd.diff(end, 'second') / 3600).toFixed(2)); // hours
             const rowStart = Math.max(0, startDiff) * 4 + 2; // +2 for header
-            var spanHours = (eventEnd.diff(eventStart, 'second') / 3600).toFixed(2);
+            var spanHours = Number((eventEnd.diff(eventStart, 'second') / 3600).toFixed(2));
             if (startDiff < 0) {
                 // Reduce span if we cut off the start (Add a negative)
                 spanHours += startDiff;
