@@ -191,16 +191,9 @@ var createSchedule = function(container) {
 
     function changeDate(dateString) {
         var inputDate = moment(dateString)
-        start.set({
-          'year': inputDate.year(),
-          'month': inputDate.month(),
-          'date': inputDate.date(),
-        })
-        end.set({
-          'year': inputDate.year(),
-          'month': inputDate.month(),
-          'date': inputDate.date(),
-        })
+        var daysDiff = inputDate.diff(start, 'days');
+        start.add(daysDiff, 'days');
+        end.add(daysDiff, 'days');
 
         history.replaceState({}, start.format('L'), '?date=' + start.format('YYYY-MM-DD'));
 

@@ -294,6 +294,20 @@ def calendar_test(request):
     start = now.replace(hour=8, minute=0, second=0)
     end = now.replace(hour=22, minute=0, second=0)
 
+    # Update start and end based on first and last event
+    event_times = models.RoomEvent.objects.filter(
+        end_time__gte=start,
+        start_time__lte=end,
+    ).values_list(
+        'start_time',
+        'end_time',
+    )
+    for start_time, end_time in event_times:
+        if start_time < start:
+            start = start_time.replace(minute=0, second=0)
+        if end_time > end:
+            end = end_time
+
     rooms_json = []
     for pk, name, capacity in rooms:
         rooms_json.append({
