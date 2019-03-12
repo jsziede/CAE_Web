@@ -38,7 +38,9 @@ def populate_pay_periods():
     the pay period changes over.
     """
     pay_period_found = True
-    current_time = timezone.now()
+    server_timezone = pytz.timezone('UTC')
+    local_timezone = pytz.timezone('America/Detroit')
+    current_time = timezone.now().astimezone(server_timezone)
     plus_1_time = current_time + timezone.timedelta(days=14)
 
     # Check for current pay period.
@@ -62,39 +64,16 @@ def populate_pay_periods():
 
         # If no pay periods found, manually create first one at 5-25-2015.
         if last_pay_period is None:
-            date_holder = datetime.datetime.strptime('2015 05 25 00 00 00', '%Y %m %d %H %M %S')
-            date_holder = normalize_for_daylight_savings(date_holder)
-            last_pay_period = models.PayPeriod.objects.create(period_start=date_holder)
-
-        # Check that time is daylight savings compliant.
-        date_holder = normalize_for_daylight_savings(last_pay_period.period_start, timezone_instance='UTC')
+            # Get desired start date from string.
+            unaware_date = datetime.datetime.strptime('2015 05 25 00 00 00', '%Y %m %d %H %M %S')
+            local_date = local_timezone.localize(unaware_date)
+            last_pay_period = models.PayPeriod.objects.create(period_start=local_date)
 
         # Continue until pay_period + 1 is created.
-        while not ((last_pay_period.period_start < plus_1_time) and (last_pay_period.period_end > plus_1_time)):
-            date_holder = normalize_for_daylight_savings(date_holder + timezone.timedelta(14))
-            last_pay_period = models.PayPeriod.objects.create(period_start=date_holder)
-
-
-def normalize_for_daylight_savings(date_holder, timezone_instance='America/Detroit'):
-    """
-    Checks and normalizes for daylight savings. Only works if it's an instance of local midnight.
-    We want the date to always be midnight, regardless of time of year.
-    :param date_holder: Should always be an instance of midnight.
-    :param timezone_instance: Timezone of passed date. Assumes local timezone of America/Detroit by default.
-    :return: The same date, set to local time midnight, regardless of daylight savings.
-    """
-    # First get local server timezone.
-    server_timezone = pytz.timezone('America/Detroit')
-
-    # Convert to local server time if not naive and in non-local timezone.
-    if timezone_instance != 'America/Detroit':
-        date_holder = server_timezone.normalize(date_holder.astimezone(server_timezone))
-
-    # Then localize the given date, ignoring timezone info if provided.
-    # (We don't want the timezone adjustment for midnight. We want actual midnight, unconditionally.)
-    date_holder_with_timezone = server_timezone.localize(date_holder.replace(tzinfo=None))
-
-    return date_holder_with_timezone
+        while not ((last_pay_period.get_start_as_datetime() < plus_1_time) and (last_pay_period.get_end_as_datetime() > plus_1_time)):
+            utc_date = last_pay_period.get_start_as_datetime().astimezone(server_timezone) + timezone.timedelta(14)
+            local_date = utc_date.astimezone(local_timezone)
+            last_pay_period = models.PayPeriod.objects.create(period_start=local_date)
 
 #endregion Standard Methods
 

@@ -9,10 +9,9 @@ from django.db import transaction
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.dateparse import parse_datetime
 
 from . import models
-from .views import normalize_for_daylight_savings, populate_pay_periods
+from .views import populate_pay_periods
 from cae_home import models as cae_home_models
 
 
@@ -24,8 +23,10 @@ class PayPeriodTests(TestCase):
     """
     @classmethod
     def setUpTestData(cls):
-        cls.period_start = timezone.now()
-        cls.period_end = cls.period_start + timezone.timedelta(days=14) - timezone.timedelta(milliseconds=1)
+        cls.period_start = datetime.datetime.now().date()
+        midnight = datetime.time(0, 0, 0, 0, pytz.timezone('America/Detroit'))
+        start_datetime = datetime.datetime.combine(cls.period_start, midnight)
+        cls.period_end = (start_datetime + timezone.timedelta(days=13)).date()
 
     def setUp(self):
         self.test_pay_period = models.PayPeriod.objects.create(
@@ -52,21 +53,21 @@ class EmployeeShiftTests(TestCase):
     def setUpTestData(cls):
         cls.user_1 = get_user_model().objects.create_user('temporary_1', 'temporary@gmail.com', 'temporary')
         cls.user_2 = get_user_model().objects.create_user('temporary_2', 'temporary@gmail.com', 'temporary')
-        cls.period_start = timezone.now() - timezone.timedelta(days=2, hours=12)
-        cls.pay_period = models.PayPeriod.objects.create(period_start=cls.period_start)
+        populate_pay_periods()
+        cls.current_pay_period = models.PayPeriod.objects.get(pk=(models.PayPeriod.objects.all().count() - 1))
 
     def setUp(self):
         self.clock_in = timezone.now()
         self.clock_out = self.clock_in + timezone.timedelta(hours=5, minutes=30)
         self.test_employee_shift = models.EmployeeShift.objects.create(
-            pay_period=self.pay_period,
+            pay_period=self.current_pay_period,
             employee=self.user_1,
             clock_in=self.clock_in,
             clock_out=self.clock_out,
         )
 
     def test_model_creation(self):
-        self.assertEqual(self.test_employee_shift.pay_period, self.pay_period)
+        self.assertEqual(self.test_employee_shift.pay_period, self.current_pay_period)
         self.assertEqual(self.test_employee_shift.employee, self.user_1)
         self.assertEqual(self.test_employee_shift.clock_in, self.clock_in)
         self.assertEqual(self.test_employee_shift.clock_out, self.clock_out)
@@ -89,7 +90,7 @@ class EmployeeShiftTests(TestCase):
                 models.EmployeeShift.objects.create(employee=self.user_1, clock_in=clock_in, clock_out=self.clock_out)
 
     def test_clock_in_after_clock_out(self):
-        # Test clock in of 1 minute after clock out.
+        # Test clock in 1 minute after clock out.
         clock_in = self.clock_out + timezone.timedelta(minutes=1)
         with self.assertRaises(ValidationError):
             with transaction.atomic():
@@ -102,7 +103,7 @@ class EmployeeShiftTests(TestCase):
         # Different users. Should be okay.
         shift = models.EmployeeShift.objects.create(
             employee=self.user_2,
-            pay_period=self.pay_period,
+            pay_period=self.current_pay_period,
             clock_in=clock_in,
             clock_out=self.clock_out,
         )
@@ -116,7 +117,7 @@ class EmployeeShiftTests(TestCase):
             with transaction.atomic():
                 models.EmployeeShift.objects.create(
                     employee=self.user_1,
-                    pay_period=self.pay_period,
+                    pay_period=self.current_pay_period,
                     clock_in=clock_in,
                 )
 
@@ -127,7 +128,7 @@ class EmployeeShiftTests(TestCase):
         # Different users. Should be okay.
         shift = models.EmployeeShift.objects.create(
             employee=self.user_2,
-            pay_period=self.pay_period,
+            pay_period=self.current_pay_period,
             clock_in=self.clock_in,
             clock_out=clock_out,
         )
@@ -141,7 +142,7 @@ class EmployeeShiftTests(TestCase):
             with transaction.atomic():
                 models.EmployeeShift.objects.create(
                     employee=self.user_1,
-                    pay_period=self.pay_period,
+                    pay_period=self.current_pay_period,
                     clock_in=self.clock_in,
                     clock_out=clock_out,
                 )
@@ -154,7 +155,7 @@ class EmployeeShiftTests(TestCase):
         # Different users. Should be okay.
         shift = models.EmployeeShift.objects.create(
             employee=self.user_2,
-            pay_period=self.pay_period,
+            pay_period=self.current_pay_period,
             clock_in=clock_in,
             clock_out=clock_out,
         )
@@ -169,7 +170,7 @@ class EmployeeShiftTests(TestCase):
             with transaction.atomic():
                 models.EmployeeShift.objects.create(
                     employee=self.user_1,
-                    pay_period=self.pay_period,
+                    pay_period=self.current_pay_period,
                     clock_in=clock_in,
                     clock_out=clock_out,
                 )
@@ -182,7 +183,7 @@ class EmployeeShiftTests(TestCase):
         # Different users. Should be okay.
         shift = models.EmployeeShift.objects.create(
             employee=self.user_2,
-            pay_period=self.pay_period,
+            pay_period=self.current_pay_period,
             clock_in=clock_in,
             clock_out=clock_out,
         )
@@ -197,46 +198,46 @@ class EmployeeShiftTests(TestCase):
             with transaction.atomic():
                 models.EmployeeShift.objects.create(
                     employee=self.user_1,
-                    pay_period=self.pay_period,
+                    pay_period=self.current_pay_period,
                     clock_in=clock_in,
                     clock_out=clock_out,
                 )
 
     def test_outside_of_pay_period(self):
         # Test before pay period.
-        clock_in = self.pay_period.period_start - timezone.timedelta(hours=5)
-        clock_out = self.pay_period.period_start - timezone.timedelta(hours=1)
+        clock_in = self.current_pay_period.get_start_as_datetime() - timezone.timedelta(hours=5)
+        clock_out = self.current_pay_period.get_start_as_datetime() - timezone.timedelta(hours=1)
         with self.assertRaises(ValidationError):
             with transaction.atomic():
                 models.EmployeeShift.objects.create(
                     employee=self.user_1,
-                    pay_period=self.pay_period,
+                    pay_period=self.current_pay_period,
                     clock_in=clock_in,
                     clock_out=clock_out,
                 )
 
         # Test after pay period.
-        clock_in = self.pay_period.period_end + timezone.timedelta(hours=1)
-        clock_out = self.pay_period.period_end + timezone.timedelta(hours=5)
+        clock_in = self.current_pay_period.get_end_as_datetime() + timezone.timedelta(hours=1)
+        clock_out = self.current_pay_period.get_end_as_datetime() + timezone.timedelta(hours=5)
         with self.assertRaises(ValidationError):
             with transaction.atomic():
                 models.EmployeeShift.objects.create(
                     employee=self.user_1,
-                    pay_period=self.pay_period,
+                    pay_period=self.current_pay_period,
                     clock_in=clock_in,
                     clock_out=clock_out,
                 )
 
     def test_spanning_multiple_pay_periods(self):
-        next_pay_period_start = self.pay_period.period_start + timezone.timedelta(days=14)
-        next_pay_period = models.PayPeriod.objects.create(period_start=next_pay_period_start)
+        next_pay_period_start = self.current_pay_period.get_start_as_datetime() + timezone.timedelta(days=14)
+        next_pay_period = models.PayPeriod.objects.get(period_start=next_pay_period_start)
 
-        clock_in = self.pay_period.period_end - timezone.timedelta(hours=1)
-        clock_out = next_pay_period.period_start + timezone.timedelta(hours=1)
+        clock_in = self.current_pay_period.get_end_as_datetime() - timezone.timedelta(hours=1)
+        clock_out = next_pay_period.get_start_as_datetime() + timezone.timedelta(hours=1)
 
         test_shift = models.EmployeeShift.objects.create(
             employee=self.user_1,
-            pay_period=self.pay_period,
+            pay_period=self.current_pay_period,
             clock_in=clock_in,
             clock_out=clock_out,
         )
@@ -332,34 +333,6 @@ class CAEWebCoreMiscTests(TestCase):
         cls.utc_timezone = pytz.timezone('UTC')
         cls.server_timezone = pytz.timezone('America/Detroit')
 
-    def test_normalize_for_daylight_savings(self):
-        # As long as we pass midnight, this should always return local time midnight.
-
-        # Test naive time.
-        date_holder = datetime.datetime.strptime('2015 05 25 00 00 00', '%Y %m %d %H %M %S')
-        normalized_date = normalize_for_daylight_savings(date_holder)
-        self.assertEqual(normalized_date.replace(tzinfo=None), date_holder)
-        self.assertEqual(normalized_date, self.server_timezone.localize(date_holder))
-        self.assertEqual(normalized_date.hour, 0)
-        self.assertEqual(normalized_date.minute, 0)
-
-        # Test local timezone aware time.
-        current_time = timezone.now()
-        date_holder = self.server_timezone.normalize(current_time.astimezone(self.server_timezone))
-        date_holder = date_holder.replace(hour=0, minute=0, second=0, microsecond=0)
-        normalized_date = normalize_for_daylight_savings(date_holder)
-        self.assertEqual(normalized_date.replace(tzinfo=None), date_holder.replace(tzinfo=None))
-        self.assertEqual(normalized_date, date_holder)
-        self.assertEqual(normalized_date.hour, 0)
-        self.assertEqual(normalized_date.minute, 0)
-
-        # Test non-local timezone aware time. In this case, UTC.
-        date_holder = parse_datetime('2015-05-25T04:00:00+0000')
-        normalized_date = normalize_for_daylight_savings(date_holder, timezone_instance='UTC')
-        self.assertEqual(normalized_date, date_holder)
-        self.assertEqual(normalized_date.hour, 0)
-        self.assertEqual(normalized_date.minute, 0)
-
     def test_populate_pay_periods(self):
 
         # Loop through twice.
@@ -379,57 +352,29 @@ class CAEWebCoreMiscTests(TestCase):
             # Auto create pay periods.
             populate_pay_periods()
 
-            # Test first pay period.
-            date_start = datetime.datetime.strptime('2015 05 25 00 00 00', '%Y %m %d %H %M %S')
-            date_start = normalize_for_daylight_savings(date_start)
-            date_end = date_start + timezone.timedelta(days=14) - timezone.timedelta(milliseconds=1)
+            # Test first pay period. Should start on May 25th, 2015 (5-25-2015).
+            unaware_date = datetime.datetime.strptime('2015 05 25 00 00 00', '%Y %m %d %H %M %S')
+            date_start = self.server_timezone.localize(unaware_date)
+            date_end = (date_start + timezone.timedelta(days=13)).date()
             first_pay_period = models.PayPeriod.objects.last()
-            self.assertEqual(first_pay_period.period_start, date_start)
+            self.assertIsNotNone(first_pay_period)
+            self.assertEqual(first_pay_period.period_start, date_start.date())
             self.assertEqual(first_pay_period.period_end, date_end)
-            # Test first pay period start values.
-            self.assertEqual(first_pay_period.period_start.tzinfo, self.utc_timezone)
-            pay_period_start = self.server_timezone.normalize(first_pay_period.period_start.astimezone(self.server_timezone))
-            self.assertEqual(pay_period_start.tzinfo.zone, self.server_timezone.zone)
-            self.assertEqual(pay_period_start.hour, 0)
-            self.assertEqual(pay_period_start.minute, 0)
-            self.assertEqual(pay_period_start.second, 0)
-            self.assertEqual(pay_period_start.microsecond, 0)
 
             # Test current pay period.
-            date_start = timezone.now()
+            date_start = datetime.datetime.now().date()
             current_pay_period = models.PayPeriod.objects.get(period_start__lte=date_start, period_end__gte=date_start)
             self.assertIsNotNone(current_pay_period)
             self.assertIsNotNone(current_pay_period.period_start)
             self.assertIsNotNone(current_pay_period.period_end)
-            # Test current pay period start values.
-            self.assertEqual(current_pay_period.period_start.tzinfo, self.utc_timezone)
-            pay_period_start = self.server_timezone.normalize(current_pay_period.period_start.astimezone(self.server_timezone))
-            self.assertEqual(pay_period_start.tzinfo.zone, self.server_timezone.zone)
-            self.assertEqual(pay_period_start.hour, 0)
-            self.assertEqual(pay_period_start.minute, 0)
-            self.assertEqual(pay_period_start.second, 0)
-            self.assertEqual(pay_period_start.microsecond, 0)
 
             # Test last pay period (should be one after current).
-            date_start = normalize_for_daylight_savings(
-                current_pay_period.period_start + timezone.timedelta(days=14),
-                timezone_instance='UTC',
-            )
-            date_end = normalize_for_daylight_savings(
-                current_pay_period.period_end + timezone.timedelta(days=14),
-                timezone_instance='UTC',
-            )
-            last_pay_period = models.PayPeriod.objects.first()
+            date_start = (current_pay_period.get_start_as_datetime() + timezone.timedelta(days=14)).date()
+            date_end = (current_pay_period.get_end_as_datetime() + timezone.timedelta(days=14)).date()
             current_pay_period_plus_1 = models.PayPeriod.objects.get(period_start=date_start, period_end=date_end)
-            self.assertEqual(last_pay_period, current_pay_period_plus_1)
-            # Test last pay period start values.
-            self.assertEqual(last_pay_period.period_start.tzinfo, self.utc_timezone)
-            pay_period_start = self.server_timezone.normalize(last_pay_period.period_start.astimezone(self.server_timezone))
-            self.assertEqual(pay_period_start.tzinfo.zone, self.server_timezone.zone)
-            self.assertEqual(pay_period_start.hour, 0)
-            self.assertEqual(pay_period_start.minute, 0)
-            self.assertEqual(pay_period_start.second, 0)
-            self.assertEqual(pay_period_start.microsecond, 0)
+            last_pay_period = models.PayPeriod.objects.first()
+            self.assertIsNotNone(current_pay_period_plus_1)
+            self.assertEqual(current_pay_period_plus_1, last_pay_period)
 
             # Finally, check that there are at least 85 pay periods (this will only grow with time).
             # If 85 populate, then it's safe to assume the rest will too.

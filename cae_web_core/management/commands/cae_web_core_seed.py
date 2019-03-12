@@ -81,7 +81,7 @@ class Command(BaseCommand):
             pay_period = pay_periods[index]
 
             # Calculate clock in/clock out times.
-            clock_in = pay_period.period_start + timezone.timedelta(
+            clock_in = pay_period.get_start_as_datetime() + timezone.timedelta(
                 days=randint(0, 6),
                 hours=randint(8, 16),
                 minutes=randint(0,59)

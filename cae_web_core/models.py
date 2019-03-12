@@ -2,7 +2,7 @@
 Models for CAE Web Core app.
 """
 
-import math
+import datetime, math, pytz
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -18,8 +18,8 @@ class PayPeriod(models.Model):
     An instance of a two week pay period.
     """
     # Model fields.
-    period_start = models.DateTimeField()
-    period_end = models.DateTimeField(blank=True)
+    period_start = models.DateField()
+    period_end = models.DateField(blank=True)
 
     # Self-setting/Non-user-editable fields.
     date_created = models.DateTimeField(auto_now_add=True)
@@ -38,7 +38,9 @@ class PayPeriod(models.Model):
         Custom cleaning implementation. Includes validation, setting fields, etc.
         """
         if self.period_end is None:
-            self.period_end = self.period_start + timezone.timedelta(days=14) - timezone.timedelta(milliseconds=1)
+            end_datetime = self.get_start_as_datetime() + datetime.timedelta(days=13)
+            end_date = end_datetime.date()
+            self.period_end = end_date
 
     def save(self, *args, **kwargs):
         """
@@ -47,6 +49,23 @@ class PayPeriod(models.Model):
         # Save model.
         self.full_clean()
         super(PayPeriod, self).save(*args, **kwargs)
+
+    def get_start_as_datetime(self):
+        """
+        Returns start date at exact midnight.
+        """
+        # Get UTC aware datetime at exact midnight of given date. Localized for local server time.
+        midnight = datetime.time(0, 0, 0, 0, pytz.timezone('America/Detroit'))
+        start_datetime = datetime.datetime.combine(self.period_start, midnight)
+        return start_datetime
+
+    def get_end_as_datetime(self):
+        """
+        Returns end date just before midnight of next day. Localized for local server time.
+        """
+        just_before_day_end = datetime.time(23, 59, 59, 59, pytz.timezone('America/Detroit'))
+        end_datetime = datetime.datetime.combine(self.period_end, just_before_day_end)
+        return end_datetime
 
 
 class EmployeeShift(models.Model):
@@ -120,11 +139,12 @@ class EmployeeShift(models.Model):
 
         # Check that clock times are inside provided pay period.
         # Check clock in times. Shift just started so there's no data to lose. Raise validation error.
-        if (self.clock_in < self.pay_period.period_start) or (self.clock_in > self.pay_period.period_end):
+        if (self.clock_in < self.pay_period.get_start_as_datetime()) or\
+                (self.clock_in > self.pay_period.get_end_as_datetime()):
             raise ValidationError('Shift must be between pay period dates. Double check that you\'re using the correct'
                                   'pay period.')
         # Check if clock out time spans multiple pay periods. Since we don't want to lose shift data, flag as error.
-        if (self.clock_out is not None) and (self.clock_out > self.pay_period.period_end):
+        if (self.clock_out is not None) and (self.clock_out > self.pay_period.get_end_as_datetime()):
             self.error_flag = True
 
     def save(self, *args, **kwargs):
