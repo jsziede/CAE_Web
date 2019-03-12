@@ -23,22 +23,22 @@ class PayPeriodTests(TestCase):
     """
     @classmethod
     def setUpTestData(cls):
-        cls.period_start = datetime.datetime.now().date()
+        cls.date_start = datetime.datetime.now().date()
         midnight = datetime.time(0, 0, 0, 0, pytz.timezone('America/Detroit'))
-        start_datetime = datetime.datetime.combine(cls.period_start, midnight)
-        cls.period_end = (start_datetime + timezone.timedelta(days=13)).date()
+        start_datetime = datetime.datetime.combine(cls.date_start, midnight)
+        cls.date_end = (start_datetime + timezone.timedelta(days=13)).date()
 
     def setUp(self):
         self.test_pay_period = models.PayPeriod.objects.create(
-            period_start=self.period_start,
+            date_start=self.date_start,
         )
 
     def test_model_creation(self):
-        self.assertEqual(self.test_pay_period.period_start, self.period_start)
-        self.assertEqual(self.test_pay_period.period_end, self.period_end)
+        self.assertEqual(self.test_pay_period.date_start, self.date_start)
+        self.assertEqual(self.test_pay_period.date_end, self.date_end)
 
     def test_string_representation(self):
-        self.assertEqual(str(self.test_pay_period), '{0} - {1}'.format(self.period_start, self.period_end))
+        self.assertEqual(str(self.test_pay_period), '{0} - {1}'.format(self.date_start, self.date_end))
 
     def test_plural_representation(self):
         self.assertEqual(str(self.test_pay_period._meta.verbose_name), 'Pay Period')
@@ -229,8 +229,8 @@ class EmployeeShiftTests(TestCase):
                 )
 
     def test_spanning_multiple_pay_periods(self):
-        next_pay_period_start = self.current_pay_period.get_start_as_datetime() + timezone.timedelta(days=14)
-        next_pay_period = models.PayPeriod.objects.get(period_start=next_pay_period_start)
+        next_pay_date_start = self.current_pay_period.get_start_as_datetime() + timezone.timedelta(days=14)
+        next_pay_period = models.PayPeriod.objects.get(date_start=next_pay_date_start)
 
         clock_in = self.current_pay_period.get_end_as_datetime() - timezone.timedelta(hours=1)
         clock_out = next_pay_period.get_start_as_datetime() + timezone.timedelta(hours=1)
@@ -358,20 +358,20 @@ class CAEWebCoreMiscTests(TestCase):
             date_end = (date_start + timezone.timedelta(days=13)).date()
             first_pay_period = models.PayPeriod.objects.last()
             self.assertIsNotNone(first_pay_period)
-            self.assertEqual(first_pay_period.period_start, date_start.date())
-            self.assertEqual(first_pay_period.period_end, date_end)
+            self.assertEqual(first_pay_period.date_start, date_start.date())
+            self.assertEqual(first_pay_period.date_end, date_end)
 
             # Test current pay period.
             date_start = datetime.datetime.now().date()
-            current_pay_period = models.PayPeriod.objects.get(period_start__lte=date_start, period_end__gte=date_start)
+            current_pay_period = models.PayPeriod.objects.get(date_start__lte=date_start, date_end__gte=date_start)
             self.assertIsNotNone(current_pay_period)
-            self.assertIsNotNone(current_pay_period.period_start)
-            self.assertIsNotNone(current_pay_period.period_end)
+            self.assertIsNotNone(current_pay_period.date_start)
+            self.assertIsNotNone(current_pay_period.date_end)
 
             # Test last pay period (should be one after current).
             date_start = (current_pay_period.get_start_as_datetime() + timezone.timedelta(days=14)).date()
             date_end = (current_pay_period.get_end_as_datetime() + timezone.timedelta(days=14)).date()
-            current_pay_period_plus_1 = models.PayPeriod.objects.get(period_start=date_start, period_end=date_end)
+            current_pay_period_plus_1 = models.PayPeriod.objects.get(date_start=date_start, date_end=date_end)
             last_pay_period = models.PayPeriod.objects.first()
             self.assertIsNotNone(current_pay_period_plus_1)
             self.assertEqual(current_pay_period_plus_1, last_pay_period)

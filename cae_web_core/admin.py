@@ -13,10 +13,10 @@ class RoomEventInline(admin.TabularInline):
 
 class PayPeriodAdmin(admin.ModelAdmin):
     # Fields to display in admin list view.
-    list_display = ('period_start', 'period_end',)
+    list_display = ('date_start', 'date_end',)
 
     # Fields to search in admin list view.
-    search_fields = ['period_start', 'period_end', ]
+    search_fields = ['date_start', 'date_end', ]
 
     # Read only fields for admin detail view.
     readonly_fields = ('date_created', 'date_modified',)
@@ -25,7 +25,7 @@ class PayPeriodAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {
             'fields': (
-                'period_start', 'period_end',
+                'date_start', 'date_end',
             )
         }),
         ('Advanced', {

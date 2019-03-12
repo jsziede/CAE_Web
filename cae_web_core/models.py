@@ -18,8 +18,8 @@ class PayPeriod(models.Model):
     An instance of a two week pay period.
     """
     # Model fields.
-    period_start = models.DateField()
-    period_end = models.DateField(blank=True)
+    date_start = models.DateField()
+    date_end = models.DateField(blank=True)
 
     # Self-setting/Non-user-editable fields.
     date_created = models.DateTimeField(auto_now_add=True)
@@ -28,19 +28,19 @@ class PayPeriod(models.Model):
     class Meta:
         verbose_name = "Pay Period"
         verbose_name_plural = "Pay Periods"
-        ordering = ('-period_start',)
+        ordering = ('-date_start',)
 
     def __str__(self):
-        return '{0} - {1}'.format(self.period_start, self.period_end)
+        return '{0} - {1}'.format(self.date_start, self.date_end)
 
     def clean(self, *args, **kwargs):
         """
         Custom cleaning implementation. Includes validation, setting fields, etc.
         """
-        if self.period_end is None:
+        if self.date_end is None:
             end_datetime = self.get_start_as_datetime() + datetime.timedelta(days=13)
             end_date = end_datetime.date()
-            self.period_end = end_date
+            self.date_end = end_date
 
     def save(self, *args, **kwargs):
         """
@@ -56,7 +56,7 @@ class PayPeriod(models.Model):
         """
         # Get UTC aware datetime at exact midnight of given date. Localized for local server time.
         midnight = datetime.time(0, 0, 0, 0, pytz.timezone('America/Detroit'))
-        start_datetime = datetime.datetime.combine(self.period_start, midnight)
+        start_datetime = datetime.datetime.combine(self.date_start, midnight)
         return start_datetime
 
     def get_end_as_datetime(self):
@@ -64,7 +64,7 @@ class PayPeriod(models.Model):
         Returns end date just before midnight of next day. Localized for local server time.
         """
         just_before_day_end = datetime.time(23, 59, 59, 59, pytz.timezone('America/Detroit'))
-        end_datetime = datetime.datetime.combine(self.period_end, just_before_day_end)
+        end_datetime = datetime.datetime.combine(self.date_end, just_before_day_end)
         return end_datetime
 
 

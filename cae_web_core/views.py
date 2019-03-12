@@ -45,11 +45,11 @@ def populate_pay_periods():
 
     # Check for current pay period.
     try:
-        models.PayPeriod.objects.get(period_start__lte=current_time, period_end__gte=current_time)
+        models.PayPeriod.objects.get(date_start__lte=current_time, date_end__gte=current_time)
 
         # Check for current pay period + 1.
         try:
-            models.PayPeriod.objects.get(period_start__lte=plus_1_time, period_end__gte=plus_1_time)
+            models.PayPeriod.objects.get(date_start__lte=plus_1_time, date_end__gte=plus_1_time)
         except ObjectDoesNotExist:
             pay_period_found = False
     except ObjectDoesNotExist:
@@ -58,7 +58,7 @@ def populate_pay_periods():
     # If both pay periods were not found, create new pay periods.
     if not pay_period_found:
         try:
-            last_pay_period = models.PayPeriod.objects.latest('period_start')
+            last_pay_period = models.PayPeriod.objects.latest('date_start')
         except models.PayPeriod.DoesNotExist:
             last_pay_period = None
 
@@ -67,13 +67,13 @@ def populate_pay_periods():
             # Get desired start date from string.
             unaware_date = datetime.datetime.strptime('2015 05 25 00 00 00', '%Y %m %d %H %M %S')
             local_date = local_timezone.localize(unaware_date)
-            last_pay_period = models.PayPeriod.objects.create(period_start=local_date)
+            last_pay_period = models.PayPeriod.objects.create(date_start=local_date)
 
         # Continue until pay_period + 1 is created.
         while not ((last_pay_period.get_start_as_datetime() < plus_1_time) and (last_pay_period.get_end_as_datetime() > plus_1_time)):
             utc_date = last_pay_period.get_start_as_datetime().astimezone(server_timezone) + timezone.timedelta(14)
             local_date = utc_date.astimezone(local_timezone)
-            last_pay_period = models.PayPeriod.objects.create(period_start=local_date)
+            last_pay_period = models.PayPeriod.objects.create(date_start=local_date)
 
 #endregion Standard Methods
 
