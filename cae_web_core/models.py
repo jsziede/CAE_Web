@@ -52,19 +52,18 @@ class PayPeriod(models.Model):
 
     def get_start_as_datetime(self):
         """
-        Returns start date at exact midnight.
+        Returns start date at exact midnight, local time.
         """
-        # Get UTC aware datetime at exact midnight of given date. Localized for local server time.
-        midnight = datetime.time(0, 0, 0, 0, pytz.timezone('America/Detroit'))
-        start_datetime = datetime.datetime.combine(self.date_start, midnight)
+        midnight = datetime.time(0, 0, 0, 0)
+        start_datetime = pytz.timezone('America/Detroit').localize(datetime.datetime.combine(self.date_start, midnight))
         return start_datetime
 
     def get_end_as_datetime(self):
         """
-        Returns end date just before midnight of next day. Localized for local server time.
+        Returns end date just before midnight of next day, local time.
         """
-        just_before_day_end = datetime.time(23, 59, 59, 59, pytz.timezone('America/Detroit'))
-        end_datetime = datetime.datetime.combine(self.date_end, just_before_day_end)
+        day_end = datetime.time(23, 59, 59)
+        end_datetime = pytz.timezone('America/Detroit').localize(datetime.datetime.combine(self.date_end, day_end))
         return end_datetime
 
 
