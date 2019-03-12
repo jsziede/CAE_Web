@@ -10,7 +10,7 @@
 
 {% block content %}
   <h1>
-    Pay Period of<br>{{ pay_period.period_start|date:'M d, Y' }} through {{ pay_period.period_end|date:'M d, Y' }}
+    Pay Period of<br>{{ pay_period.date_start|date:'M d, Y' }} through {{ pay_period.date_end|date:'M d, Y' }}
   </h1>
   <article>
     <div class="display-only-web center">

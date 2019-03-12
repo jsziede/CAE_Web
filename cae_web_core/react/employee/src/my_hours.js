@@ -88,10 +88,23 @@ class MyHoursManager extends React.Component {
                 });
             }
 
+            try {
+                var last_shift = JSON.parse(data['last_shift'])[0];
+            } catch(err) {
+                var current_time = this.state.current_time;
+                var last_shift = {
+                    pk: -1,
+                    fields: {
+                        'clock_in': current_time,
+                        'clock_out': current_time,
+                    }
+                };
+            }
+
             this.setState({
                 displayed_pay_period: JSON.parse(data['pay_period'])[0],
                 shifts: JSON.parse(data['shifts']),
-                last_shift: JSON.parse(data['last_shift'])[0],
+                last_shift: last_shift,
             });
 
             if (this.state.awaiting_socket_data == false ) {
@@ -215,7 +228,7 @@ class MyHoursManager extends React.Component {
         var week_2_shifts = [];
 
         // Calculate end of first week.
-        var week_1_end = new Date(this.state.displayed_pay_period.fields['period_start']);
+        var week_1_end = new Date(this.state.displayed_pay_period.fields['date_start']);
         week_1_end = week_1_end.setDate(week_1_end.getDate() + 7);
 
         // Loop through all shifts. Determine which week they belong to.
@@ -374,8 +387,8 @@ class MyHoursManager extends React.Component {
                 <h2>Loading, please wait...</h2>
             )
         } else {
-            var pay_period_start_display = new Date(this.state.displayed_pay_period.fields['period_start']);
-            var pay_period_end_display = new Date(this.state.displayed_pay_period.fields['period_end']);
+            var pay_period_start_display = new Date(this.state.displayed_pay_period.fields['date_start']);
+            var pay_period_end_display = new Date(this.state.displayed_pay_period.fields['date_end']);
             var pay_period_string_options = { month: 'short', day: '2-digit', year: 'numeric' };
 
             var total_time = this.state.week_1_hours + this.state.week_2_hours;

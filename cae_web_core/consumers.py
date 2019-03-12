@@ -149,7 +149,7 @@ class MyHoursConsumer(AsyncJsonWebsocketConsumer):
         json_pay_period = serializers.serialize(
             'json',
             [pay_period],
-            fields=('period_start', 'period_end',)
+            fields=('date_start', 'date_end',)
         )
 
         json_shifts = serializers.serialize(
@@ -194,11 +194,11 @@ class MyHoursConsumer(AsyncJsonWebsocketConsumer):
 
     @database_sync_to_async
     def _get_current_pay_period_model(self, current_time):
-        return models.PayPeriod.objects.get(period_start__lte=current_time, period_end__gte=current_time)
+        return models.PayPeriod.objects.get(date_start__lte=current_time, date_end__gte=current_time)
 
     @database_sync_to_async
     def _get_current_pay_period_model_pk(self, current_time):
-        return models.PayPeriod.objects.get(period_start__lte=current_time, period_end__gte=current_time).pk
+        return models.PayPeriod.objects.get(date_start__lte=current_time, date_end__gte=current_time).pk
 
     @database_sync_to_async
     def _get_pay_period_model_count(self):

@@ -18,11 +18,11 @@ def employee_pay_period_tables(context):
     :return: Two tables of formatted shift data for web and a comprehensive third table for print views.
     """
     # Get week start and end dates.
-    week_1_start = context['pay_period'].period_start
+    week_1_start = context['pay_period'].date_start
     week_1_end = week_1_start + timezone.timedelta(days=7)
     week_1_shifts = context['shifts'].filter(employee=context['user'], clock_in__lt=week_1_end)
-    week_2_start = context['pay_period'].period_start + timezone.timedelta(days=8)
-    week_2_end = context['pay_period'].period_end
+    week_2_start = context['pay_period'].date_start + timezone.timedelta(days=8)
+    week_2_end = context['pay_period'].date_end
     week_2_shifts = context['shifts'].filter(employee=context['user'], clock_in__gte=week_1_end)
 
     # Get time worked for week 1. Used in first table of web view.

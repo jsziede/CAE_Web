@@ -52,7 +52,7 @@ class PayPeriod extends React.Component {
         }
 
         // Date to string display.
-        var pay_period_display = new Date(this.props.displayed_pay_period.fields['period_start']);
+        var pay_period_display = new Date(this.props.displayed_pay_period.fields['date_start']);
         var pay_period_string_options = { month: "short", day: "2-digit", year: 'numeric' };
 
         // Calculate week hours.

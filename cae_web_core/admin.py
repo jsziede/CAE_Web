@@ -43,7 +43,7 @@ class EmployeeShiftAdmin(admin.ModelAdmin):
     list_filter = ('error_flag', 'employee', 'pay_period',)
 
     # Fields to search in admin list view.
-    search_fields = ['clock_in', 'clock_out',]
+    search_fields = ['id', 'clock_in', 'clock_out',]
 
     # Read only fields for admin detail view.
     readonly_fields = ('date_created', 'date_modified',)
