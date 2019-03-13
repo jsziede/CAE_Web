@@ -3,6 +3,9 @@
  */
 
 
+import { Fragment } from 'react';
+
+
 import CurrentShift from './components/current_shift';
 import PayPeriod from './components/pay_period';
 
@@ -396,7 +399,7 @@ class MyHoursManager extends React.Component {
             var total_minutes = Math.trunc((total_time - (total_hours * this.one_hour)) / this.one_minute);
 
             return (
-                <div className="center">
+                <Fragment className="center">
                     <CurrentShift
                         clock_in={ this.state.last_shift.fields['clock_in'] }
                         clock_out={ this.state.last_shift.fields['clock_out'] }
@@ -452,7 +455,7 @@ class MyHoursManager extends React.Component {
                             date_string_options={ this.state.date_string_options }
                         />
                     </div>
-                </div>
+                </Fragment>
             )
         }
     }
