@@ -15,11 +15,7 @@
     </div>
 
     <div class="body">
-      <form method="POST" action="">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <input type="submit" value="Submit">
-      </form>
+      {% include 'cae_home/include/form.html' %}
     </div>
   </div>
 {% endblock content %}
