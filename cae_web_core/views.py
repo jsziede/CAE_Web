@@ -265,15 +265,18 @@ def room_schedule(request):
         instance = None # New event
         if pk:
             instance = get_object_or_404(models.RoomEvent, pk=pk)
+        date_param = ''
+        if date_string:
+            date_param = '?date=' + date_string
         if delete:
             instance.delete()
             messages.success(request, "Event deleted")
-            return redirect(reverse('cae_web_core:room_schedule') + '?date=' + date_string)
+            return redirect(reverse('cae_web_core:room_schedule') + date_param)
         form = forms.RoomEventForm(request.POST, instance=instance)
         if form.is_valid():
             form.save()
             messages.success(request, "Event updated")
-            return redirect(reverse('cae_web_core:room_schedule') + '?date=' + date_string)
+            return redirect(reverse('cae_web_core:room_schedule') + date_param)
         else:
             messages.error(request, "There were errors updating the event.")
 
