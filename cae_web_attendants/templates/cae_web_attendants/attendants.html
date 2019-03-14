@@ -55,42 +55,42 @@
 				<th>
 					{% if order_by == "room" %}
 						{% if direction == "asc" %}
-							<a href="?order_by=room&direction=desc"><i class="fas fa-arrow-circle-up"></i> Room</a>
+							<a href="?order_by=room&direction=desc"><i class="fas fa-arrow-circle-up"></i> <h4>Room</h4></a>
 						{% elif direction == "desc" %}
-							<a href="?order_by=room&direction=asc"><i class="fas fa-arrow-circle-down"></i> Room</a>
+							<a href="?order_by=room&direction=asc"><i class="fas fa-arrow-circle-down"></i> <h4>Room</h4></a>
 						{% else %}
-							<a href="?order_by=room&direction=desc">Room</a>
+							<a href="?order_by=room&direction=desc"><h4>Room</h4></a>
 						{% endif %}
 					{% else %}
-						<a href="?order_by=room&direction=desc">Room</a>
+						<a href="?order_by=room&direction=desc"><h4>Room</h4></a>
 					{% endif %}
 				</th>
 				<th>
 					{% if order_by == "student" %}
 						{% if direction == "asc" %}
-							<a href="?order_by=student&direction=desc"><i class="fas fa-arrow-circle-up"></i> Student</a>
+							<a href="?order_by=student&direction=desc"><i class="fas fa-arrow-circle-up"></i> <h4>Student</h4></a>
 						{% elif direction == "desc" %}
-							<a href="?order_by=student&direction=asc"><i class="fas fa-arrow-circle-down"></i> Student</a>
+							<a href="?order_by=student&direction=asc"><i class="fas fa-arrow-circle-down"></i> <h4>Student</h4></a>
 						{% else %}
-							<a href="?order_by=student&direction=desc">Student</a>
+							<a href="?order_by=student&direction=desc"><h4>Student</h4></a>
 						{% endif %}
 					{% else %}
-						<a href="?order_by=student&direction=desc">Student</a>
+						<a href="?order_by=student&direction=desc"><h4>Student</h4></a>
 					{% endif %}
 				</th>
 				<th>
 					{% if order_by == "checkout_date" %}
 						{% if direction == "asc" %}
-							<a href="?order_by=checkout_date&direction=desc"><i class="fas fa-arrow-circle-up"></i> Date</a>
+							<a href="?order_by=checkout_date&direction=desc"><i class="fas fa-arrow-circle-up"></i> <h4>Date</h4></a>
 						{% elif direction == "desc" %}
-							<a href="?order_by=checkout_date&direction=asc"><i class="fas fa-arrow-circle-down"></i> Date</a>
+							<a href="?order_by=checkout_date&direction=asc"><i class="fas fa-arrow-circle-down"></i> <h4>Date</h4></a>
 						{% else %}
-							<a href="?order_by=checkout_date&direction=asc">Date</a>
+							<a href="?order_by=checkout_date&direction=asc"><h4>Date</h4></a>
 						{% endif %}
 					{% elif not order_by and not direction  %}
-						<a href="?order_by=checkout_date&direction=asc"><i class="fas fa-arrow-circle-down"></i> Date</a>
+						<a href="?order_by=checkout_date&direction=asc"><i class="fas fa-arrow-circle-down"></i> <h4>Date</h4></a>
 					{% else %}
-						<a href="?order_by=checkout_date&direction=desc">Date</a>
+						<a href="?order_by=checkout_date&direction=desc"><h4>Date</h4></a>
 					{% endif %}
 				</th>
 			</tr>
@@ -98,9 +98,15 @@
 		<tbody>
 			{% for checkout in room_checkouts %}
 			<tr>
-				<td>{{ checkout.room}}</td>
-				<td>{{ checkout.student.first_name }} {{ checkout.student.last_name }} ({{ checkout.student.bronco_net }})</td>
-				<td>{{ checkout.checkout_date | date:"F jS, Y" }} @ {{ checkout.checkout_date | date:"P" }}</td>
+				<td>
+					<p>{{ checkout.room}}</p>
+				</td>
+				<td>
+					<p>{{ checkout.student.first_name }} {{ checkout.student.last_name }} ({{ checkout.student.bronco_net }})</p>
+				</td>
+				<td>
+					<p>{{ checkout.checkout_date | date:"F jS, Y" }} @ {{ checkout.checkout_date | date:"P" }}</p>
+				</td>
 			</tr>
 			{% endfor %}
 		</tbody>

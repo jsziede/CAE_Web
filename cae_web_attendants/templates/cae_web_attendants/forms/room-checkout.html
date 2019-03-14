@@ -1,17 +1,13 @@
 {% if success == 1 %}
-	<div class="panel success">
-{% elif success == -1 %}
-	<div class="panel error">
-{% else %}
-	<div class="panel">
-{% endif %}
-	{% if success == 1 %}
+<div class="panel success">
 		<div class="header">Room Checkout Successfully Added</div>
-	{% elif success == -1 %}
-		<div class="header">Failed to Add Room Checkout</div>
-	{% else %}
-		<div class="header">Check Out a Room</div>
-	{% endif %}
+{% elif success == -1 %}
+<div class="panel error">
+	<div class="header">Failed to Add Room Checkout</div>
+{% else %}
+<div class="panel primary">
+	<div class="header">Check Out a Room</div>
+{% endif %}
 	<div class="content">
 		<form id="roomCheckoutForm" method="POST" action="" onsubmit="createDatetimeString(datetimeInputId)" class="panel">
 			{% csrf_token %}
