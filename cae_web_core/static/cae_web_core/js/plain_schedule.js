@@ -324,6 +324,14 @@ $(function() {
         hide_overlay_modal();
     });
 
+    // Set height of schedule based on viewport
+    var top = $('.schedule-container').position().top;
+    var bottom = document.body.scrollHeight - (top + $('.schedule-container').height());
+
+    $('.schedule-container').css({
+        height: `calc(100vh - ${top + bottom + 1}px`,
+    });
+
     // Check if we have errors from previous POST
     if ($('#div_event_dialog[data-errors]').length) {
         show_overlay_modal();
