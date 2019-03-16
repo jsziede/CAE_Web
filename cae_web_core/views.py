@@ -261,6 +261,20 @@ def room_schedule(request, room_type_slug):
             'html': format_html('{}<br>{}'.format(name, capacity)),
         })
 
+    # This is used to display links to jump to another room type.
+    room_types = cae_home_models.RoomType.objects.filter(
+        slug__in=[
+            "classroom",
+            "computer-classroom",
+            "breakout-room",
+            "special-room",
+        ],
+    ).values(
+        'pk',
+        'name',
+        'slug',
+    )
+
     form = forms.RoomEventForm()
     if request.POST: # TODO: Check user has permission to edit/create events
         pk = request.POST.get('room_event_pk')
@@ -289,6 +303,8 @@ def room_schedule(request, room_type_slug):
         'start': start,
         'end': end,
         'form': form,
+        'room_types': room_types,
+        'room_type_slug': room_type_slug,
     })
 
 

@@ -45,26 +45,27 @@ body main .main-content {
   margin: 0;
 }
 
-.schedule-header > .buttons {
+.buttons {
   display: flex;
 }
 
-.schedule-header > .buttons > button {
+#content .buttons > button,
+#content .buttons > a.button {
   margin: 0;
   border-radius: 0;
   border: 1px solid #CCC;
   border-right-width: 0;
 }
 
-.schedule-header > .buttons > *:first-child {
-  border-top-left-radius: 5px;
-  border-bottom-left-radius: 5px;
+#content .buttons > :first-child {
+  border-top-left-radius: 5px !important;
+  border-bottom-left-radius: 5px !important;
 }
 
-.schedule-header > .buttons > *:last-child {
-  border-top-right-radius: 5px;
-  border-bottom-right-radius: 5px;
-  border-right-width: 1px;
+#content .buttons > *:last-child {
+  border-top-right-radius: 5px !important;
+  border-bottom-right-radius: 5px !important;
+  border-right-width: 1px !important;
 }
 
 .schedule-header button.schedule-btn-calendar {
@@ -128,14 +129,14 @@ body main .main-content {
 }
 
 .schedule-event-toolbar > button {
-  background: none !important;
-  border: none !important;
+  background: none;
+  border: none;
   cursor: pointer;
 }
 
 .schedule-event-toolbar > button:hover {
-  background: white !important;
-  border: 1px solid black !important;
+  background: white;
+  border: 1px solid black;
   border-radius: 3px;
 }
 
@@ -178,6 +179,22 @@ body main .main-content {
 {% block content %}
   <article>
     <h1>Room Schedules</h1>
+
+    <label>Filter Room Type:</label>
+    <div style="display: inline-block">
+      <div class="buttons">
+        {% for room_type in room_types %}
+          <a
+            href="{% url 'cae_web_core:room_schedule' room_type.slug %}"
+            class="button {% if room_type.slug == room_type_slug %}primary{% endif %}"
+          >{{ room_type.name }}</a>
+        {% endfor %}
+      </div>
+    </div>
+
+    <br>
+    <br>
+
     <div class="schedule-container"
       data-start="{{ start.isoformat }}"
       data-end="{{ end.isoformat }}"
