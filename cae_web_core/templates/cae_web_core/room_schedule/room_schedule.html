@@ -28,6 +28,8 @@ body main .main-content {
 .schedule-container {
   border: 1px solid #6666;
   background: white;
+  display: grid;
+  grid-auto-rows: auto;
 }
 
 .schedule-grid {
@@ -37,7 +39,6 @@ body main .main-content {
   grid-auto-columns: minmax(70px, 1fr);
   grid-auto-rows: 15px;
   overflow: scroll;
-  height: calc(100% - 15px);
 }
 
 .schedule-header {
