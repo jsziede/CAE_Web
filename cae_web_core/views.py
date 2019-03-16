@@ -238,9 +238,12 @@ def shift_manager(request, pk):
 #region Calendar Views
 
 
-def room_schedule(request):
+def room_schedule(request, room_type_slug):
+    room_type = get_object_or_404(cae_home_models.RoomType, slug=room_type_slug)
     date_string = request.GET.get('date')
-    rooms = cae_home_models.Room.objects.all().order_by('room_type', 'name').values_list(
+    rooms = cae_home_models.Room.objects.filter(
+        room_type=room_type,
+    ).order_by('room_type', 'name').values_list(
         'pk', 'name', 'capacity',
     )
     now = timezone.now() # UTC

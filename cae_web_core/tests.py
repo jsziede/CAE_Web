@@ -302,7 +302,7 @@ class RoomEventModelTests(TestCase):
     """
     @classmethod
     def setUpTestData(cls):
-        cls.room_type = cae_home_models.RoomType.objects.create(name='Test Room Type')
+        cls.room_type = cae_home_models.RoomType.objects.create(name='Test Room Type', slug='test-room-type')
         cls.department = cae_home_models.Department.objects.create(name='Test Department')
         cls.room = cae_home_models.Room.objects.create(
             name='Test Room',

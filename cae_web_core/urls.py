@@ -23,5 +23,5 @@ urlpatterns = [
     # TODO Response: Probably, yes. At least editing/adding them should be. Standard viewing probably should be public.
     url(r'^schedule/', include(('schedule.urls', 'schedule'), namespace='schedule')),
     url(r'^room-schedule/api/$', views.api_room_schedule, name='api_room_schedule'),
-    url(r'^room-schedule/$', views.room_schedule, name='room_schedule'),
+    url(r'^room-schedule/(?P<room_type_slug>[-\w]+)/$', views.room_schedule, name='room_schedule'),
 ]
