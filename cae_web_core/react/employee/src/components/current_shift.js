@@ -43,7 +43,7 @@ class CurrentShift extends React.Component {
                 <div className='header center'>
                     <h2>Current Shift</h2>
                 </div>
-                <div className='body'>
+                <div className='body center'>
                     { time_display }
                     <input
                         id="shift-submit"

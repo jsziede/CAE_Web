@@ -399,7 +399,7 @@ class MyHoursManager extends React.Component {
             var total_minutes = Math.trunc((total_time - (total_hours * this.one_hour)) / this.one_minute);
 
             return (
-                <Fragment className="center">
+                <Fragment>
                     <CurrentShift
                         clock_in={ this.state.last_shift.fields['clock_in'] }
                         clock_out={ this.state.last_shift.fields['clock_out'] }
