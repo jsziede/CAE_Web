@@ -8,7 +8,7 @@
   {{ block.super }}
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <style>
-body main #content {
+body main .main-content {
   display: block;
 }
 
@@ -67,7 +67,7 @@ body main #content {
   border-right-width: 1px;
 }
 
-.schedule-header .schedule-btn-calendar {
+.schedule-header button.schedule-btn-calendar {
   border-radius: 0;
   border: 1px solid #CCC;
   border-right-width: 0;
@@ -176,7 +176,7 @@ body main #content {
 {% endblock extra_scripts_body %}
 
 {% block content %}
-  <article id="content">
+  <article>
     <h1>Room Schedules</h1>
     <div class="schedule-container"
       data-start="{{ start.isoformat }}"
