@@ -288,12 +288,12 @@ def room_schedule(request, room_type_slug):
         if delete:
             instance.delete()
             messages.success(request, "Event deleted")
-            return redirect(reverse('cae_web_core:room_schedule') + date_param)
+            return redirect(reverse('cae_web_core:room_schedule', args=[room_type_slug]) + date_param)
         form = forms.RoomEventForm(request.POST, instance=instance)
         if form.is_valid():
             form.save()
             messages.success(request, "Event updated")
-            return redirect(reverse('cae_web_core:room_schedule') + date_param)
+            return redirect(reverse('cae_web_core:room_schedule', args=[room_type_slug]) + date_param)
         else:
             messages.error(request, "There were errors updating the event.")
 
