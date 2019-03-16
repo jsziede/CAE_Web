@@ -10,6 +10,7 @@ var createSchedule = function(container) {
     var start = moment(container.data('start'));
     var end = moment(container.data('end'));
     var resources = container.data('resources');
+    var roomTypeSlug = container.data('room-type-slug');
 
     // Establish socket connection.
     var domain = window.location.hostname
@@ -24,6 +25,7 @@ var createSchedule = function(container) {
             'action': ACTION_GET_EVENTS,
             'start_time': start.format(),
             'end_time': end.format(),
+            'room_type_slug': roomTypeSlug,
             'notify': true,
         }));
     };
@@ -117,9 +119,14 @@ var createSchedule = function(container) {
             }
 
             var column = resourceIdToColumn[event.resource];
+            if (column == undefined) {
+                console.log(resourceIdToColumn);
+                console.log(event);
+                throw "Unknown resource!";
+            }
             const startDiff = Number((eventStart.diff(start, 'second') / 3600).toFixed(2)); // hours
             const endDiff = Number((eventEnd.diff(end, 'second') / 3600).toFixed(2)); // hours
-            const rowStart = Math.max(0, startDiff) * 4 + 2; // +2 for header
+            const rowStart = Math.round(Math.max(0, startDiff) * 4 + 2); // +2 for header
             var spanHours = Number((eventEnd.diff(eventStart, 'second') / 3600).toFixed(2));
             if (startDiff < 0) {
                 // Reduce span if we cut off the start (Add a negative)
@@ -204,6 +211,7 @@ var createSchedule = function(container) {
           'action': ACTION_GET_EVENTS,
           'start_time': start.format(),
           'end_time': end.format(),
+          'room_type_slug': roomTypeSlug,
           'notify': true,
         }))
       }

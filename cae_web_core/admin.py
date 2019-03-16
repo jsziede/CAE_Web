@@ -67,7 +67,7 @@ class RoomEventAdmin(admin.ModelAdmin):
     list_display = ('room', 'event_type', 'start_time', 'end_time', 'title',)
 
     # Fields to filter by in admin list view.
-    list_filter = ('room', 'event_type',)
+    list_filter = ('room__room_type', 'event_type',)
 
     # Fields to search in admin list view.
     search_fields = ['title',]

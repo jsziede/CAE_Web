@@ -269,6 +269,7 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
         start = content.get('start_time')
         end = content.get('end_time')
         room = content.get('room')
+        room_type_slug = content.get('room_type_slug')
         notify = content.get('notify')
 
         if start:
@@ -281,12 +282,13 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
             if timezone.is_naive(end):
                 raise ValueError("end_time is naive")
 
-        events = await self._get_events(start, end, room)
+        events = await self._get_events(start, end, room, room_type_slug)
 
         await self.send_json({
             'action': self.ACTION_SEND_EVENTS,
             'start': start.isoformat() if start else None,
             'end': end.isoformat() if end else None,
+            'room_type_slug': room_type_slug,
             'events': events,
         })
 
@@ -294,12 +296,14 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
             self.scope['session']['start'] = start.isoformat() if start else None
             self.scope['session']['end'] = end.isoformat() if end else None
             self.scope['session']['room'] = room
+            self.scope['session']['room_type_slug'] = room_type_slug
             self.scope['session']['pks'] = [x['id'] for x in events]
             await self.channel_layer.group_add(
                 GROUP_UPDATE_ROOM_EVENT, self.channel_name)
 
     async def on_update_room_event(self, content):
         room = self.scope['session'].get('room')
+        room_type_slug = self.scope['session'].get('room_type_slug')
         event_start = dateutil.parser.parse(content['start_time'])
         event_end = dateutil.parser.parse(content['end_time'])
 
@@ -335,16 +339,20 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
                 'start_time': self.scope['session'].get('start'),
                 'end_time': self.scope['session'].get('end'),
                 'room': room,
+                'room_type_slug': room_type_slug,
                 'notify': True,
             })
 
     @database_sync_to_async
-    def _get_events(self, start, end, room):
+    def _get_events(self, start, end, room, room_type_slug):
         """Get room events"""
         events = models.RoomEvent.objects.all().order_by('room', 'start_time')
 
         if room:
             events = events.filter(room_id=room)
+
+        if room_type_slug:
+            events = events.filter(room__room_type__slug=room_type_slug)
 
         if start:
             events = events.filter(end_time__gte=start)
@@ -377,7 +385,7 @@ def on_room_event_changed(sender, **kwargs):
         async_to_sync(channel_layer.group_send)(
             GROUP_UPDATE_ROOM_EVENT,
             {
-                "type": "on.update.room_event",
+                "type": "on_update_room_event",
                 "pk": instance.pk,
                 "start_time": instance.start_time.isoformat(),
                 "end_time": instance.end_time.isoformat(),
