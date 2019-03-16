@@ -309,6 +309,7 @@ class RoomEventModelTests(TestCase):
             room_type=cls.room_type,
             department=cls.department,
             capacity=30,
+            description="Test Room Description",
         )
 
     def setUp(self):
