@@ -224,6 +224,10 @@ var createSchedule = function(container) {
         changeDate(current.toDate());
     }
 
+    function onBtnCalendarClicked(event) {
+        dateFlatpickr.open();
+    }
+
     function onBtnEditEventClicked(event) {
         var event = JSON.parse(unescape($(event.target).closest('.schedule-event').data('event')));
         console.log(event);
@@ -276,6 +280,7 @@ var createSchedule = function(container) {
     container.find('.schedule-btn-today').on('click', onBtnTodayClicked);
     container.find('.schedule-btn-prev').on('click', onBtnPrevClicked);
     container.find('.schedule-btn-next').on('click', onBtnNextClicked);
+    container.find('.schedule-btn-calendar').on('click', onBtnCalendarClicked);
     container.find('.schedule-grid-line').on('dblclick', onGridLineDblClicked);
 
     // Setup flatpickr
