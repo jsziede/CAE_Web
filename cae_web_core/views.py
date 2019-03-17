@@ -308,6 +308,21 @@ def room_schedule(request, room_type_slug):
     })
 
 
+def upload_schedule(request):
+    """Display a list of uploaded schedules to be replaced or deleted, or allow
+    a new upload to be added."""
+    form = forms.UploadRoomScheduleForm()
+    events = []
+    if request.POST or request.FILES:
+        form = forms.UploadRoomScheduleForm(request.POST, request.FILES)
+        if form.is_valid():
+            events = form.save()
+    return TemplateResponse(request, 'cae_web_core/room_schedule/upload.html', {
+        'form': form,
+        'events': events, # For debugging, currently
+    })
+
+
 def api_room_schedule(request):
     """Get room events"""
     start = request.GET.get('startdate', None)

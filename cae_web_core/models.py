@@ -244,3 +244,19 @@ class RoomEvent(models.Model):
         # Save model.
         self.full_clean()
         super(RoomEvent, self).save(*args, **kwargs)
+
+
+class UploadedSchedule(models.Model):
+    """Represents an uploaded schedule.
+
+    Used to delete all events associated with a schedule.
+    """
+    name = models.CharField(max_length=MAX_LENGTH, unique=True)
+    events = models.ManyToManyField(RoomEvent, related_name='+')
+
+    # Self-setting/Non-user-editable fields.
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_modified = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name

@@ -199,6 +199,8 @@ body main .main-content {
         {% endfor %}
       </div>
     </div>
+    {# TODO: Check if user can upload #}
+    <a href="{% url 'cae_web_core:upload_schedule' %}" class="button">Upload Schedule</a>
 
     <br>
     <br>

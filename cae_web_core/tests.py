@@ -1,16 +1,18 @@
 """
 Test for CAE Web Core app.
 """
+import datetime
 
-import datetime, pytz
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
+import pytz
 
 from . import models
+from .utils import excel
 from .views import populate_pay_periods
 from cae_home import models as cae_home_models
 
@@ -433,5 +435,59 @@ class CAEWebCoreMiscTests(TestCase):
             # If 85 populate, then it's safe to assume the rest will too.
             pay_periods = models.PayPeriod.objects.all()
             self.assertGreater(len(pay_periods), 85)
+
+    def test_excel_add_minutes(self):
+        """Test excel.add_minutes() works as expected."""
+        t1 = datetime.time(hour=0, minute=0)
+
+        t2 = excel.add_minutes(t1, 59)
+        self.assertEqual(0, t2.hour)
+        self.assertEqual(59, t2.minute)
+
+        t2 = excel.add_minutes(t1, 60)
+        self.assertEqual(1, t2.hour)
+        self.assertEqual(0, t2.minute)
+
+        t2 = excel.add_minutes(t1, 61)
+        self.assertEqual(1, t2.hour)
+        self.assertEqual(1, t2.minute)
+
+        t1 = datetime.time(hour=0, minute=30)
+
+        t2 = excel.add_minutes(t1, 29)
+        self.assertEqual(0, t2.hour)
+        self.assertEqual(59, t2.minute)
+
+        t2 = excel.add_minutes(t1, 30)
+        self.assertEqual(1, t2.hour)
+        self.assertEqual(0, t2.minute)
+
+        t2 = excel.add_minutes(t1, 31)
+        self.assertEqual(1, t2.hour)
+        self.assertEqual(1, t2.minute)
+
+        t2 = excel.add_minutes(t1, 60)
+        self.assertEqual(1, t2.hour)
+        self.assertEqual(30, t2.minute)
+
+        t2 = excel.add_minutes(t1, 120)
+        self.assertEqual(2, t2.hour)
+        self.assertEqual(30, t2.minute)
+
+        # Now check it wraps around when going after midnight
+        t1 = datetime.time(hour=23, minute=30)
+
+        t2 = excel.add_minutes(t1, 29)
+        self.assertEqual(23, t2.hour)
+        self.assertEqual(59, t2.minute)
+
+        t2 = excel.add_minutes(t1, 30)
+        self.assertEqual(0, t2.hour)
+        self.assertEqual(0, t2.minute)
+
+        t2 = excel.add_minutes(t1, 31)
+        self.assertEqual(0, t2.hour)
+        self.assertEqual(1, t2.minute)
+
 
 #endregion Other Tests
