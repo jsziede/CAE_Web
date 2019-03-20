@@ -309,10 +309,11 @@ class RoomEventModelTests(TestCase):
         cls.room = cae_home_models.Room.objects.create(
             name='Test Room',
             room_type=cls.room_type,
-            department=cls.department,
             capacity=30,
             description="Test Room Description",
         )
+        cls.room.department.add(cls.department)
+        cls.room.save()
 
     def setUp(self):
         self.end_time = timezone.now()
