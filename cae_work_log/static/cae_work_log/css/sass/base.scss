@@ -104,6 +104,16 @@
 //===========================//
 
 .cae-work-log {
+
+    @each $theme, $theme-dict in $theme-colors {
+    .theme-#{$theme} & {
+
+        .entry_header span {
+            color: theme-text($theme, 'content-subtle');
+        }
+
+    }}
+
     .entry_header span {
         font-size: 80%;
         font-style: italic;
@@ -149,21 +159,22 @@
 
 .cae-work-log {
 
-    .filters {
-        border: 1px solid $theme-border;
-    }
+    @each $theme, $theme-dict in $theme-colors {
+    .theme-#{$theme} & {
 
-    .entries {
-        border: 1px solid $theme-border;
-    }
+        .filters {
+            border: 1px solid theme-background($theme, 'border');
+        }
 
-    .entry {
-        border-top: 1px solid $theme-border;
-    }
+        .entries {
+            border: 1px solid theme-background($theme, 'border');
+        }
 
-    .entry_header span {
-        color: $theme-content-text-subtle;
-    }
+        .entry {
+            border-top: 1px solid theme-background($theme, 'border');
+        }
+
+    }}
 }
 
 //===========================//
