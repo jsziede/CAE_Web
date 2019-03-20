@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
 from django.db.models import Q
 from django.http import HttpResponseRedirect
-from django.shortcuts import render
+from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils import timezone
 
@@ -30,7 +30,7 @@ def index(request):
     log_entries = models.WorkLogEntry.objects.all()
 
     # Send to template for user display.
-    return render(request, 'cae_work_log/index.html', {
+    return TemplateResponse(request, 'cae_work_log/index.html', {
         'groups': groups,
         'timeframes': timeframes,
         'log_sets': log_sets,
@@ -78,7 +78,7 @@ def create_entry(request):
             messages.warning(request, 'Failed to create log entry.')
 
     # Handle for non-post request.
-    return render(request, 'cae_work_log/log_entry_form.html', {
+    return TemplateResponse(request, 'cae_work_log/log_entry_form.html', {
         'form': form,
     })
 
