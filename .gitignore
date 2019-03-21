@@ -5,17 +5,26 @@
 # Do not track DEBUG file.
 DEBUG
 
-# Do not track local environment settings.
+# Do not track local environment settings/solution.
 .venv/
 .vscode/
 .idea/
+.vs/
+env/
+node_modules/
+CICO.pyproj
+CICO.sln
+package-lock.json
 
-# Do not track css/sass map files.
+# Do not track python cache files.
+*.pyc
+
+# Do not track css/css map/sass map files.
+*.css
 *.css.map
 *.sass-cache/
 
 # Do not track migrations for now.
 */migrations/0*.py
 
-# Do not track python cache files.
-*.pyc
+
