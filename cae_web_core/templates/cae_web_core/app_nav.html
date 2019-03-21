@@ -8,7 +8,14 @@
   <ul>
     <li><a href="{% url 'cae_web_core:my_hours' %}">My Hours</a></li>
     <li><a href="{% url 'cae_web_core:shift_manager_redirect' %}">Shift Manager</a></li>
-    <li><a href="{% url 'cae_work_log:index' %}">Work Log</a></li>
+  </ul>
+</li>
+<li>
+  <h2 class="accessibility-element">Attendant Sub Menu</h2>
+  <p>Attendant</p>
+  <ul>
+    <li><a href="{% url 'cae_web_attendants:checkout' %}">Room Checkouts</a></li>
+    <li><a href="{% url 'cae_web_attendants:checklist' %}">Checklists</a></li>
   </ul>
 </li>
 {% endif %}
