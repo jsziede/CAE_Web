@@ -5,6 +5,7 @@ Seeder command that initializes user models.
 import datetime, pytz
 from django.core.exceptions import ValidationError
 from django.core.management.base import BaseCommand
+from django.core.management import call_command
 from random import randint
 
 from apps.CAE_Web.cae_web_attendants import models
@@ -38,9 +39,20 @@ class Command(BaseCommand):
             model_count = 100
 
         print('\nCAE_WEB_ATTENDANTS: Seed command has been called.')
+        self.create_checklists()
         self.create_room_checkouts(model_count)
 
         print('CAE_WEB_ATTENDANTS: Seeding complete.')
+
+    def create_checklists(self):
+        """
+        Creates attendant checklists templates and tasks.
+        """
+        # Load preset fixtures. No need to create random models.
+        call_command('loaddata', 'checklist_item')
+        call_command('loaddata', 'open_close_checklist')
+
+        print('Populated attendant checklist models.')
 
     def create_room_checkouts(self, model_count):
         """

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import RoomCheckout
+from .models import RoomCheckout, OpenCloseChecklist, ChecklistItem
 
 class RoomCheckoutAdmin(admin.ModelAdmin):
     # Fields to display in admin list view.
