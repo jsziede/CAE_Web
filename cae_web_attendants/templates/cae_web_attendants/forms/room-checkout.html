@@ -15,36 +15,48 @@
 			<div class="fieldWrapper">
 				{{ form.room.errors }}
 				<label for="{{ form.room.id_for_label }}">Room:</label>
-				<input type="hidden" id="{{ form.room.id_for_label }}" name="{{ form.room.name }}" value="{{ form.room.value }}">
-				{% for room in rooms %}
-					<div id="{{ room.pk }}" class="room-option" onclick="roomSelect(this.id)">{{ room.name }}</div>
-				{% endfor %}
+				<div>
+					<input type="hidden" id="{{ form.room.id_for_label }}" name="{{ form.room.name }}" value="{{ form.room.value }}">
+					{% for room in rooms %}
+						<div id="{{ room.pk }}" class="room-option" onclick="roomSelect(this.id)">{{ room.name }}</div>
+					{% endfor %}
+				</div>
 			</div>
 			<div class="fieldWrapper">
 				{{ form.employee.errors }}
 				<label for="{{ form.employee.id_for_label }}">Employee:</label>
-				{{ form.employee }}
+				<div>
+					{{ form.employee }}
+				</div>
 			</div>
 			<div class="fieldWrapper">
 				{{ form.student.errors }}
 				<label for="{{ form.student.id_for_label }}">Student:</label>
-				<input id="student_dropdown" list="{{ form.student.name }}" name="{{ form.student.name }}">
-				<datalist id="{{ form.student.name }}">
-					<!-- currently only shows the "value" in the dropdown, which is just the pk number
-						there is a workaround to make it display the "data-value" so people see the student name
-					instead but I don't think we are going to be using a datalist anyways -->
-					{% for student in students %}
-					<option value="{{ student.pk }}" data-value="{{ student.first_name }} {{ student.last_name }} ({{ student.bronco_net }})">
-					{% endfor %}
-				</datalist>
+				<div>
+					<input id="student_dropdown" list="{{ form.student.name }}" name="{{ form.student.name }}">
+					<datalist id="{{ form.student.name }}">
+						<!-- currently only shows the "value" in the dropdown, which is just the pk number
+							there is a workaround to make it display the "data-value" so people see the student name
+						instead but I don't think we are going to be using a datalist anyways -->
+						{% for student in students %}
+						<option value="{{ student.pk }}" data-value="{{ student.first_name }} {{ student.last_name }} ({{ student.bronco_net }})">
+						{% endfor %}
+					</datalist>
+				</div>
 			</div>
 			<div class="fieldWrapper">
 				{{ form.checkout_date.errors }}
 				<input type="hidden" id="{{ form.checkout_date.id_for_label }}" name="{{ form.checkout_date.name }}" value="{% now "Y-m-d H:00:00" %}">
 				<label for="dateInput">Date:</label>
-				<input type="date" id="dateInput" name="checkout_day" value="{% now "Y-m-d" %}"><br />
+				<div>
+					<input type="date" id="dateInput" name="checkout_day" value="{% now "Y-m-d" %}"><br />
+				</div>
+			</div>
+			<div>
 				<label for="timeInput">Time:</label>
-				<input type="time" id="timeInput" name="checkout_time" value="{% now "H:00:00" %}">
+				<div>
+					<input type="time" id="timeInput" name="checkout_time" value="{% now "H:00:00" %}">
+				</div>
 			</div>
 		</form>
 	</div>
