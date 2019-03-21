@@ -6,14 +6,12 @@ Views for CAE_Web Core App.
 import datetime, dateutil.parser, json, pytz
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
-from django.core import serializers
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http.response import JsonResponse, HttpResponseRedirect
 from django.template.response import TemplateResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html
@@ -40,16 +38,18 @@ def populate_pay_periods():
     the pay period changes over.
     """
     pay_period_found = True
-    current_time = timezone.now()
+    server_timezone = pytz.timezone('UTC')
+    local_timezone = pytz.timezone('America/Detroit')
+    current_time = timezone.now().astimezone(server_timezone)
     plus_1_time = current_time + timezone.timedelta(days=14)
 
     # Check for current pay period.
     try:
-        models.PayPeriod.objects.get(period_start__lte=current_time, period_end__gte=current_time)
+        models.PayPeriod.objects.get(date_start__lte=current_time, date_end__gte=current_time)
 
         # Check for current pay period + 1.
         try:
-            models.PayPeriod.objects.get(period_start__lte=plus_1_time, period_end__gte=plus_1_time)
+            models.PayPeriod.objects.get(date_start__lte=plus_1_time, date_end__gte=plus_1_time)
         except ObjectDoesNotExist:
             pay_period_found = False
     except ObjectDoesNotExist:
@@ -58,45 +58,22 @@ def populate_pay_periods():
     # If both pay periods were not found, create new pay periods.
     if not pay_period_found:
         try:
-            last_pay_period = models.PayPeriod.objects.latest('period_start')
+            last_pay_period = models.PayPeriod.objects.latest('date_start')
         except models.PayPeriod.DoesNotExist:
             last_pay_period = None
 
         # If no pay periods found, manually create first one at 5-25-2015.
         if last_pay_period is None:
-            date_holder = datetime.datetime.strptime('2015 05 25 00 00 00', '%Y %m %d %H %M %S')
-            date_holder = normalize_for_daylight_savings(date_holder)
-            last_pay_period = models.PayPeriod.objects.create(period_start=date_holder)
-
-        # Check that time is daylight savings compliant.
-        date_holder = normalize_for_daylight_savings(last_pay_period.period_start, timezone_instance='UTC')
+            # Get desired start date from string.
+            unaware_date = datetime.datetime.strptime('2015 05 25 00 00 00', '%Y %m %d %H %M %S')
+            local_date = local_timezone.localize(unaware_date)
+            last_pay_period = models.PayPeriod.objects.create(date_start=local_date)
 
         # Continue until pay_period + 1 is created.
-        while not ((last_pay_period.period_start < plus_1_time) and (last_pay_period.period_end > plus_1_time)):
-            date_holder = normalize_for_daylight_savings(date_holder + timezone.timedelta(14))
-            last_pay_period = models.PayPeriod.objects.create(period_start=date_holder)
-
-
-def normalize_for_daylight_savings(date_holder, timezone_instance='America/Detroit'):
-    """
-    Checks and normalizes for daylight savings. Only works if it's an instance of local midnight.
-    We want the date to always be midnight, regardless of time of year.
-    :param date_holder: Should always be an instance of midnight.
-    :param timezone_instance: Timezone of passed date. Assumes local timezone of America/Detroit by default.
-    :return: The same date, set to local time midnight, regardless of daylight savings.
-    """
-    # First get local server timezone.
-    server_timezone = pytz.timezone('America/Detroit')
-
-    # Convert to local server time if not naive and in non-local timezone.
-    if timezone_instance != 'America/Detroit':
-        date_holder = server_timezone.normalize(date_holder.astimezone(server_timezone))
-
-    # Then localize the given date, ignoring timezone info if provided.
-    # (We don't want the timezone adjustment for midnight. We want actual midnight, unconditionally.)
-    date_holder_with_timezone = server_timezone.localize(date_holder.replace(tzinfo=None))
-
-    return date_holder_with_timezone
+        while not ((last_pay_period.get_start_as_datetime() < plus_1_time) and (last_pay_period.get_end_as_datetime() > plus_1_time)):
+            utc_date = last_pay_period.get_start_as_datetime().astimezone(server_timezone) + timezone.timedelta(14)
+            local_date = utc_date.astimezone(local_timezone)
+            last_pay_period = models.PayPeriod.objects.create(date_start=local_date)
 
 #endregion Standard Methods
 
@@ -113,11 +90,13 @@ def index(request):
         cae_phone_number = None
     cae_directors = cae_home_models.User.objects.filter(groups__name='CAE Director')
     cae_coordinators = cae_home_models.User.objects.filter(groups__name='CAE Building Coordinator')
+    cae_attendants = None
     cae_admins = None
     cae_programmers = None
 
     if request.user.is_authenticated:
-        if request.user.groups.filter(name='CAE Admin') or request.user.groups.filter(name='CAE Programmer'):
+        if request.user.groups.filter(name='CAE Attendant') or request.user.groups.filter(name='CAE Admin') or request.user.groups.filter(name='CAE Programmer'):
+            cae_attendants = cae_home_models.User.objects.filter(groups__name='CAE Attendant')
             cae_admins = cae_home_models.User.objects.filter(groups__name='CAE Admin')
             cae_programmers = cae_home_models.User.objects.filter(groups__name='CAE Programmer')
 
@@ -125,6 +104,7 @@ def index(request):
         'cae_phone_number': cae_phone_number,
         'cae_directors': cae_directors,
         'cae_coordinators': cae_coordinators,
+        'cae_attendants': cae_attendants,
         'cae_admins': cae_admins,
         'cae_programmers': cae_programmers,
     })
@@ -140,59 +120,13 @@ def my_hours(request):
     # Check for valid pay periods.
     populate_pay_periods()
 
-    # Pull models from database.
-    current_time = timezone.now()
-    user_timezone = pytz.timezone(request.user.profile.user_timezone)
-    pay_period = models.PayPeriod.objects.get(period_start__lte=current_time, period_end__gte=current_time)
-    shifts = models.EmployeeShift.objects.filter(employee=request.user, pay_period=pay_period)
-
-    # Try to get shift with no clock out. If none exist, then use last shift in current pay period.
-    try:
-        last_shift = models.EmployeeShift.objects.get(employee=request.user, clock_out=None)
-    except ObjectDoesNotExist:
-        last_shift = shifts.last()
-
-    # Convert shift values to user's local time.
-    for shift in shifts:
-        shift.clock_in = user_timezone.normalize(shift.clock_in.astimezone(user_timezone))
-        if shift.clock_out is not None:
-            shift.clock_out = user_timezone.normalize(shift.clock_out.astimezone(user_timezone))
-
-    # Convert to json format for React.
-    json_pay_period = serializers.serialize(
-        'json',
-        [pay_period],
-        fields=('period_start', 'period_end',)
-    )
-
-    json_shifts = serializers.serialize(
-        'json',
-        shifts,
-        fields=('clock_in', 'clock_out',)
-    )
-
-    if last_shift is not None:
-        json_last_shift = serializers.serialize(
-            'json',
-            [last_shift],
-            fields=('clock_in', 'clock_out',)
-        )
-    else:
-        json_last_shift = serializers.serialize(
-            'json',
-            [],
-        )
-
     # Send to template for user display.
-    return TemplateResponse(request, 'cae_web_core/employee/my_hours.html', {
-        'json_pay_period': json_pay_period,
-        'json_shifts': json_shifts,
-        'json_last_shift': json_last_shift,
-    })
+    return TemplateResponse(request, 'cae_web_core/employee/my_hours.html', {})
+
 
 def shift_edit(request, pk):
     """
-
+    Edit view for a single shift.
     :param request:
     :return:
     """
@@ -213,7 +147,7 @@ def shift_edit(request, pk):
             messages.warning(request, 'Failed to update shift.')
 
     # Handle for non-post request.
-    return render(request, 'cae_web_core/employee/shift_edit.html', {
+    return TemplateResponse(request, 'cae_web_core/employee/shift_edit.html', {
         'form': form,
         'shift': shift,
     })
@@ -303,12 +237,20 @@ def shift_manager(request, pk):
 
 #region Calendar Views
 
-def calendar_test(request):
-    rooms = cae_home_models.Room.objects.all().order_by('room_type', 'name').values_list(
+
+def room_schedule(request, room_type_slug):
+    room_type = get_object_or_404(cae_home_models.RoomType, slug=room_type_slug)
+    date_string = request.GET.get('date')
+    rooms = cae_home_models.Room.objects.filter(
+        room_type=room_type,
+    ).order_by('room_type', 'name').values_list(
         'pk', 'name', 'capacity',
     )
     now = timezone.now() # UTC
     now = now.astimezone(pytz.timezone('America/Detroit')) # EST/EDT
+    if date_string:
+        date_obj = datetime.datetime.strptime(date_string, '%Y-%m-%d')
+        now = now.replace(year=date_obj.year, month=date_obj.month, day=date_obj.day)
     start = now.replace(hour=8, minute=0, second=0)
     end = now.replace(hour=22, minute=0, second=0)
 
@@ -319,15 +261,68 @@ def calendar_test(request):
             'html': format_html('{}<br>{}'.format(name, capacity)),
         })
 
-    return TemplateResponse(request, 'cae_web_core/calendar_test.html', {
+    # This is used to display links to jump to another room type.
+    room_types = cae_home_models.RoomType.objects.filter(
+        slug__in=[
+            "classroom",
+            "computer-classroom",
+            "breakout-room",
+            "special-room",
+        ],
+    ).values(
+        'pk',
+        'name',
+        'slug',
+    )
+
+    form = forms.RoomEventForm()
+    if request.POST: # TODO: Check user has permission to edit/create events
+        pk = request.POST.get('room_event_pk')
+        delete = request.POST.get('_delete')
+        instance = None # New event
+        if pk:
+            instance = get_object_or_404(models.RoomEvent, pk=pk)
+        date_param = ''
+        if date_string:
+            date_param = '?date=' + date_string
+        if delete:
+            instance.delete()
+            messages.success(request, "Event deleted")
+            return redirect(reverse('cae_web_core:room_schedule', args=[room_type_slug]) + date_param)
+        form = forms.RoomEventForm(request.POST, instance=instance)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Event updated")
+            return redirect(reverse('cae_web_core:room_schedule', args=[room_type_slug]) + date_param)
+        else:
+            messages.error(request, "There were errors updating the event.")
+
+    return TemplateResponse(request, 'cae_web_core/room_schedule/room_schedule.html', {
         'rooms': rooms,
         'rooms_json': json.dumps(rooms_json),
         'start': start,
         'end': end,
+        'form': form,
+        'room_types': room_types,
+        'room_type_slug': room_type_slug,
     })
 
 
-@login_required
+def upload_schedule(request):
+    """Display a list of uploaded schedules to be replaced or deleted, or allow
+    a new upload to be added."""
+    form = forms.UploadRoomScheduleForm()
+    events = []
+    if request.POST or request.FILES:
+        form = forms.UploadRoomScheduleForm(request.POST, request.FILES)
+        if form.is_valid():
+            events = form.save()
+    return TemplateResponse(request, 'cae_web_core/room_schedule/upload.html', {
+        'form': form,
+        'events': events, # For debugging, currently
+    })
+
+
 def api_room_schedule(request):
     """Get room events"""
     start = request.GET.get('startdate', None)

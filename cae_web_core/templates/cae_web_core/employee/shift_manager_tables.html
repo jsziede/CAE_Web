@@ -7,23 +7,21 @@
     <h3>{{ user.username }}</h3>
   {% endif %}
 
-
   {% if week_1_shifts %}
     {% include 'cae_web_core/employee/shift_manager_table.html' with display_only_web=1 shifts=week_1_shifts week_start=week_1_start week_end=week_1_end week_hms=week_1_hms week_decimal=week_1_decimal %}
   {% endif %}
-
 
   {% if week_2_shifts %}
     {% include 'cae_web_core/employee/shift_manager_table.html' with display_only_web=1 shifts=week_2_shifts week_start=week_2_start week_end=week_2_end week_hms=week_2_hms week_decimal=week_2_decimal %}
   {% endif %}
 
   <div class="display-only-web">
-      <p>Total Time:</p>
-      <p>{{ pay_period_hms.0 }} Hours &nbsp; {{ pay_period_hms.1 }} Minutes &nbsp; {{ pay_period_hms.2 }} Seconds</p>
-      <p>{{ pay_period_decimal }}</p>
+    <p>Total Time:</p>
+    <p>{{ pay_period_hms.0 }} Hours &nbsp; {{ pay_period_hms.1 }} Minutes &nbsp; {{ pay_period_hms.2 }} Seconds</p>
+    <p>{{ pay_period_decimal }}</p>
   </div>
 
   {% include 'cae_web_core/employee/shift_manager_table.html' with display_only_web=0 shifts=pay_period_shifts week_hms=pay_period_hms week_decimal=pay_period_decimal %}
 
-  <hr>
+  <br>
 {% endif %}

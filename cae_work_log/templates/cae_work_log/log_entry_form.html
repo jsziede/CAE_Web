@@ -1,0 +1,19 @@
+{% extends 'cae_work_log/main.html' %}
+
+
+{% block sub_title %}Form{% endblock sub_title %}
+
+
+{% block content %}
+  {% if log_entry %}
+    <h1>Edit Log Entry</h1>
+  {% else %}
+    <h1>Create Log Entry</h1>
+  {% endif %}
+
+  <form method="POST" action="">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Submit">
+  </form>
+{% endblock content %}

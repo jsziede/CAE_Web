@@ -2,11 +2,11 @@
 Models for CAE Web Core app.
 """
 
-import math
+import datetime, math, pytz
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.urlresolvers import reverse
 from django.db import models
+from django.urls import reverse
 from django.utils import timezone
 
 
@@ -18,8 +18,8 @@ class PayPeriod(models.Model):
     An instance of a two week pay period.
     """
     # Model fields.
-    period_start = models.DateTimeField()
-    period_end = models.DateTimeField(blank=True)
+    date_start = models.DateField()
+    date_end = models.DateField(blank=True)
 
     # Self-setting/Non-user-editable fields.
     date_created = models.DateTimeField(auto_now_add=True)
@@ -28,17 +28,19 @@ class PayPeriod(models.Model):
     class Meta:
         verbose_name = "Pay Period"
         verbose_name_plural = "Pay Periods"
-        ordering = ('-period_start',)
+        ordering = ('-date_start',)
 
     def __str__(self):
-        return '{0} - {1}'.format(self.period_start, self.period_end)
+        return '{0} - {1}'.format(self.date_start, self.date_end)
 
     def clean(self, *args, **kwargs):
         """
         Custom cleaning implementation. Includes validation, setting fields, etc.
         """
-        if self.period_end is None:
-            self.period_end = self.period_start + timezone.timedelta(days=14) - timezone.timedelta(milliseconds=1)
+        if self.date_end is None:
+            end_datetime = self.get_start_as_datetime() + datetime.timedelta(days=13)
+            end_date = end_datetime.date()
+            self.date_end = end_date
 
     def save(self, *args, **kwargs):
         """
@@ -47,6 +49,22 @@ class PayPeriod(models.Model):
         # Save model.
         self.full_clean()
         super(PayPeriod, self).save(*args, **kwargs)
+
+    def get_start_as_datetime(self):
+        """
+        Returns start date at exact midnight, local time.
+        """
+        midnight = datetime.time(0, 0, 0, 0)
+        start_datetime = pytz.timezone('America/Detroit').localize(datetime.datetime.combine(self.date_start, midnight))
+        return start_datetime
+
+    def get_end_as_datetime(self):
+        """
+        Returns end date just before midnight of next day, local time.
+        """
+        day_end = datetime.time(23, 59, 59)
+        end_datetime = pytz.timezone('America/Detroit').localize(datetime.datetime.combine(self.date_end, day_end))
+        return end_datetime
 
 
 class EmployeeShift(models.Model):
@@ -73,6 +91,11 @@ class EmployeeShift(models.Model):
 
     def __str__(self):
         return '{0}: {1} to {2}'.format(self.employee, self.clock_in, self.clock_out)
+
+    def get_absolute_url(self):
+        return reverse('cae_web_core:shift_edit', kwargs={
+            'pk': self.pk,
+        })
 
     def clean(self, *args, **kwargs):
         """
@@ -115,11 +138,12 @@ class EmployeeShift(models.Model):
 
         # Check that clock times are inside provided pay period.
         # Check clock in times. Shift just started so there's no data to lose. Raise validation error.
-        if (self.clock_in < self.pay_period.period_start) or (self.clock_in > self.pay_period.period_end):
+        if (self.clock_in < self.pay_period.get_start_as_datetime()) or\
+                (self.clock_in > self.pay_period.get_end_as_datetime()):
             raise ValidationError('Shift must be between pay period dates. Double check that you\'re using the correct'
                                   'pay period.')
         # Check if clock out time spans multiple pay periods. Since we don't want to lose shift data, flag as error.
-        if (self.clock_out is not None) and (self.clock_out > self.pay_period.period_end):
+        if (self.clock_out is not None) and (self.clock_out > self.pay_period.get_end_as_datetime()):
             self.error_flag = True
 
     def save(self, *args, **kwargs):
@@ -135,7 +159,10 @@ class EmployeeShift(models.Model):
         Calculates total time worked, both total seconds and h/m/s.
         :return: Tuple of (total_seconds, (hours, minutes, seconds)) worked.
         """
-        return self.clock_out.timestamp() - self.clock_in.timestamp()
+        if self.clock_out is not None:
+            return self.clock_out.timestamp() - self.clock_in.timestamp()
+        else:
+            return timezone.now().timestamp() - self.clock_in.timestamp()
 
     def get_time_worked_as_decimal(self, total_seconds=None):
         """
@@ -217,3 +244,19 @@ class RoomEvent(models.Model):
         # Save model.
         self.full_clean()
         super(RoomEvent, self).save(*args, **kwargs)
+
+
+class UploadedSchedule(models.Model):
+    """Represents an uploaded schedule.
+
+    Used to delete all events associated with a schedule.
+    """
+    name = models.CharField(max_length=MAX_LENGTH, unique=True)
+    events = models.ManyToManyField(RoomEvent, related_name='+')
+
+    # Self-setting/Non-user-editable fields.
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_modified = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name

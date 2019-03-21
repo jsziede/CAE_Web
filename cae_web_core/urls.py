@@ -21,7 +21,8 @@ urlpatterns = [
     # Room scheduler views.
     # TODO: Note, these schedule api urls are public. Should they be permission based?
     # TODO Response: Probably, yes. At least editing/adding them should be. Standard viewing probably should be public.
-    url(r'^schedule/', include('schedule.urls', namespace='schedule')),
+    url(r'^schedule/', include(('schedule.urls', 'schedule'), namespace='schedule')),
     url(r'^room-schedule/api/$', views.api_room_schedule, name='api_room_schedule'),
-    url(r'^calendar-test/$', views.calendar_test, name='calendar_test'),
+    url(r'^room-schedule/upload/$', views.upload_schedule, name='upload_schedule'),
+    url(r'^room-schedule/(?P<room_type_slug>[-\w]+)/$', views.room_schedule, name='room_schedule'),
 ]

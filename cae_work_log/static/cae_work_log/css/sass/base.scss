@@ -1,7 +1,7 @@
 
-//=====================//
-//==== Content CSS ====//
-//=====================//
+//==================//
+//==== Base CSS ====//
+//==================//
 
 // Import statements
 @import '../../../../../../../cae_home/static/cae_home/css/sass/_variables';
@@ -30,30 +30,59 @@
 // overflow, overflow-x, overflow-y, clip, clear                                  //
 //================================================================================//
 
-//===================================//
-//==== START Shift Manager Block ====//
-//===================================//
+//===========================//
+//==== START ----- Block ====//
+//===========================//
 
-.main-content.cae-web {
+.cae-work-log {
 
-    .shift-manager-list {
+    .filters {
+        @include display-flex;
+        @include flex-direction(row);
+        @include justify-content(space-evenly);
+        @include flex-wrap(wrap);
+
+        padding: 5px;
 
         div {
             @include display-flex;
-            @include flex-direction(row);
-            @include justify-content(space-around);
-
-            width: 60%;
-            margin-right: auto;
-            margin-bottom: 20px;
-            margin-left: auto;
+            @include flex-direction(column);
+            @include justify-content(center);
+            @include align-items(center);
         }
+    }
+
+    .entries {
+
+        padding: 5px;
+    }
+
+    .entry {
+        @include display-flex;
+        @include flex-direction(column);
+
+        padding: 5px;
+    }
+
+    .entry:nth-child(2) {
+        margin-top: 5px;
+    }
+
+    .entry_header {
+        @include display-flex;
+        @include flex-direction(row);
+        @include justify-content(space-between);
+    }
+
+    .entry_body {
+        width: 100%;
+        margin: 5px;
     }
 }
 
-//===================================//
-//===== END Shift Manager Block =====//
-//===================================//
+//===========================//
+//===== END ----- Block =====//
+//===========================//
 
 
 //================================================================================//
@@ -70,23 +99,30 @@
 // word-break, word-wrap, white-space                                             //
 //================================================================================//
 
-//===================================//
-//==== START Shift Manager Block ====//
-//===================================//
+//===========================//
+//==== START ----- Block ====//
+//===========================//
 
-.main-content.cae-web {
+.cae-work-log {
 
-    .shift-manager-list {
+    @each $theme, $theme-dict in $theme-colors {
+    .theme-#{$theme} & {
 
-        div {
-            font-weight: bold;
+        .entry_header span {
+            color: theme-text($theme, 'content-subtle');
         }
+
+    }}
+
+    .entry_header span {
+        font-size: 80%;
+        font-style: italic;
     }
 }
 
-//===================================//
-//===== END Shift Manager Block =====//
-//===================================//
+//===========================//
+//===== END ----- Block =====//
+//===========================//
 
 
 //================================================================================//
@@ -121,7 +157,25 @@
 //==== START ----- Block ====//
 //===========================//
 
+.cae-work-log {
 
+    @each $theme, $theme-dict in $theme-colors {
+    .theme-#{$theme} & {
+
+        .filters {
+            border: 1px solid theme-background($theme, 'border');
+        }
+
+        .entries {
+            border: 1px solid theme-background($theme, 'border');
+        }
+
+        .entry {
+            border-top: 1px solid theme-background($theme, 'border');
+        }
+
+    }}
+}
 
 //===========================//
 //===== END ----- Block =====//

@@ -3,8 +3,10 @@ Seeder command that initializes user models.
 """
 
 import datetime, pytz
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.management.base import BaseCommand
+from django.db.models import Q
 from django.utils import timezone
 from faker import Faker
 from random import randint
@@ -66,39 +68,60 @@ class Command(BaseCommand):
         pre_initialized_count = len(models.EmployeeShift.objects.all())
 
         # Get all related models.
-        users = cae_home_models.User.objects.all()
-        pay_periods = models.PayPeriod.objects.all()[:model_count/20]
-
         date_holder = timezone.now()
+        complex_query = (
+            (
+                Q(groups__name='CAE Attendant') | Q(groups__name='CAE Admin') | Q(groups__name='CAE Programmer')
+            )
+            & Q(is_active=True)
+        )
+        users = get_user_model().objects.filter(complex_query)
+        pay_periods = models.PayPeriod.objects.filter(date_start__lte=date_holder)[:model_count/20]
+
         # Generate models equal to model count.
         for i in range(model_count - pre_initialized_count):
-            # Get User.
-            index = randint(0, len(users) - 1)
-            user = users[index]
+            fail_count = 0
+            try_create_model = True
 
-            # Get pay period.
-            index = randint(0, len(pay_periods) - 1)
-            pay_period = pay_periods[index]
+            # Loop attempt until 3 fails or model is created.
+            # Model creation may fail due to randomness of shift values and overlapping shifts being invalid.
+            while try_create_model:
+                # Get User.
+                index = randint(0, len(users) - 1)
+                user = users[index]
 
-            # Calculate clock in/clock out times.
-            clock_in = pay_period.period_start + timezone.timedelta(
-                days=randint(0, 6),
-                hours=randint(8, 16),
-                minutes=randint(0,59)
-            )
-            clock_out = clock_in + timezone.timedelta(hours=randint(1, 4), minutes=randint(0, 59))
+                # Get pay period.
+                index = randint(0, len(pay_periods) - 1)
+                pay_period = pay_periods[index]
 
-            try:
-                models.EmployeeShift.objects.create(
-                    employee=user,
-                    pay_period=pay_period,
-                    clock_in=clock_in,
-                    clock_out=clock_out,
+                # Calculate clock in/clock out times.
+                clock_in = pay_period.get_start_as_datetime() + timezone.timedelta(
+                    days=randint(0, 13),
+                    hours=randint(8, 16),
+                    minutes=randint(0,59)
                 )
-            except ValidationError:
-                # Likely due to overlapping shift times. Nothing can be done about this without removing the random
-                # generation aspect. If we want that, we should use fixtures instead.
-                pass
+                clock_out = clock_in + timezone.timedelta(hours=randint(1, 7), minutes=randint(0, 59))
+
+                # If random clock_out time happened to go past pay period, then set to period end.
+                if clock_out > pay_period.get_end_as_datetime():
+                    clock_out = pay_period.get_end_as_datetime()
+
+                try:
+                    models.EmployeeShift.objects.create(
+                        employee=user,
+                        pay_period=pay_period,
+                        clock_in=clock_in,
+                        clock_out=clock_out,
+                    )
+                    try_create_model = False
+                except ValidationError:
+                    # Likely due to overlapping shift times. Nothing can be done about this without removing the random
+                    # generation aspect. If we want that, we should use fixtures instead.
+                    fail_count += 1
+
+                    # If failed 3 times, give up model creation and move on to next user/pay_period combination.
+                    if fail_count > 3:
+                        try_create_model = False
 
         print('Populated employee shift models.')
 

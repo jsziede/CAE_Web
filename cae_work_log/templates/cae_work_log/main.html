@@ -1,8 +1,8 @@
 {% extends 'cae_home/base.html' %}
-{% load static %}
+{% load staticfiles %}
 
 
-{% block title_site_name %}CAE Web{% endblock title_site_name %}
+{% block title_site_name %}{% block title_app_name %}CAE Work Log{% endblock title_app_name %} | CAE Web{% endblock title_site_name %}
 
 
 {% block header %}
@@ -11,12 +11,12 @@
 
 
 {% block extra_styles %}
-  <link rel="stylesheet" type="text/css" href="{% static 'cae_web_core/css/base.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static 'cae_work_log/css/base.css' %}">
 {% endblock extra_styles %}
 
 
 {% block main %}
-  <main id="content" class="main-content cae-web">
+  <main id="content" class="cae-work-log">
     {% include 'cae_home/include/status_messages.html' %}
     {% include 'cae_home/include/overlay_modal.html' %}
     {% block content %}{% endblock content %}

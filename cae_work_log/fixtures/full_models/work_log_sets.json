@@ -1,0 +1,90 @@
+[
+{
+    "model": "cae_work_log.worklogset",
+    "pk": 1,
+    "fields": {
+        "group": 6,
+        "timeframe_type": 1,
+        "description": "Daily CAE Programmer work logs.",
+        "date_created": "2018-11-18T01:10:11.905Z",
+        "date_modified": "2018-11-18T01:10:11.905Z"
+    }
+},
+{
+    "model": "cae_work_log.worklogset",
+    "pk": 2,
+    "fields": {
+        "group": 6,
+        "timeframe_type": 2,
+        "description": "Weekly CAE Programmer work logs.",
+        "date_created": "2018-11-18T01:10:11.905Z",
+        "date_modified": "2018-11-18T01:10:11.905Z"
+    }
+},
+{
+    "model": "cae_work_log.worklogset",
+    "pk": 3,
+    "fields": {
+        "group": 6,
+        "timeframe_type": 3,
+        "description": "Monthly CAE Programmer work logs.",
+        "date_created": "2018-11-18T01:10:11.905Z",
+        "date_modified": "2018-11-18T01:10:11.905Z"
+    }
+},
+{
+    "model": "cae_work_log.worklogset",
+    "pk": 4,
+    "fields": {
+        "group": 6,
+        "timeframe_type": 4,
+        "description": "Yearly CAE Programmer work logs.",
+        "date_created": "2018-11-18T01:10:11.905Z",
+        "date_modified": "2018-11-18T01:10:11.905Z"
+    }
+},
+{
+    "model": "cae_work_log.worklogset",
+    "pk": 5,
+    "fields": {
+        "group": 5,
+        "timeframe_type": 1,
+        "description": "Daily CAE Admin work logs.",
+        "date_created": "2018-11-18T01:10:11.905Z",
+        "date_modified": "2018-11-18T01:10:11.905Z"
+    }
+},
+{
+    "model": "cae_work_log.worklogset",
+    "pk": 6,
+    "fields": {
+        "group": 5,
+        "timeframe_type": 2,
+        "description": "Weekly CAE Admin work logs.",
+        "date_created": "2018-11-18T01:10:11.905Z",
+        "date_modified": "2018-11-18T01:10:11.905Z"
+    }
+},
+{
+    "model": "cae_work_log.worklogset",
+    "pk": 7,
+    "fields": {
+        "group": 5,
+        "timeframe_type": 3,
+        "description": "Monthly CAE Admin work logs.",
+        "date_created": "2018-11-18T01:10:11.905Z",
+        "date_modified": "2018-11-18T01:10:11.905Z"
+    }
+},
+{
+    "model": "cae_work_log.worklogset",
+    "pk": 8,
+    "fields": {
+        "group": 5,
+        "timeframe_type": 4,
+        "description": "Yearly CAE Admin work logs.",
+        "date_created": "2018-11-18T01:10:11.905Z",
+        "date_modified": "2018-11-18T01:10:11.905Z"
+    }
+}
+]

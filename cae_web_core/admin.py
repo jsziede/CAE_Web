@@ -13,10 +13,10 @@ class RoomEventInline(admin.TabularInline):
 
 class PayPeriodAdmin(admin.ModelAdmin):
     # Fields to display in admin list view.
-    list_display = ('period_start', 'period_end',)
+    list_display = ('date_start', 'date_end',)
 
     # Fields to search in admin list view.
-    search_fields = ['period_start', 'period_end', ]
+    search_fields = ['date_start', 'date_end', ]
 
     # Read only fields for admin detail view.
     readonly_fields = ('date_created', 'date_modified',)
@@ -25,7 +25,7 @@ class PayPeriodAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {
             'fields': (
-                'period_start', 'period_end',
+                'date_start', 'date_end',
             )
         }),
         ('Advanced', {
@@ -43,7 +43,7 @@ class EmployeeShiftAdmin(admin.ModelAdmin):
     list_filter = ('error_flag', 'employee', 'pay_period',)
 
     # Fields to search in admin list view.
-    search_fields = ['clock_in', 'clock_out',]
+    search_fields = ['id', 'clock_in', 'clock_out',]
 
     # Read only fields for admin detail view.
     readonly_fields = ('date_created', 'date_modified',)
@@ -67,7 +67,7 @@ class RoomEventAdmin(admin.ModelAdmin):
     list_display = ('room', 'event_type', 'start_time', 'end_time', 'title',)
 
     # Fields to filter by in admin list view.
-    list_filter = ('room', 'event_type',)
+    list_filter = ('room__room_type', 'event_type',)
 
     # Fields to search in admin list view.
     search_fields = ['title',]

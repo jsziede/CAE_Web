@@ -1,0 +1,27 @@
+{% extends 'cae_web_core/main.html' %}
+
+
+{% block title_page_name %}Index |{% endblock title_page_name %}
+
+
+{% block content %}
+  {% include 'cae_home/include/form.html' %}
+
+  {# Currently this is for debuggin #}
+  {% if events %}
+    <h2>Events</h2>
+    <ul>
+    {% for key, event_list in events.items %}
+      <li>{{ key }}
+        <ul>
+        {% for event in event_list %}
+          <li>
+            {{ event.start }} - {{ event.end }}
+          </li>
+        {% endfor %}
+        </ul>
+      </li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endblock content %}
