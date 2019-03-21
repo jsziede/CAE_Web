@@ -63,3 +63,4 @@ class ChecklistItem(models.Model):
         verbose_name = "Checklist Item"
         verbose_name_plural = "Checklist Items"
         ordering = ('checklist_item',)
+        

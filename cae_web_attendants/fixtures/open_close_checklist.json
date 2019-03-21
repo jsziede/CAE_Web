@@ -1,6 +1,6 @@
 [
     {
-      "model": "cae_web_attendants.openclosechecklist",
+      "model": "cae_web_attendants.OpenCloseChecklist",
       "pk": 1,
       "fields": {
         "employee": 1,
@@ -11,7 +11,7 @@
       }
     },
     {
-        "model": "cae_web_attendants.openclosechecklist",
+        "model": "cae_web_attendants.OpenCloseChecklist",
         "pk": 2,
         "fields": {
           "employee": 2,

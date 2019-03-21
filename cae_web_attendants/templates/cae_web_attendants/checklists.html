@@ -1,0 +1,39 @@
+{% extends 'cae_web_core/main.html' %}
+{% load staticfiles%}
+
+{% block title_page_name %}Attendants |{% endblock title_page_name %}
+
+{% block extra_styles %}
+{% endblock extra_styles %}
+
+{% block base_scripts %}
+{% endblock base_scripts %}
+
+{% block content %}
+	<h1>Welcome to the CAE Web Attendants Checklist page</h1>
+
+    <div>
+        <div style="float: left">
+            {% if checklist_templates %}
+            {% for checklist in checklist_templates %}
+            <a href="?name={{ checklist.name }}">{{ checklist.name }}</a><br />
+            {% endfor %}
+            {% else %}
+            <p>No checklists have been created yet.</p>
+            {% endif %}
+        </div>
+        <div style="float: right;">
+            {% if focused_checklist %}
+            {% for task in task_list %}
+            <p>{{ task }}</p>
+            {% endfor %}
+            {% else %}
+            <p>Select a checklist to view its contents.</p>
+            {% endif %}
+        </div>
+    </div>
+    <a href="#" style="clear: both; display: block">Create Checklist</a>
+{% endblock content %}
+
+{% block extra_scripts_body %}
+{% endblock extra_scripts_body %}

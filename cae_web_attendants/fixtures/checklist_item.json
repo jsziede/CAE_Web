@@ -1,6 +1,6 @@
 [
     {
-      "model": "cae_web_attendants.checklistitem",
+      "model": "cae_web_attendants.ChecklistItem",
       "pk": 1,
       "fields": {
         "task": "Turn on CICO system,Turn on all printers,Turn on print stations,Open/unlock main lab doors,Open/unlock side lab doors(224-229)",
@@ -9,7 +9,7 @@
       }
     },
     {
-        "model": "cae_web_attendants.checklistitem",
+        "model": "cae_web_attendants.ChecklistItem",
         "pk": 2,
         "fields": {
           "task": "Turn off CICO system,Turn off all printers,Turn off print stations,Close/lock main lab doors,Close/unlock side lab doors(224-229),Refill paper in all main lab printers,Push in lab chairs,Turn off main lab machines,Recycle left over prints around printers,Lock CAE Center office doors and turn lights off",
