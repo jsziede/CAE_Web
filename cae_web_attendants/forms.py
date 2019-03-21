@@ -22,7 +22,13 @@ class RoomCheckoutForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super(RoomCheckoutForm, self).clean()
         input_date = cleaned_data['checkout_date']
-        input_room = cleaned_data['room']
+        try:
+            input_room = cleaned_data['room']
+        except:
+            raise ValidationError(
+                _('Invalid room: Please select a room'),
+                code='invalid',
+            )
 
         # allows a room checkout if it is from the current day or in the future, even if the time has passed
         # simply comment out or remove this block of code if retroactive checkouts are allowed
@@ -33,7 +39,6 @@ class RoomCheckoutForm(forms.ModelForm):
                 params={'date': input_date},
             )
         
-        print(input_date)
         current_room_checkouts = models.RoomCheckout.objects.filter(
             Q(room__exact=input_room) &
             Q(checkout_date__year=input_date.year) &
