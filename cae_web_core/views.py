@@ -306,18 +306,44 @@ def room_schedule(request, room_type_slug):
     })
 
 
+def _iso_weekdays_to_strings(weekdays):
+    """Convert an array of iso weekday ints to their English Strings"""
+    days = [None, "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    return [days[x] for x in weekdays]
+
+
 def upload_schedule(request):
     """Display a list of uploaded schedules to be replaced or deleted, or allow
     a new upload to be added."""
     form = forms.UploadRoomScheduleForm()
     events = []
+    errors = []
     if request.POST or request.FILES:
         form = forms.UploadRoomScheduleForm(request.POST, request.FILES)
         if form.is_valid():
-            events = form.save()
+            events = []
+            errors = []
+            try:
+                events, errors = form.save()
+            except Exception as err:
+                messages.error(request, "Unable to parse file: {0}".format(err))
+            if errors:
+                messages.warning(request, "Some events could not be created. See below for details.")
+            if events:
+                messages.success(request, "Created {0} events successfully.".format(len(events)))
+            else:
+                messages.warning(request, "No valid events were found.")
+
+            events = [(*x[:-1], _iso_weekdays_to_strings(x[-1])) for x in events]
+            errors = [(*x[:-2], _iso_weekdays_to_strings(x[-2]), x[-1]) for x in errors]
+
+            events.sort()
+            errors.sort()
+            # NOTE: We don't redirect so that they can see these events and errors
     return TemplateResponse(request, 'cae_web_core/room_schedule/upload.html', {
         'form': form,
         'events': events, # For debugging, currently
+        'errors': errors,
     })
 
 

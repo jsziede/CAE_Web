@@ -7,21 +7,58 @@
 {% block content %}
   {% include 'cae_home/include/form.html' %}
 
-  {# Currently this is for debuggin #}
-  {% if events %}
-    <h2>Events</h2>
-    <ul>
-    {% for key, event_list in events.items %}
-      <li>{{ key }}
-        <ul>
-        {% for event in event_list %}
-          <li>
-            {{ event.start }} - {{ event.end }}
-          </li>
+  {% if errors %}
+    <h2>Event Errors</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Class</th>
+          <th>Title</th>
+          <th>Start</th>
+          <th>End</th>
+          <th>Weekdays</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for class, title, start, end, weekdays, error_msg in errors %}
+          <tr>
+            <td colspan="5">{{ error_msg }}
+          </tr>
+          <tr>
+            <td>{{ class }}</td>
+            <td>{{ title }}</td>
+            <td>{{ start }}</td>
+            <td>{{ end }}</td>
+            <td>{{ weekdays|join:", " }}</td>
+          </tr>
         {% endfor %}
-        </ul>
-      </li>
-    {% endfor %}
-    </ul>
+      </tbody>
+    </table>
+  {% endif %}
+
+  {% if events %}
+    <h2>Created Events</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Class</th>
+          <th>Title</th>
+          <th>Start</th>
+          <th>End</th>
+          <th>Weekdays</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for class, title, start, end, weekdays in events %}
+          <tr>
+            <td>{{ class }}</td>
+            <td>{{ title }}</td>
+            <td>{{ start }}</td>
+            <td>{{ end }}</td>
+            <td>{{ weekdays|join:", " }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   {% endif %}
 {% endblock content %}

@@ -79,7 +79,7 @@ class RoomEventAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {
             'fields': (
-                'room', 'event_type', 'start_time', 'end_time', 'title', 'description', 'rrule',
+                'room', 'event_type', 'start_time', 'end_time', 'title', 'description', 'rrule', 'duration'
             )
         }),
         ('Advanced', {
@@ -89,6 +89,20 @@ class RoomEventAdmin(admin.ModelAdmin):
     )
 
 
+class UploadedScheduleRoomEventInline(admin.TabularInline):
+    model = models.UploadedSchedule.events.through
+    extra = 0
+    raw_id_fields = ['roomevent']
+
+
+class UploadedScheduleAdmin(admin.ModelAdmin):
+    model = models.UploadedSchedule
+    list_display = ['name']
+    inlines = [UploadedScheduleRoomEventInline]
+    exclude = ['events']
+
+
 admin.site.register(models.PayPeriod, PayPeriodAdmin)
 admin.site.register(models.EmployeeShift, EmployeeShiftAdmin)
 admin.site.register(models.RoomEvent, RoomEventAdmin)
+admin.site.register(models.UploadedSchedule, UploadedScheduleAdmin)

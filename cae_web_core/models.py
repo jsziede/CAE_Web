@@ -221,7 +221,10 @@ class RoomEvent(models.Model):
     description = models.TextField(blank=True)
     rrule = models.TextField(   # Recurrence rule?
         blank=True,
+        help_text="Note: DTSTART and UNTIL will be replaced by Start Time and End Time, respectively."
     )
+    duration = models.DurationField(
+        blank=True, null=True, help_text="Used only with rrules.")
 
     # Self-setting/Non-user-editable fields.
     date_created = models.DateTimeField(auto_now_add=True)

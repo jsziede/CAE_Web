@@ -48,6 +48,21 @@ def add_minutes(time_obj, minutes):
 
     return time_obj
 
+def _consolidate_events(events):
+    """Consolidate events if the only difference is the weekday"""
+    # events = {} # (weekday, room, name): [{start: time, end: time, last_row: 1}]
+
+    consolidated = {} # (room, name, start, end): [weekdays...]
+    for (weekday, room, name), day_events in events.items():
+        for event in day_events:
+            key = (room, name, event['start'], event['end'])
+            if key not in consolidated:
+                consolidated[key] = []
+            consolidated[key].append(weekday)
+
+    return consolidated
+
+
 
 def upload_room_schedule(schedule_data):
     """Parse an .xls or .xlsx file for events.
@@ -97,7 +112,7 @@ def upload_room_schedule(schedule_data):
     current_room = {} # column: room
     current_weekday = None # ISO Weekday, 1=Monday, 7=Sunday
 
-    events = {} # (weekday, col, name): [{start: time, end: time, last_row: 1}]
+    events = {} # (weekday, room, name): [{start: time, end: time, last_row: 1}]
 
     time_am = True
     last_event_time = None
@@ -153,7 +168,7 @@ def upload_room_schedule(schedule_data):
             if event_time and room and current_weekday:
                 #logger.info("(%d, %s, %s): %s", current_weekday, room, event_time, value)
 
-                key = (current_weekday, col, value)
+                key = (current_weekday, room, value)
                 day_events = events.get(key)
 
                 new_event = {
@@ -175,10 +190,4 @@ def upload_room_schedule(schedule_data):
                 else:
                     events[key] = [new_event]
 
-    # TODO: Conslidate events that are the same across multiple days, using
-    # RecurrentRules.
-
-    from pprint import pprint
-    pprint(events)
-
-    return events
+    return _consolidate_events(events)
