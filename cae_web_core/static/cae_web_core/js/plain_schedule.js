@@ -143,8 +143,8 @@ var createSchedule = function(container) {
             var hasEventConflict = false;
             Object.keys(resourceEvents).map((i) => {
                 const resourceEvent = resourceEvents[i];
-                if (!eventStart.isAfter(resourceEvent.event.end) &&
-                    !eventEnd.isBefore(resourceEvent.event.start)) {
+                if (!(eventStart.isAfter(resourceEvent.event.end) || eventStart.isSame(resourceEvent.event.end)) &&
+                    !(eventEnd.isBefore(resourceEvent.event.start) || eventEnd.isSame(resourceEvent.event.start))) {
                     hasEventConflict = true;
                     // shrink event to span only 1 column
                     resourceEvent.columnSpan = 1;
@@ -182,11 +182,13 @@ var createSchedule = function(container) {
             const data = processedEvents[eventId];
             const style = `grid-area: ${data.rowStart} / ${data.column} / span ${data.span15Min} / span ${data.columnSpan}`;
             const toolbar = `<div class="schedule-event-toolbar"><button title="edit" class="schedule-btn-edit-event"><i class="fas fa-pencil-alt"></i></button></div>`;
+            const eventStart = moment(data.event.start).format('LT');
+            const eventEnd = moment(data.event.end).format('LT');
             const contents = `
-                ${moment(data.event.start).format('LT')}<br/>
+                ${eventStart}<br/>
                 ${data.event.title}<br/>
-                ${moment(data.event.end).format('LT')}`;
-            eventDivs += `<div class="schedule-event" title="${data.event.description}" style="${style}" data-event="${escape(JSON.stringify(data.event))}">${toolbar}${contents}</div>`;
+                ${eventEnd}`;
+            eventDivs += `<div class="schedule-event" title="${data.event.title} (${eventStart} - ${eventEnd})&#10;${data.event.description}" style="${style}" data-event="${escape(JSON.stringify(data.event))}">${toolbar}${contents}</div>`;
         }
 
         grid.append(eventDivs);
@@ -295,7 +297,7 @@ var createSchedule = function(container) {
     // Setup flatpickr
     var dateFlatpickr = container.find('.schedule-txt-date').flatpickr({
         altInput: true,
-        altFormat: "F j, Y",
+        altFormat: "l, F j, Y",
         onChange: function(selectedDates) {
             changeDate(selectedDates[0]);
         },
@@ -319,13 +321,13 @@ $(function() {
         enableTime: true,
         altInput: true,
         dateFormat: "Y-m-d H:i",
-        altFormat: "F j, Y h:i K",
+        altFormat: "l, F j, Y h:i K",
     });
     dialogEventEnd = $('#id_end_time').flatpickr({
         enableTime: true,
         altInput: true,
         dateFormat: "Y-m-d H:i",
-        altFormat: "F j, Y h:i K",
+        altFormat: "l, F j, Y h:i K",
     });
 
     // Close dialog when cancel clicked

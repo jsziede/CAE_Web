@@ -375,18 +375,21 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
                 event_dicts.append({
                     'id': event['pk'],
                     'resource': event['room_id'],
-                    'start': event['start'].isoformat(),
-                    'end': event['end'].isoformat(),
+                    'start': event['start_time'].isoformat(),
+                    'end': event['end_time'].isoformat(),
                     'title': event['title'],
                     'description': event['description'],
                     'event_type': event['event_type'],
                 })
             else:
                 # Need to generate events using rrule, within start and end
-                # TODO: Imported events are off because of DST!
-                new_starts = rrule.rrulestr(event['rrule'])
+                new_starts = rrule.rrulestr(event['rrule'], dtstart=event['start_time'])
+                new_starts.until = event['end_time']
                 for new_start in new_starts:
-                    new_start = timezone.make_aware(new_start, timezone=pytz.utc)
+                    # Convert time to EST and then replace the hours to prevent DST affecting the result.
+                    # Then convert back to UTC for the client.
+                    new_start = timezone.make_aware(new_start, timezone=pytz.utc).astimezone(pytz.timezone("America/Detroit"))
+                    new_start = new_start.replace(hour=event['start_time'].astimezone(pytz.timezone("America/Detroit")).hour).astimezone(pytz.utc)
                     if new_start < start or new_start > end:
                         continue
                     new_end = new_start + event['duration']
