@@ -181,20 +181,19 @@ var createSchedule = function(container) {
         for (var eventId in processedEvents) {
             const data = processedEvents[eventId];
             const style = `grid-area: ${data.rowStart} / ${data.column} / span ${data.span15Min} / span ${data.columnSpan}`;
-            const toolbar = `<div class="schedule-event-toolbar"><button title="edit" class="schedule-btn-edit-event"><i class="fas fa-pencil-alt"></i></button></div>`;
             const eventStart = moment(data.event.start).format('LT');
             const eventEnd = moment(data.event.end).format('LT');
             const contents = `
                 ${eventStart}<br/>
                 ${data.event.title}<br/>
                 ${eventEnd}`;
-            eventDivs += `<div class="schedule-event" title="${data.event.title} (${eventStart} - ${eventEnd})&#10;${data.event.description}" style="${style}" data-event="${escape(JSON.stringify(data.event))}">${toolbar}${contents}</div>`;
+            eventDivs += `<div class="schedule-event" title="${data.event.title} (${eventStart} - ${eventEnd})&#10;${data.event.description}" style="${style}" data-event="${escape(JSON.stringify(data.event))}">${contents}</div>`;
         }
 
         grid.append(eventDivs);
 
-        // Add event handler for edit button
-        container.find('.schedule-btn-edit-event').on('click', onBtnEditEventClicked);
+        // Add event handler for click action
+        container.find('.schedule-event').on('click', onEventClicked);
     }
 
 
@@ -239,7 +238,7 @@ var createSchedule = function(container) {
         dateFlatpickr.open();
     }
 
-    function onBtnEditEventClicked(event) {
+    function onEventClicked(event) {
         var event = JSON.parse(unescape($(event.target).closest('.schedule-event').data('event')));
         console.log(event);
         $('#id_room_event_pk').val(event.id);
