@@ -7,158 +7,17 @@
 {% block extra_styles %}
   {{ block.super }}
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <link rel="stylesheet" type="text/css" href="{% static 'cae_web_core/css/schedule.css' %}">
+
 <style>
-body main .main-content {
-  display: block;
-}
-
+/* Remove Sidebars */
 #content {
-  grid-column-start: 1;
-  grid-column-end: -1;
+    grid-column-start: 1;
+    grid-column-end: -1;
 }
-
 #main-placeholder-left, #main-placeholder-right {
-  display: none;
+    display: none;
 }
-
-.pull-left {
-  float: left;
-}
-
-.schedule-container {
-  border: 1px solid #6666;
-  background: white;
-  display: grid;
-  grid-auto-rows: auto;
-}
-
-.schedule-grid {
-  display: grid;
-  grid-template-columns: 70px;
-  grid-template-rows: 45px;
-  grid-auto-columns: minmax(70px, 1fr);
-  grid-auto-rows: 15px;
-  overflow: scroll;
-}
-
-.schedule-header {
-  padding: 2px;
-  display: flex;
-}
-
-.schedule-header > * {
-  margin: 0;
-}
-
-.buttons {
-  display: flex;
-}
-
-#content .buttons > button,
-#content .buttons > a.button {
-  margin: 0;
-  border-radius: 0;
-  border: 1px solid #CCC;
-  border-right-width: 0;
-}
-
-#content .buttons > :first-child {
-  border-top-left-radius: 5px !important;
-  border-bottom-left-radius: 5px !important;
-}
-
-#content .buttons > *:last-child {
-  border-top-right-radius: 5px !important;
-  border-bottom-right-radius: 5px !important;
-  border-right-width: 1px !important;
-}
-
-.schedule-header button.schedule-btn-calendar {
-  border-radius: 0;
-  border: 1px solid #CCC;
-  border-right-width: 0;
-  border-top-left-radius: 5px;
-  border-bottom-left-radius: 5px;
-  margin-left: 4px;
-  margin-right: 0;
-}
-
-.schedule-header .flatpickr-input {
-  border: 1px solid #CCC;
-  font-size: 1rem;
-  padding: 0 4px;
-  margin: 2px 0; /* 2px to match global theme margin for buttons */
-  background: #e5e5e5;
-  border-top-right-radius: 5px;
-  border-bottom-right-radius: 5px;
-  width: 15em; /* Big enough to always see date */
-}
-
-.schedule-header-spacer {
-  grid-row: 1;
-  grid-column: 1;
-}
-
-.schedule-grid-line {
-  border-color: #DDD;
-  border-style: solid;
-  border-right-width: 1px;
-  border-bottom-width: 1px;
-}
-
-.schedule-resource {
-  grid-row: 1;
-  grid-column-end: span 2;
-  border: 1px solid black;
-  text-align: center;
-  position: sticky;
-  top: 0;
-  background: white;
-}
-
-.schedule-time {
-  grid-column: 1;
-  grid-row-end: span 4;
-  border: 1px solid black;
-  text-align: center;
-  position: sticky;
-  left: 0;
-  background: white;
-}
-
-.schedule-event {
-  border: 1px solid orange;
-  background-color: lightgoldenrodyellow;
-  border-radius: 5px;
-  padding: 2px;
-  overflow: hidden;
-  cursor: pointer;
-}
-
-#overlay-modal {
-  padding: 25px;
-}
-
-.dialog-buttons {
-  margin-top: 25px;
-  text-align: right;
-}
-
-#form_event {
-  display: grid;
-  grid-template-columns: 100px 1fr;
-  grid-row-gap: 10px;
-  grid-column-gap: 10px;
-}
-
-#div_event_form label {
-  text-align: right;
-}
-
-#div_event_form input {
-  font-size: 1.5em;
-}
-
 </style>
 {% endblock %}
 
@@ -226,7 +85,7 @@ body main .main-content {
     </form>
 
     <div class="dialog-buttons">
-      <button id="btn_delete" form="form_event" type="submit" name="_delete" value="1" class="danger pull-left">Delete</button>
+      <button id="btn_delete" form="form_event" type="submit" name="_delete" value="1" class="danger">Delete</button>
       <button id="btn_cancel" class="warning">Cancel</button>
       <button form="form_event" type="submit" class="success">Save</button>
     </div>

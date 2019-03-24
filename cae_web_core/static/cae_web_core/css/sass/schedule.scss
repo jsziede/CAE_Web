@@ -1,0 +1,126 @@
+//=====================//
+//==== Schedule CSS ====//
+//=====================//
+
+// Import statements
+@import '../../../../../../../cae_home/static/cae_home/css/sass/_variables';
+@import '../../../../../../../cae_home/static/cae_home/css/sass/_mixins';
+
+
+// Schedule
+.schedule-container {
+    border: 1px solid #6666;
+    background: white;
+    display: grid;
+    grid-auto-rows: auto;
+
+    .schedule-header {
+        padding: 2px;
+        @include display-flex;
+
+        button.schedule-btn-calendar {
+            border-radius: 0;
+            border: 1px solid #CCC;
+            border-right-width: 0;
+            border-top-left-radius: 5px;
+            border-bottom-left-radius: 5px;
+            margin-left: 4px;
+            margin-right: 0;
+        }
+
+        .flatpickr-input {
+            border: 1px solid #CCC;
+            font-size: 1rem;
+            padding: 0 4px;
+            background: #e5e5e5;
+            border-top-right-radius: 5px;
+            border-bottom-right-radius: 5px;
+            width: 15em; /* Big enough to always see date */
+        }
+    }
+
+    .schedule-header > * {
+        margin: 0;
+    }
+
+    .schedule-grid {
+        display: grid;
+        grid-template-columns: 70px;
+        grid-template-rows: 45px;
+        grid-auto-columns: minmax(70px, 1fr);
+        grid-auto-rows: 15px;
+        overflow: scroll;
+
+        .schedule-header-spacer {
+            grid-row: 1;
+            grid-column: 1;
+        }
+
+        .schedule-grid-line {
+            border-color: #DDD;
+            border-style: solid;
+            border-right-width: 1px;
+            border-bottom-width: 1px;
+        }
+
+        .schedule-resource {
+            grid-row: 1;
+            grid-column-end: span 2;
+            border: 1px solid black;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            background: white;
+        }
+
+        .schedule-time {
+            grid-column: 1;
+            grid-row-end: span 4;
+            border: 1px solid black;
+            text-align: center;
+            position: sticky;
+            left: 0;
+            background: white;
+        }
+
+        .schedule-event {
+            border: 1px solid orange;
+            background-color: lightgoldenrodyellow;
+            border-radius: 5px;
+            padding: 2px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+    }
+}
+
+// Schedule Modal Dialog
+#overlay-modal {
+    padding: 25px;
+
+    .dialog-buttons {
+        margin-top: 25px;
+        text-align: right;
+
+        #btn_delete {
+            float: left;
+        }
+    }
+
+    #form_event {
+        display: grid;
+        grid-template-columns: 100px 1fr;
+        grid-row-gap: 10px;
+        grid-column-gap: 10px;
+    }
+
+    #div_event_form {
+        label {
+            text-align: right;
+        }
+
+        input {
+            font-size: 1.5em;
+        }
+    }
+}
