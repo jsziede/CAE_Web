@@ -244,7 +244,6 @@ def _get_room_types():
             "classroom",
             "computer-classroom",
             "breakout-room",
-            "special-room",
         ],
     ).values(
         'pk',
