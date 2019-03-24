@@ -189,19 +189,7 @@ body main .main-content {
   <article>
     <h1>Room Schedules</h1>
 
-    <label>Filter Room Type:</label>
-    <div style="display: inline-block">
-      <div class="buttons">
-        {% for room_type in room_types %}
-          <a
-            href="{% url 'cae_web_core:room_schedule' room_type.slug %}"
-            class="button {% if room_type.slug == room_type_slug %}primary{% endif %}"
-          >{{ room_type.name }}</a>
-        {% endfor %}
-      </div>
-    </div>
-    {# TODO: Check if user can upload #}
-    <a href="{% url 'cae_web_core:upload_schedule' %}" class="button">Upload Schedule</a>
+    {% include 'cae_web_core/room_schedule/_nav_room_types.html' %}
 
     <br>
     <br>

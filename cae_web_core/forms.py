@@ -7,6 +7,8 @@ from dateutil import rrule
 from django import forms
 from django.core.validators import FileExtensionValidator
 from django.db import transaction
+from django.utils import timezone
+import pytz
 
 from cae_home.models.wmu import SemesterDate, Room
 from . import models
@@ -107,6 +109,10 @@ class UploadRoomScheduleForm(forms.Form):
             start_time = datetime.datetime.combine(semester.start_date, start)
             end_time = datetime.datetime.combine(semester.end_date, end)
             duration = datetime.datetime.combine(semester.start_date, end) - start_time
+
+            # Make the times Eastern Time, then convert to UTC for rrule
+            start_time = timezone.make_aware(start_time, timezone=pytz.timezone("America/Detroit")).astimezone(pytz.utc)
+            end_time = timezone.make_aware(end_time, timezone=pytz.timezone("America/Detroit")).astimezone(pytz.utc)
 
             # TODO: The socket controller needs to read rrules and generate 'events' for the client js to use.
             # This also means that editing an event will be a little more complicated if it's from an rrule.

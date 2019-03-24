@@ -237,6 +237,21 @@ def shift_manager(request, pk):
 #region Calendar Views
 
 
+def _get_room_types():
+    # This is used to display links to jump to another room type.
+    return cae_home_models.RoomType.objects.filter(
+        slug__in=[
+            "classroom",
+            "computer-classroom",
+            "breakout-room",
+            "special-room",
+        ],
+    ).values(
+        'pk',
+        'name',
+        'slug',
+    )
+
 def room_schedule(request, room_type_slug):
     room_type = get_object_or_404(cae_home_models.RoomType, slug=room_type_slug)
     date_string = request.GET.get('date')
@@ -259,20 +274,6 @@ def room_schedule(request, room_type_slug):
             'id': pk,
             'html': format_html('{}<br>{}'.format(name, capacity)),
         })
-
-    # This is used to display links to jump to another room type.
-    room_types = cae_home_models.RoomType.objects.filter(
-        slug__in=[
-            "classroom",
-            "computer-classroom",
-            "breakout-room",
-            "special-room",
-        ],
-    ).values(
-        'pk',
-        'name',
-        'slug',
-    )
 
     form = forms.RoomEventForm()
     if request.POST: # TODO: Check user has permission to edit/create events
@@ -302,7 +303,7 @@ def room_schedule(request, room_type_slug):
         'start': start,
         'end': end,
         'form': form,
-        'room_types': room_types,
+        'room_types': _get_room_types(),
         'room_type_slug': room_type_slug,
     })
 
@@ -368,6 +369,7 @@ def upload_schedule(request):
         'events': events,
         'errors': errors,
         'uploaded_schedules': uploaded_schedules,
+        'room_types': _get_room_types(),
     })
 
 
