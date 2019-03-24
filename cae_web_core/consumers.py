@@ -8,6 +8,7 @@ from asgiref.sync import async_to_sync
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from channels.layers import get_channel_layer
+from dateutil import rrule
 from django.core import serializers
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.signals import post_save, post_delete
@@ -360,23 +361,47 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
         if end:
             events = events.filter(start_time__lte=end)
 
-        events = events.values_list(
+        events = events.values(
             'pk', 'room_id', 'event_type', 'start_time', 'end_time', 'title',
-            'description', 'rrule',
+            'description', 'rrule', 'duration',
         )
 
-        # Convert to format expected by schedule.js
-        events = [{
-            'id': pk,
-            'resource': room_id,
-            'start': start.isoformat(),
-            'end': end.isoformat(),
-            'title': title,
-            'description': description,
-            'event_type': event_type,
-        } for pk, room_id, event_type, start, end, title, description, rrule in events]
+        event_dicts = []
 
-        return events
+        # Convert to format expected by schedule.js
+        for event in events:
+            if not event['rrule']:
+                # Simple event
+                event_dicts.append({
+                    'id': event['pk'],
+                    'resource': event['room_id'],
+                    'start': event['start'].isoformat(),
+                    'end': event['end'].isoformat(),
+                    'title': event['title'],
+                    'description': event['description'],
+                    'event_type': event['event_type'],
+                })
+            else:
+                # Need to generate events using rrule, within start and end
+                # TODO: Imported events are off because of DST!
+                new_starts = rrule.rrulestr(event['rrule'])
+                for new_start in new_starts:
+                    new_start = timezone.make_aware(new_start, timezone=pytz.utc)
+                    if new_start < start or new_start > end:
+                        continue
+                    new_end = new_start + event['duration']
+                    # TODO: Add key to tell client that this is an rrule event
+                    event_dicts.append({
+                        'id': event['pk'],
+                        'resource': event['room_id'],
+                        'start': new_start.isoformat(),
+                        'end': new_end.isoformat(),
+                        'title': event['title'],
+                        'description': event['description'],
+                        'event_type': event['event_type'],
+                    })
+
+        return event_dicts
 
 def on_room_event_changed(sender, **kwargs):
     instance = kwargs.get('instance')
