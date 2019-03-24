@@ -82,11 +82,11 @@ class UploadRoomScheduleForm(forms.Form):
             # Catches a race condition between clean() and save() where it suddenly exists now.
             raise forms.ValidationError("That name is already in use, and overwrite was not True.")
         elif exists and overwrite:
-            uploadedSchedule = models.UploadedSchedule.objects.get(name=name)
-            uploadedSchedule.events.all().delete()
-            uploadedSchedule.delete()
+            uploaded_schedule = models.UploadedSchedule.objects.get(name=name)
+            uploaded_schedule.events.all().delete()
+            uploaded_schedule.delete()
 
-        uploadedSchedule = models.UploadedSchedule.objects.create(
+        uploaded_schedule = models.UploadedSchedule.objects.create(
             name=name,
         )
 
@@ -129,6 +129,6 @@ class UploadRoomScheduleForm(forms.Form):
             db_events.append(event)
             valid_events.append((room_name, title, start, end, weekdays))
 
-        uploadedSchedule.events.add(*db_events)
+        uploaded_schedule.events.add(*db_events)
 
         return valid_events, error_events
