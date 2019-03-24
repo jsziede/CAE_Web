@@ -198,7 +198,8 @@ var createSchedule = function(container) {
 
     function changeDate(dateString) {
         var inputDate = moment(dateString)
-        var daysDiff = inputDate.diff(start, 'days');
+        // .clone().startOf('day') strips the time for a more accurate day diff
+        var daysDiff = inputDate.clone().startOf('day').diff(start.clone().startOf('day'), 'days');
         start.add(daysDiff, 'days');
         end.add(daysDiff, 'days');
 
