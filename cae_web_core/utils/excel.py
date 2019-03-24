@@ -105,7 +105,7 @@ def upload_room_schedule(schedule_data):
             End:    12:30 PM
     """
     book = xlrd.open_workbook(file_contents=schedule_data)
-    logger.info("Reading %s", book)
+    #logger.info("Reading %s", book)
 
     sheet = book.sheet_by_index(0)
 

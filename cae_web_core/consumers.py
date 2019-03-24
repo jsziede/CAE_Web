@@ -237,15 +237,16 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
     ACTION_GET_EVENTS = 'get-events'
     ACTION_SEND_EVENTS = 'send-events'
     async def connect(self):
-        print("CONNECT:", self.scope['user'])
+        #print("CONNECT:", self.scope['user'])
 
         await self.accept()
 
     async def disconnect(self, code):
-        print("DISCONNECT ({}):".format(code), self.scope['user'])
+        #print("DISCONNECT ({}):".format(code), self.scope['user'])
+        pass
 
     async def receive_json(self, content, **kwargs):
-        print("{}: {}".format(self.scope['user'], content))
+        #print("{}: {}".format(self.scope['user'], content))
 
         handlers = {
             self.ACTION_GET_EVENTS: self._handle_get_events,
@@ -322,15 +323,15 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
 
             if start and event_end < start:
                 # ignore
-                print("end was before start")
+                #print("end was before start")
                 pass
             elif end and event_start > end:
                 # ignore
-                print("start was after end")
+                #print("start was after end")
                 pass
             elif room and content['room'] != room:
                 # ignore
-                print("Room not equal")
+                #print("Room not equal")
                 pass
             else:
                 notify_user = True
