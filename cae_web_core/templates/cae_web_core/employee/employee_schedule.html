@@ -1,0 +1,93 @@
+{% extends 'cae_web_core/main.html' %}
+{% load static tz %}
+
+
+{% block title_page_name %}Employee Schedules |{% endblock title_page_name %}
+
+{% block extra_styles %}
+  {{ block.super }}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <link rel="stylesheet" type="text/css" href="{% static 'cae_web_core/css/schedule.css' %}">
+
+<style>
+/* Remove Sidebars */
+#content {
+    grid-column-start: 1;
+    grid-column-end: -1;
+}
+#main-placeholder-left, #main-placeholder-right {
+    display: none;
+}
+</style>
+{% endblock %}
+
+{% block extra_scripts_body %}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.21/moment-timezone.min.js" crossorigin="anonymous"></script>
+
+  <!-- NON-React version -->
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr" defer></script>
+  <script src="{% static '/cae_web_core/js/plain_schedule.js' %}" defer></script>
+{% endblock extra_scripts_body %}
+
+{% block content %}
+  <article>
+    <h1>Employee Schedules</h1>
+
+    {#{% include 'cae_web_core/room_schedule/_nav_room_types.html' %}#}
+
+    <br>
+    <br>
+
+    <div class="schedule-container"
+      data-start="{{ start.isoformat }}"
+      data-end="{{ end.isoformat }}"
+      data-resources="{{ employees_json }}"
+      data-room-type-slug="{{ room_type_slug }}"
+      data-eventsURL="{% url 'cae_web_core:api_room_schedule' %}"
+    >
+      <h2>Please Wait</h2>
+      <p>The calendar view should load in a moment.</p>
+      <noscript>Please enable Javascript to view the calendar.</noscript>
+    </div>
+  </article>
+  <div id="div_event_dialog" {% if form.errors %}data-errors{% endif %} hidden>
+    <form id="form_event" method="POST">
+      {% csrf_token %}
+      {{ form.room_event_pk }}
+      {% if form.non_field_errors %}
+        <label>Errors:</label> {{ form.non_field_errors }}
+      {% endif %}
+      {% if form.title.errors %}
+        <div></div> {{ form.title.errors }}
+      {% endif %}
+      {{ form.title.label_tag }} <div>{{ form.title.errors }} {{ form.title }}</div>
+      {% if form.start_time.errors %}
+        <div></div> {{ form.start_time.errors }}
+      {% endif %}
+      {{ form.start_time.label_tag }} {{ form.start_time }}
+      {% if form.end_time.errors %}
+        <div></div> {{ form.end_time.errors }}
+      {% endif %}
+      {{ form.end_time.label_tag }} {{ form.end_time }}
+      {% if form.description.errors %}
+        <div></div> {{ form.description.errors }}
+      {% endif %}
+      {{ form.description.label_tag }} {{ form.description }}
+      {% if form.event_type.errors %}
+        <div></div> {{ form.event_type.errors }}
+      {% endif %}
+      {{ form.event_type.label_tag }} {{ form.event_type }}
+      {% if form.room.errors %}
+        <div></div> {{ form.room.errors }}
+      {% endif %}
+      {{ form.room.label_tag }} {{ form.room }}
+    </form>
+
+    <div class="dialog-buttons">
+      <button id="btn_delete" form="form_event" type="submit" name="_delete" value="1" class="danger pull-left">Delete</button>
+      <button id="btn_cancel" class="warning">Cancel</button>
+      <button form="form_event" type="submit" class="success">Save</button>
+    </div>
+  </div>
+{% endblock content %}

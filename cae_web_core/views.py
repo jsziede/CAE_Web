@@ -231,10 +231,41 @@ def shift_manager(request, pk):
         'next_pay_period': next_pay_period,
     })
 
+
+def employee_schedule(request): # TODO: Allow filtering by user group, like room type
+    date_string = request.GET.get('date')
+    now = timezone.now() # UTC
+    now = now.astimezone(pytz.timezone('America/Detroit')) # EST/EDT
+    if date_string:
+        date_obj = datetime.datetime.strptime(date_string, '%Y-%m-%d')
+        now = now.replace(year=date_obj.year, month=date_obj.month, day=date_obj.day)
+    start = now.replace(hour=8, minute=0, second=0)
+    end = now.replace(hour=22, minute=0, second=0)
+
+    # TODO: Get from db, this is just debug data
+    employees = []
+    employees_json = [
+        {
+            'id': 1,
+            'html': 'Gumball',
+        },
+        {
+            'id': 2,
+            'html': 'Darwin',
+        },
+    ]
+
+    return TemplateResponse(request, 'cae_web_core/employee/employee_schedule.html', {
+        'employees': employees,
+        'employees_json': json.dumps(employees_json),
+        'start': start,
+        'end': end,
+    })
+
 #endregion Employee Views
 
 
-#region Calendar Views
+#region Room Schedule Views
 
 
 def _get_room_types():
@@ -422,4 +453,4 @@ def api_room_schedule(request):
         'events': events,
     })
 
-#endregion Calendar Views
+#endregion Room Schedule Views
