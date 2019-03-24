@@ -350,6 +350,10 @@ def upload_schedule(request):
             events.sort()
             errors.sort()
             # NOTE: We don't redirect so that they can see these events and errors
+            # TODO: Redirect to a view that shows the created schedule, and lets
+            # the user to modify events there directly.
+            # When that is done, clicking uploaded schedules should take you to
+            # that view to edit events or delete the schedule.
 
     # Get previous uploaded schedules to let the user delete them
     uploaded_schedules = models.UploadedSchedule.objects.all().values(
