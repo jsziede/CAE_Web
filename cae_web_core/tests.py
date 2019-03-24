@@ -113,6 +113,13 @@ class EmployeeShiftTests(TestCase):
     def setUp(self):
         self.clock_in = timezone.now()
         self.clock_out = self.clock_in + timezone.timedelta(hours=5, minutes=30)
+
+        # Check if clock out is too close to (or past) pay period end time.
+        if (self.clock_out + timezone.timedelta(hours=1, minutes=1)) >= self.current_pay_period.get_end_as_datetime():
+            self.clock_out = self.current_pay_period.get_end_as_datetime()
+            self.clock_out = self.clock_out - timezone.timedelta(hours=1, minutes=1)
+            self.clock_in = self.clock_out - timezone.timedelta(hours=5, minutes=30)
+
         self.test_employee_shift = models.EmployeeShift.objects.create(
             pay_period=self.current_pay_period,
             employee=self.user_1,
