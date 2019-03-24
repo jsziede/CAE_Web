@@ -5,60 +5,108 @@
 
 
 {% block content %}
-  {% include 'cae_home/include/form.html' %}
+  <div class="panel primary">
+    <div class="header">Upload New Schedule</div>
+    <div class="content">
+      {% include 'cae_home/include/form.html' %}
+    </div>
+  </div>
 
   {% if errors %}
-    <h2>Event Errors</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Class</th>
-          <th>Title</th>
-          <th>Start</th>
-          <th>End</th>
-          <th>Weekdays</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for class, title, start, end, weekdays, error_msg in errors %}
-          <tr>
-            <td colspan="5">{{ error_msg }}
-          </tr>
-          <tr>
-            <td>{{ class }}</td>
-            <td>{{ title }}</td>
-            <td>{{ start }}</td>
-            <td>{{ end }}</td>
-            <td>{{ weekdays|join:", " }}</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    <div class="panel warning">
+      <div class="header">Event Errors</div>
+      <div class="content">
+        <table>
+          <thead>
+            <tr>
+              <th>Class</th>
+              <th>Title</th>
+              <th>Start</th>
+              <th>End</th>
+              <th>Weekdays</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for class, title, start, end, weekdays, error_msg in errors %}
+              <tr>
+                <td colspan="5">{{ error_msg }}
+              </tr>
+              <tr>
+                <td>{{ class }}</td>
+                <td>{{ title }}</td>
+                <td>{{ start }}</td>
+                <td>{{ end }}</td>
+                <td>{{ weekdays|join:", " }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
   {% endif %}
 
   {% if events %}
-    <h2>Created Events</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Class</th>
-          <th>Title</th>
-          <th>Start</th>
-          <th>End</th>
-          <th>Weekdays</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for class, title, start, end, weekdays in events %}
-          <tr>
-            <td>{{ class }}</td>
-            <td>{{ title }}</td>
-            <td>{{ start }}</td>
-            <td>{{ end }}</td>
-            <td>{{ weekdays|join:", " }}</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    <div class="panel success">
+      <div class="header">Created Events</div>
+      <div class="content">
+        <table>
+          <thead>
+            <tr>
+              <th>Class</th>
+              <th>Title</th>
+              <th>Start</th>
+              <th>End</th>
+              <th>Weekdays</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for class, title, start, end, weekdays in events %}
+              <tr>
+                <td>{{ class }}</td>
+                <td>{{ title }}</td>
+                <td>{{ start }}</td>
+                <td>{{ end }}</td>
+                <td>{{ weekdays|join:", " }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
   {% endif %}
+
+
+  <div class="panel secondary">
+    <div class="header">Uploaded Schedules</div>
+    <div class="content">
+      You may click delete to delete the schedule and all of its related events.
+      <form method="POST">
+        {% csrf_token %}
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Events</th>
+              <th>Date Created</th>
+              <th>Delete</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for schedule in uploaded_schedules %}
+              <tr>
+                <td>{{ schedule.name }}</td>
+                <td>{{ schedule.total_events }}</td>
+                <td>{{ schedule.date_created }}</td>
+                <td><button type="submit" name="delete" value="{{ schedule.pk }}" class="danger">Delete</button></td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="4">There are no uploaded schedules to delete.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </form>
+    </div>
+  </div>
 {% endblock content %}

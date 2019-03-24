@@ -8,7 +8,8 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.db import transaction
+from django.db.models import Q, Count
 from django.http.response import JsonResponse, HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.shortcuts import get_object_or_404, redirect
@@ -319,6 +320,15 @@ def upload_schedule(request):
     events = []
     errors = []
     if request.POST or request.FILES:
+        delete_pk = request.POST.get('delete')
+        if delete_pk:
+            # User is deleting a schedule
+            with transaction.atomic():
+                uploaded_schedule = get_object_or_404(models.UploadedSchedule, pk=delete_pk)
+                uploaded_schedule.events.all().delete()
+                uploaded_schedule.delete()
+            messages.success(request, "Deleted successfully")
+            return redirect('cae_web_core:upload_schedule')
         form = forms.UploadRoomScheduleForm(request.POST, request.FILES)
         if form.is_valid():
             events = []
@@ -340,10 +350,24 @@ def upload_schedule(request):
             events.sort()
             errors.sort()
             # NOTE: We don't redirect so that they can see these events and errors
+
+    # Get previous uploaded schedules to let the user delete them
+    uploaded_schedules = models.UploadedSchedule.objects.all().values(
+        'pk',
+        'name',
+        'date_created',
+    ).annotate(
+        total_events=Count('events'),
+    ).order_by(
+        '-date_created',
+        'name',
+    )
+
     return TemplateResponse(request, 'cae_web_core/room_schedule/upload.html', {
         'form': form,
-        'events': events, # For debugging, currently
+        'events': events,
         'errors': errors,
+        'uploaded_schedules': uploaded_schedules,
     })
 
 
