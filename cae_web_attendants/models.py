@@ -6,9 +6,6 @@ from django.db import models
 
 # Information needed in order for an attendant to reserve a room for students' use
 class RoomCheckout(models.Model):
-    # Primary key
-    checkout = models.AutoField(primary_key=True)
-
     # Foreign keys
     room = models.ForeignKey('cae_home.Room', on_delete=models.CASCADE)
     employee = models.ForeignKey('cae_home.User', on_delete=models.CASCADE)
@@ -28,9 +25,6 @@ class RoomCheckout(models.Model):
 
 # Acts as a template for room checklists
 class OpenCloseChecklist(models.Model):
-    # Primary key
-    checklist = models.AutoField(primary_key=True)
-
     # Foreign keys
     employee = models.ForeignKey('cae_home.User', on_delete=models.CASCADE)
     checklist_item = models.ForeignKey('ChecklistItem', on_delete=models.CASCADE)
