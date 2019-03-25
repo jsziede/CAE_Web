@@ -43,9 +43,6 @@ class OpenCloseChecklist(models.Model):
 
 # Contains the actual tasks on the checklist, which can vary by room or checklist type (such as opening vs closing checklists)
 class ChecklistItem(models.Model):
-    # Primary key
-    checklist_item = models.AutoField(primary_key=True)
-
     # Fields specific to RoomCheckout model
     task = models.TextField()
 
