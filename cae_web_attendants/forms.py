@@ -22,13 +22,17 @@ class RoomCheckoutForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super(RoomCheckoutForm, self).clean()
         input_date = cleaned_data['checkout_date']
+        """
+        If no room is selected then Django raises an error rather than just
+        creating an error message for the room field, so I get around this
+        with a try that returns nothing if it fails. This is probably worth
+        looking into because normally Django will automatically catch
+        form errors but in this case it does not.
+        """
         try:
             input_room = cleaned_data['room']
         except:
-            raise ValidationError(
-                _('Invalid room: Please select a room'),
-                code='invalid',
-            )
+            return
 
         # allows a room checkout if it is from the current day or in the future, even if the time has passed
         # simply comment out or remove this block of code if retroactive checkouts are allowed
@@ -39,7 +43,6 @@ class RoomCheckoutForm(forms.ModelForm):
                 params={'date': input_date},
             )
         
-        # Get all checkouts for the selected room on the day that the user input
         current_room_checkouts = models.RoomCheckout.objects.filter(
             Q(room__exact=input_room) &
             Q(checkout_date__year=input_date.year) &
