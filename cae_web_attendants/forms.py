@@ -39,6 +39,7 @@ class RoomCheckoutForm(forms.ModelForm):
                 params={'date': input_date},
             )
         
+        # Get all checkouts for the selected room on the day that the user input
         current_room_checkouts = models.RoomCheckout.objects.filter(
             Q(room__exact=input_room) &
             Q(checkout_date__year=input_date.year) &

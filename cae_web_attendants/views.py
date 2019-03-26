@@ -3,6 +3,7 @@ from django.template.response import TemplateResponse
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator
+from django.db.models import Q
 
 from . import forms, models
 from cae_home import models as cae_home_models
@@ -20,6 +21,7 @@ def attendants(request):
     direction = request.GET.get('direction')
     ordering = order_by
 
+    # Outputs checkout list in descending order
     if direction == 'desc':
         ordering = '-{}'.format(ordering)
 
@@ -34,10 +36,14 @@ def attendants(request):
     room_checkouts = paginator.get_page(page)
 
     students = cae_home_models.WmuUser.objects.all()
-    rooms = cae_home_models.Room.objects.all()
+    # Gets all computer classrooms at the CAE Center
+    rooms = cae_home_models.Room.objects.filter(
+        Q(room_type__exact=5) &
+        Q(department__exact=3))
     form = forms.RoomCheckoutForm()
     room_checkout_loop_counter = 0
 
+    # If user has submitted a room checkout form
     if request.method == 'POST':
         form = forms.RoomCheckoutForm(request.POST)
 
@@ -58,7 +64,7 @@ def attendants(request):
         'success': success,
     })
 
-# Allows attendants to create and view room checklists
+# Allows attendants to create, view, and submit room checklists
 @login_required
 def checklists(request):
     # Determines whether or not a new checklist submission was successful.
