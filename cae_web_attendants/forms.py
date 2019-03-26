@@ -7,6 +7,7 @@ from django.utils.translation import ugettext as _
 from datetime import datetime
 
 from . import models
+from cae_home import forms as cae_home_forms
 
 class RoomCheckoutForm(forms.ModelForm):
     class Meta:
@@ -17,6 +18,9 @@ class RoomCheckoutForm(forms.ModelForm):
             'student',
             'checkout_date'
         ]
+        widgets = {
+            'student': cae_home_forms.Select2Widget,
+        }
 
     # checks if room is checked out for a past date and that the room has not already been checked out for that day
     def clean(self):

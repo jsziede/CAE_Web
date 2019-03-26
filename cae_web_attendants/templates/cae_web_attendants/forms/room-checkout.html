@@ -23,15 +23,7 @@
                     {{ form.student.errors }}
                     <label for="{{ form.student.id_for_label }}">Student:</label>
                     <div>
-                        <input id="student_dropdown" list="{{ form.student.name }}" name="{{ form.student.name }}">
-                        <datalist id="{{ form.student.name }}">
-                            <!-- currently only shows the "value" in the dropdown, which is just the pk number
-                                there is a workaround to make it display the "data-value" so people see the student name
-                            instead but I don't think we are going to be using a datalist anyways -->
-                            {% for student in students %}
-                            <option value="{{ student.pk }}" data-value="{{ student.first_name }} {{ student.last_name }} ({{ student.bronco_net }})">
-                            {% endfor %}
-                        </datalist>
+                        {{ form.student }}
                     </div>
                 </div>
                 <div class="fieldWrapper">
