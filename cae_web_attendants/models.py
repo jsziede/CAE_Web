@@ -39,7 +39,7 @@ class OpenCloseChecklist(models.Model):
     class Meta:
         verbose_name = "Checklist Template"
         verbose_name_plural = "Checklist Templates"
-        ordering = ('checklist',)
+        ordering = ('pk',)
 
 # Contains the actual tasks on the checklist, which can vary by room or checklist type (such as opening vs closing checklists)
 class ChecklistItem(models.Model):
@@ -53,5 +53,5 @@ class ChecklistItem(models.Model):
     class Meta:
         verbose_name = "Checklist Item"
         verbose_name_plural = "Checklist Items"
-        ordering = ('checklist_item',)
+        ordering = ('pk',)
         
