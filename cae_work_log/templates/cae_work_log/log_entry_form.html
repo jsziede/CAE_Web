@@ -5,15 +5,15 @@
 
 
 {% block content %}
-  {% if log_entry %}
-    <h1>Edit Log Entry</h1>
-  {% else %}
-    <h1>Create Log Entry</h1>
-  {% endif %}
-
-  <form method="POST" action="">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit" value="Submit">
-  </form>
+  <div class="panel primary">
+    <div class="header">
+      {% if log_entry %}
+        <h1>Edit Log Entry</h1>
+      {% else %}
+        <h1>Create Log Entry</h1>
+      {% endif %}
+    </div>
+    <div class="body">
+      {% include 'cae_home/include/form.html' %}
+    </div>
 {% endblock content %}
