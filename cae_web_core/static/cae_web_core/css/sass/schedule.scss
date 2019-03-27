@@ -6,6 +6,8 @@
 @import '../../../../../../../cae_home/static/cae_home/css/sass/_variables';
 @import '../../../../../../../cae_home/static/cae_home/css/sass/_mixins';
 
+$light-border-color: $color-grey-70;
+
 
 // Schedule
 .schedule-container {
@@ -17,10 +19,24 @@
     .schedule-header {
         padding: 2px;
         @include display-flex;
+        justify-content: space-between;
+
+        // Prevent buttons from not being inline
+        .buttons {
+            display: inline-flex;
+        }
+
+        // This groups the calender button and input togethor
+        .input-group {
+            display: inline-flex;
+        }
+        .input-group > * {
+            margin: 0;
+        }
 
         button.schedule-btn-calendar {
             border-radius: 0;
-            border: 1px solid #CCC;
+            border: 1px solid $light-border-color;
             border-right-width: 0;
             border-top-left-radius: 5px;
             border-bottom-left-radius: 5px;
@@ -29,7 +45,7 @@
         }
 
         .flatpickr-input {
-            border: 1px solid #CCC;
+            border: 1px solid $light-border-color;
             font-size: 1rem;
             padding: 0 4px;
             background: #e5e5e5;
@@ -46,7 +62,6 @@
     .schedule-grid {
         display: grid;
         grid-template-columns: 70px;
-        grid-template-rows: 45px;
         grid-auto-columns: minmax(70px, 1fr);
         grid-auto-rows: 15px;
         overflow: scroll;
@@ -57,20 +72,31 @@
         }
 
         .schedule-grid-line {
-            border-color: #DDD;
+            border-color: $light-border-color;
             border-style: solid;
             border-right-width: 1px;
             border-bottom-width: 1px;
         }
 
-        .schedule-resource {
+        .schedule-weekday {
             grid-row: 1;
+            border: 1px solid black;
+            border-bottom: none;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            background: white;
+            margin-left: -1px; // Hide double border
+        }
+
+        .schedule-resource {
             grid-column-end: span 2;
             border: 1px solid black;
             text-align: center;
             position: sticky;
             top: 0;
             background: white;
+            margin-left: -1px; // Hide double border
         }
 
         .schedule-time {
@@ -81,6 +107,7 @@
             position: sticky;
             left: 0;
             background: white;
+            margin-top: -1px; // Hide double border
         }
 
         .schedule-event {
@@ -91,6 +118,48 @@
             overflow: hidden;
             cursor: pointer;
         }
+    }
+
+    // Different modes affect some of the grid placement
+    .schedule-grid.mode-day {
+        grid-template-rows: 45px;
+        .schedule-resource {
+            grid-row: 1;
+        }
+    }
+
+    .schedule-grid.mode-week {
+        grid-auto-columns: minmax(25px, 1fr);
+        grid-template-rows: 15px 80px;
+        .schedule-header-spacer {
+            grid-row-end: span 2;
+        }
+        .schedule-resource {
+            grid-row: 2;
+            top: 15px; // Height of first row (.schedule-weekday)
+            border-top-color: $light-border-color;
+            border-left-color: $light-border-color;
+            overflow: hidden; // Prevent vertical text from causing a right margin
+
+            .vertical {
+                // These happen to make nicely aligned vertical text.
+                // Only found through trial and error.
+                transform: rotate(-90deg);
+                transform-origin: center;
+                height: 80px;
+                width: 110px;
+            }
+        }
+
+        // First resource for each day should have a left border to differentiate the days
+        .schedule-resource[data-i="0"] {
+            border-left-color: black;
+        }
+
+        // // Remove left border from all but the first one
+        // .schedule-resource ~ .schedule-resource {
+        //     border-left: none;
+        // }
     }
 }
 

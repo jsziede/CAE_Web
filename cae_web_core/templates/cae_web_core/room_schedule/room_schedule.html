@@ -45,6 +45,8 @@
       data-resources="{{ rooms_json }}"
       data-room-type-slug="{{ room_type_slug }}"
       data-eventsURL="{% url 'cae_web_core:api_room_schedule' %}"
+      data-mode="day"
+      data-mode-allow-change="false"
     >
       <h2>Please Wait</h2>
       <p>The calendar view should load in a moment.</p>

@@ -3,14 +3,39 @@ var dialogEventEnd = null;
 
 var createSchedule = function(container) {
     // See ScheduleConsumer for these constants
-    const ACTION_GET_EVENTS = 'get-events'
-    const ACTION_SEND_EVENTS = 'send-events'
+    const ACTION_GET_EVENTS = 'get-events';
+    const ACTION_SEND_EVENTS = 'send-events';
+
+    // Storage Constants
+    const STORAGE_KEY_MODE = 'schedule-mode';
 
     var container = $(container);
     var start = moment(container.data('start'));
     var end = moment(container.data('end'));
     var resources = container.data('resources');
     var roomTypeSlug = container.data('room-type-slug');
+    var mode = container.data('mode');
+    var modeAllowChange = container.data('mode-allow-change');
+
+    // validate mode
+    if (mode == 'week') {
+        // pass
+    } else if (mode == 'day') {
+        // pass
+    } else {
+        mode = 'day'; // default to single day
+    }
+
+    // validate modeAllowChange to a boolean
+    if (modeAllowChange) {
+        modeAllowChange = true;
+        // Check if user previously chose a mode.
+        // We use sessionStorage instead of localStorage because it's not paramount
+        // to remember it for very long.
+        mode = sessionStorage.getItem(STORAGE_KEY_MODE) || mode;
+    } else {
+        modeAllowChange = false;
+    }
 
     // Establish socket connection.
     var domain = window.location.hostname
@@ -41,22 +66,64 @@ var createSchedule = function(container) {
         var buttons = '<div class="buttons"><button class="schedule-btn-today">Today</button><button class="schedule-btn-prev"><i class="fas fa-angle-left"></i></button><button class="schedule-btn-next"><i class="fas fa-angle-right"></i></button></div>';
         var calendarButton = '<button class="schedule-btn-calendar"><i class="fas fa-calendar-alt"></i></button>';
         var dateInput = `<input type="text" class="schedule-txt-date" value="${start.format('YYYY-MM-DD')}">`;
+        var modeChange = '';
+        if (modeAllowChange) {
+            var dayClass = '';
+            var weekClass = '';
+            if (mode == 'week') {
+                weekClass = 'primary';
+            } else if (mode == 'day') {
+                dayClass = 'primary';
+            }
+            modeChange = `<div class="buttons"><button class="${dayClass} schedule-btn-mode" data-mode="day">Day</button><button class="${weekClass} schedule-btn-mode" data-mode="week">Week</button></div>`;
+        }
 
         header = $('<div>', {
             class: "schedule-header",
-            html: `${buttons}${calendarButton}${dateInput}`,
+            html: `<div>${buttons}<div class="input-group">${calendarButton}${dateInput}</div></div>${modeChange}`,
         });
 
         return header;
     }
 
     function createGrid() {
-        // Create top resources header
+        var weekdayDivs = '';
         var resourcesDivs = '';
-        for (var i = 0; i < resources.length; ++i) {
-            var resource = resources[i];
+        var gridLineDivs = '';
+        var rowOffset = 0;
+        var weekdays = [
+            // iso number, text
+            [7, "Sunday"],
+            [1, "Monday"],
+            [2, "Tuesday"],
+            [3, "Wednesday"],
+            [4, "Thursday"],
+            [5, "Friday"],
+            [6, "Saturday"],
+        ];
 
-            resourcesDivs += `<div class="schedule-resource" data-pk=${resource.id}>${resource.html}</div>`;
+        if (mode == 'week') {
+            // Create top day headers if mode is week
+            rowOffset = 1; // most things must be moved down 1
+            weekdays.map((weekday) => {
+                weekdayDivs += `<div class="schedule-weekday" data-day="${weekday[0]}" style="grid-column-end: span ${resources.length * 2}">${weekday[1]}</div>`;
+
+                // Create top resources header for each day
+                for (var i = 0; i < resources.length; ++i) {
+                    var resource = resources[i];
+
+                    resourcesDivs += `<div class="schedule-resource" data-pk=${resource.id} data-day="${weekday[0]}" data-i="${i}">
+                        <div class="vertical">${resource.html}</div>
+                    </div>`;
+                }
+            })
+        } else {
+            // Create top resources header
+            for (var i = 0; i < resources.length; ++i) {
+                var resource = resources[i];
+
+                resourcesDivs += `<div class="schedule-resource" data-pk=${resource.id}>${resource.html}</div>`;
+            }
         }
 
         // Create left time header
@@ -72,25 +139,31 @@ var createSchedule = function(container) {
         }
 
         // Create grid lines
-        var gridLineDivs = '';
-        for (var i = 0; i < resources.length; ++i) {
-            var column = i * 2 + 2;
-            for (var j = 0; j < totalHours * 4; ++j) {
-                var row = j + 2
-                var resourceIndex = i;
-                var timeOffset = j;
-                gridLineDivs += `<div
-                    class="schedule-grid-line"
-                    style="grid-area: ${row} / ${column} / auto / span 2"
-                    data-resource-index=${resourceIndex}
-                    data-time-offset=${timeOffset}
-                ></div>`
+        var gridLineCount = (mode == 'week') ? 7 : 1;
+        var gridLineColumnOffset = 0;
+        for (var x = 0; x < gridLineCount; ++x) {
+            var isoNumber = weekdays[x][0];
+            for (var i = 0; i < resources.length; ++i) {
+                var column = i * 2 + 2 + gridLineColumnOffset;
+                for (var j = 0; j < totalHours * 4; ++j) {
+                    var row = j + 2 + rowOffset;
+                    var resourceIndex = i;
+                    var timeOffset = j;
+                    gridLineDivs += `<div
+                        class="schedule-grid-line"
+                        style="grid-area: ${row} / ${column} / auto / span 2"
+                        data-resource-index=${resourceIndex}
+                        data-time-offset=${timeOffset}
+                        data-day=${isoNumber}
+                    ></div>`
+                }
             }
+            gridLineColumnOffset += resources.length * 2;
         }
 
         grid = $('<div>', {
-            class: "schedule-grid",
-            html: `<div class="schedule-header-spacer"></div>${resourcesDivs}${timeDivs}${gridLineDivs}`,
+            class: `schedule-grid mode-${mode}`,
+            html: `<div class="schedule-header-spacer"></div>${weekdayDivs}${resourcesDivs}${timeDivs}${gridLineDivs}`,
         });
 
         return grid;
@@ -216,7 +289,7 @@ var createSchedule = function(container) {
           'room_type_slug': roomTypeSlug,
           'notify': true,
         }))
-      }
+    }
 
     function onBtnTodayClicked(event) {
         changeDate(moment().toDate());
@@ -238,6 +311,24 @@ var createSchedule = function(container) {
         dateFlatpickr.open();
     }
 
+    function onBtnModeClicked(event) {
+        var newMode = $(event.target).data('mode');
+        if (newMode != 'day' && newMode != 'week') {
+            console.log("Unknown mode", newMode);
+            return; // ignore for now
+        } else if (mode == newMode) {
+            return; // nothing to do
+        }
+
+        // Now we change modes
+        mode = newMode;
+        sessionStorage[STORAGE_KEY_MODE] = mode;
+
+        // Reload with new mode.
+        // NOTE: We have to redraw the entire schedule, so a page reload isn't too bad
+        location.reload();
+    }
+
     function onEventClicked(event) {
         var event = JSON.parse(unescape($(event.target).closest('.schedule-event').data('event')));
         console.log(event);
@@ -257,6 +348,12 @@ var createSchedule = function(container) {
         var resourceIndex = gridLine.data('resource-index');
         var resource = resources[resourceIndex];
         var timeOffset = gridLine.data('time-offset');
+        var dayIsoNumber = gridLine.data('day');
+
+        if (mode == 'week') {
+            // debug
+            console.log("Day: ", dayIsoNumber);
+        }
 
         var eventStart = start.clone();
 
@@ -292,6 +389,7 @@ var createSchedule = function(container) {
     container.find('.schedule-btn-next').on('click', onBtnNextClicked);
     container.find('.schedule-btn-calendar').on('click', onBtnCalendarClicked);
     container.find('.schedule-grid-line').on('dblclick', onGridLineDblClicked);
+    container.find('.schedule-btn-mode').on('click', onBtnModeClicked);
 
     // Setup flatpickr
     var dateFlatpickr = container.find('.schedule-txt-date').flatpickr({
