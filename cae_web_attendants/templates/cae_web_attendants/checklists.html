@@ -17,13 +17,13 @@
     {% if create_instance %}
     {% if success == 1 %}
     <div class="panel success">
-            <div class="header">Room Checkout Successfully Added</div>
+            <div class="header">Checklist Successfully Opened</div>
     {% elif success == -1 %}
     <div class="panel error">
-        <div class="header">Failed to Add Room Checkout</div>
+        <div class="header">Failed to Open Checklist</div>
     {% else %}
     <div class="panel primary">
-        <div class="header">Check Out a Room</div>
+        <div class="header">Open a Checklist</div>
     {% endif %}
         <div class="content">
         {% include 'cae_home/include/form.html' %}
