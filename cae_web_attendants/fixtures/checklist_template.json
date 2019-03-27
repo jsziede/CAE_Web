@@ -15,7 +15,7 @@
     "pk": 2,
     "fields": {
       "room": null,
-      "checklist_item": [6,7,6,9,10,11,12,13,14,15,16],
+      "checklist_item": [6,7,6,9,10,11,12,13,14,15],
       "title": "General Close",
       "date_created": "2019-03-20T12:00:00.817Z",
       "date_modified": "2019-03-20T12:00:00.817Z"
