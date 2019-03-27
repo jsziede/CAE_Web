@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import RoomCheckout, OpenCloseChecklist, ChecklistItem
+from .models import RoomCheckout, ChecklistTemplate, ChecklistItem, ChecklistInstance
 
 class RoomCheckoutAdmin(admin.ModelAdmin):
     # Fields to display in admin list view.
@@ -16,20 +16,20 @@ class RoomCheckoutAdmin(admin.ModelAdmin):
 
 admin.site.register(RoomCheckout, RoomCheckoutAdmin)
 
-class OpenCloseChecklistAdmin(admin.ModelAdmin):
+class ChecklistTemplateAdmin(admin.ModelAdmin):
     # Fields to display in admin list view.
-    list_display = ('pk', 'employee', 'checklist_item', 'name', 'date_created', 'date_modified')
+    list_display = ('pk', 'title', 'room', 'checklist_item', 'date_created', 'date_modified')
 
     # Fields to filter by in admin list view.
-    list_filter = ('employee', 'name')
+    list_filter = ('title', 'room')
 
     # Fields to search in admin list view.
-    search_fields = ['pk', 'employee', 'name']
+    search_fields = ['title', 'room', 'checklist_item']
 
     # Read only fields for admin detail view.
-    readonly_fields = ('pk', 'date_created', 'date_modified')
+    readonly_fields = ('pk', 'title', 'room', 'checklist_item', 'date_created', 'date_modified')
 
-admin.site.register(OpenCloseChecklist, OpenCloseChecklistAdmin)
+admin.site.register(ChecklistTemplate, ChecklistTemplateAdmin)
 
 class ChecklistItemAdmin(admin.ModelAdmin):
     # Fields to display in admin list view.
@@ -45,3 +45,18 @@ class ChecklistItemAdmin(admin.ModelAdmin):
     readonly_fields = ('pk', 'date_created', 'date_modified')
 
 admin.site.register(ChecklistItem, ChecklistItemAdmin)
+
+class ChecklistInstanceAdmin(admin.ModelAdmin):
+    # Fields to display in admin list view.
+    list_display = ('pk', 'template', 'room', 'employee', 'task', 'title', 'date_completed', 'date_created', 'date_modified')
+
+    # Fields to filter by in admin list view.
+    list_filter = ('template', 'room', 'employee', 'task', 'title', 'date_completed', )
+
+    # Fields to search in admin list view.
+    search_fields = ['pk', 'template', 'room', 'employee', 'task', 'title', 'date_completed']
+
+    # Read only fields for admin detail view.
+    readonly_fields = ('pk', 'date_created', 'date_modified')
+
+admin.site.register(ChecklistInstance, ChecklistInstanceAdmin)
