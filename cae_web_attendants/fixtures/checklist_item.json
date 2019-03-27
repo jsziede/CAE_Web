@@ -1,21 +1,203 @@
 [
-    {
-      "model": "cae_web_attendants.ChecklistItem",
-      "pk": 1,
-      "fields": {
-        "task": "Turn on CICO system,Turn on all printers,Turn on print stations,Open/unlock main lab doors,Open/unlock side lab doors(224-229)",
-        "date_created": "2019-03-20T12:00:00.817Z",
-        "date_modified": "2019-03-20T12:00:00.817Z"
-      }
-    },
-    {
-        "model": "cae_web_attendants.ChecklistItem",
-        "pk": 2,
-        "fields": {
-          "task": "Turn off CICO system,Turn off all printers,Turn off print stations,Close/lock main lab doors,Close/unlock side lab doors(224-229),Refill paper in all main lab printers,Push in lab chairs,Turn off main lab machines,Recycle left over prints around printers,Lock CAE Center office doors and turn lights off",
-          "date_created": "2019-03-20T12:00:00.817Z",
-          "date_modified": "2019-03-20T12:00:00.817Z"
-        }
-      }
-    ]
+  {
+    "model": "cae_web_attendants.ChecklistItem",
+    "pk": 1,
+    "fields": {
+      "task": "Turn on CICO system",
+      "completed": true,
+      "date_created": "2019-03-20T12:00:00.817Z",
+      "date_modified": "2019-03-20T12:00:00.817Z"
+    }
+  },
+  {
+    "model": "cae_web_attendants.ChecklistItem",
+    "pk": 2,
+    "fields": {
+      "task": "Turn on all printers",
+      "completed": true,
+      "date_created": "2019-03-20T12:00:00.817Z",
+      "date_modified": "2019-03-20T12:00:00.817Z"
+    }
+  },
+  {
+    "model": "cae_web_attendants.ChecklistItem",
+    "pk": 3,
+    "fields": {
+      "task": "Turn on print stations",
+      "completed": true,
+      "date_created": "2019-03-20T12:00:00.817Z",
+      "date_modified": "2019-03-20T12:00:00.817Z"
+    }
+  },
+  {
+    "model": "cae_web_attendants.ChecklistItem",
+    "pk": 4,
+    "fields": {
+      "task": "Open/unlock main lab doors",
+      "completed": true,
+      "date_created": "2019-03-20T12:00:00.817Z",
+      "date_modified": "2019-03-20T12:00:00.817Z"
+    }
+  },
+  {
+    "model": "cae_web_attendants.ChecklistItem",
+    "pk": 5,
+    "fields": {
+      "task": "Open/unlock side lab doors(224-229)",
+      "completed": true,
+      "date_created": "2019-03-20T12:00:00.817Z",
+      "date_modified": "2019-03-20T12:00:00.817Z"
+    }
+  },
+  {
+    "model": "cae_web_attendants.ChecklistItem",
+    "pk": 6,
+    "fields": {
+      "task": "Turn off CICO system",
+      "completed": true,
+      "date_created": "2019-03-20T12:00:00.817Z",
+      "date_modified": "2019-03-20T12:00:00.817Z"
+    }
+  },
+  {
+    "model": "cae_web_attendants.ChecklistItem",
+    "pk": 7,
+    "fields": {
+      "task": "Turn off all printers",
+      "completed": true,
+      "date_created": "2019-03-20T12:00:00.817Z",
+      "date_modified": "2019-03-20T12:00:00.817Z"
+    }
+  },
+  {
+    "model": "cae_web_attendants.ChecklistItem",
+    "pk": 8,
+    "fields": {
+      "task": "Turn off print stations",
+      "completed": true,
+      "date_created": "2019-03-20T12:00:00.817Z",
+      "date_modified": "2019-03-20T12:00:00.817Z"
+    }
+  },
+  {
+    "model": "cae_web_attendants.ChecklistItem",
+    "pk": 9,
+    "fields": {
+      "task": "Close/lock main lab doors",
+      "completed": true,
+      "date_created": "2019-03-20T12:00:00.817Z",
+      "date_modified": "2019-03-20T12:00:00.817Z"
+    }
+  },
+  {
+    "model": "cae_web_attendants.ChecklistItem",
+    "pk": 10,
+    "fields": {
+      "task": "Close/unlock side lab doors(224-229)",
+      "completed": true,
+      "date_created": "2019-03-20T12:00:00.817Z",
+      "date_modified": "2019-03-20T12:00:00.817Z"
+    }
+  },
+  {
+    "model": "cae_web_attendants.ChecklistItem",
+    "pk": 11,
+    "fields": {
+      "task": "Refill paper in all main lab printers",
+      "completed": true,
+      "date_created": "2019-03-20T12:00:00.817Z",
+      "date_modified": "2019-03-20T12:00:00.817Z"
+    }
+  },
+  {
+    "model": "cae_web_attendants.ChecklistItem",
+    "pk": 12,
+    "fields": {
+      "task": "Push in lab chairs",
+      "completed": true,
+      "date_created": "2019-03-20T12:00:00.817Z",
+      "date_modified": "2019-03-20T12:00:00.817Z"
+    }
+  },
+  {
+    "model": "cae_web_attendants.ChecklistItem",
+    "pk": 13,
+    "fields": {
+      "task": "Turn off main lab machines",
+      "completed": true,
+      "date_created": "2019-03-20T12:00:00.817Z",
+      "date_modified": "2019-03-20T12:00:00.817Z"
+    }
+  },
+  {
+    "model": "cae_web_attendants.ChecklistItem",
+    "pk": 14,
+    "fields": {
+      "task": "Recycle left over prints around printers",
+      "completed": true,
+      "date_created": "2019-03-20T12:00:00.817Z",
+      "date_modified": "2019-03-20T12:00:00.817Z"
+    }
+  },
+  {
+    "model": "cae_web_attendants.ChecklistItem",
+    "pk": 15,
+    "fields": {
+      "task": "Lock CAE Center office doors and turn lights off",
+      "completed": true,
+      "date_created": "2019-03-20T12:00:00.817Z",
+      "date_modified": "2019-03-20T12:00:00.817Z"
+    }
+  },
+  {
+    "model": "cae_web_attendants.ChecklistItem",
+    "pk": 16,
+    "fields": {
+      "task": "Turn on CICO system",
+      "completed": true,
+      "date_created": "2019-03-20T12:00:00.817Z",
+      "date_modified": "2019-03-20T12:00:00.817Z"
+    }
+  },
+  {
+    "model": "cae_web_attendants.ChecklistItem",
+    "pk": 17,
+    "fields": {
+      "task": "Turn on all printers",
+      "completed": true,
+      "date_created": "2019-03-20T12:00:00.817Z",
+      "date_modified": "2019-03-20T12:00:00.817Z"
+    }
+  },
+  {
+    "model": "cae_web_attendants.ChecklistItem",
+    "pk": 18,
+    "fields": {
+      "task": "Turn on print stations",
+      "completed": false,
+      "date_created": "2019-03-20T12:00:00.817Z",
+      "date_modified": "2019-03-20T12:00:00.817Z"
+    }
+  },
+  {
+    "model": "cae_web_attendants.ChecklistItem",
+    "pk": 19,
+    "fields": {
+      "task": "Open/unlock main lab doors",
+      "completed": false,
+      "date_created": "2019-03-20T12:00:00.817Z",
+      "date_modified": "2019-03-20T12:00:00.817Z"
+    }
+  },
+  {
+    "model": "cae_web_attendants.ChecklistItem",
+    "pk": 20,
+    "fields": {
+      "task": "Open/unlock side lab doors(224-229)",
+      "completed": false,
+      "date_created": "2019-03-20T12:00:00.817Z",
+      "date_modified": "2019-03-20T12:00:00.817Z"
+    }
+  }
+]
     

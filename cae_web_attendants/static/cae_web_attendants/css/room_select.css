@@ -1,8 +1,13 @@
 .selected-room {
-    border: solid 2px gray;
+    background-color: #3e3e3e;
+    color: white;
 }
 
 .room-option {
-    display: inline;
-    background-color: yellow;
+    border: solid 3px #3e3e3e;
+    border-radius: 10%;
+    padding: 20px;
+    text-align: center;
+    display: inline-flex;
+    margin: 5px;
 }

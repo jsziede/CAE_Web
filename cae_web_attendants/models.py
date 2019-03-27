@@ -3,9 +3,12 @@ Models for CAE Web Attendants app.
 """
 from django.utils import timezone
 from django.db import models
+from django.db.models import F
 
-# Information needed in order for an attendant to reserve a room for students' use
 class RoomCheckout(models.Model):
+    """
+    Information regarding a checkout of a CAE computer classroom by a student.
+    """
     # Foreign keys
     room = models.ForeignKey('cae_home.Room', on_delete=models.CASCADE)
     employee = models.ForeignKey('cae_home.User', on_delete=models.CASCADE)
@@ -24,13 +27,21 @@ class RoomCheckout(models.Model):
         ordering = ('-checkout_date',)
 
 # Acts as a template for room checklists
-class OpenCloseChecklist(models.Model):
+class ChecklistTemplate(models.Model):
+    """
+    Generic template for attendant checklists to inherit. A template should not be edited after creation.
+    """
     # Foreign keys
-    employee = models.ForeignKey('cae_home.User', on_delete=models.CASCADE)
-    checklist_item = models.ForeignKey('ChecklistItem', on_delete=models.CASCADE)
+    room = models.ForeignKey('cae_home.Room',
+    on_delete=models.CASCADE,
+    blank=True,
+    null=True)
 
-    # Fields specific to RoomCheckout model
-    name = models.TextField()
+    # Many to many keys
+    checklist_item = models.ManyToManyField('ChecklistItem')
+
+    # Fields specific to ChecklistTemplate model
+    title = models.TextField()
 
     # Self-setting/Non-user-editable fields.
     date_created = models.DateTimeField(auto_now_add=True)
@@ -39,12 +50,15 @@ class OpenCloseChecklist(models.Model):
     class Meta:
         verbose_name = "Checklist Template"
         verbose_name_plural = "Checklist Templates"
-        ordering = ('pk',)
+        ordering = ('title',)
 
-# Contains the actual tasks on the checklist, which can vary by room or checklist type (such as opening vs closing checklists)
 class ChecklistItem(models.Model):
-    # Fields specific to RoomCheckout model
+    """
+    Each individual task on an attendant checklist.
+    """
+    # Fields specific to ChecklistItem model
     task = models.TextField()
+    completed = models.BooleanField(default=False)
 
     # Self-setting/Non-user-editable fields.
     date_created = models.DateTimeField(auto_now_add=True)
@@ -53,5 +67,29 @@ class ChecklistItem(models.Model):
     class Meta:
         verbose_name = "Checklist Item"
         verbose_name_plural = "Checklist Items"
-        ordering = ('pk',)
+        ordering = ('task',)
         
+class ChecklistInstance(models.Model):
+    """
+    An instance of an attendant checklist that inherits from a checklist template. This is what the attendants fill out and submit on a daily basis.
+    """
+    # Foreign keys
+    template = models.ForeignKey('ChecklistTemplate', on_delete=models.CASCADE)
+    room = models.ForeignKey('cae_home.Room', on_delete=models.CASCADE)
+    employee = models.ForeignKey('cae_home.User', on_delete=models.CASCADE)
+
+    # Many to many keys
+    task = models.ManyToManyField('ChecklistItem')
+
+    # Fields specific to ChecklistInstance model
+    title = models.TextField(blank=True)
+    date_completed = models.DateTimeField(null=True, blank=True)
+
+    # Self-setting/Non-user-editable fields.
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Checklist Instance"
+        verbose_name_plural = "Checklist Instances"
+        ordering = [F('date_completed').desc(nulls_first=True)]

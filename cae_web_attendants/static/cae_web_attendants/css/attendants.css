@@ -1,3 +1,7 @@
+form#roomCheckoutForm.panel {
+    display: flex !important;
+}
+
 .table-caption-left {
     text-align: left;
     border: 0 !important;
@@ -9,5 +13,10 @@
 }
 
 th > a {
-    text-decoration: none;
+    text-decoration: none !important;
+}
+
+.room-checkout-form-column-two {
+    flex: 50% !important;
+    flex-direction: column !important;
 }

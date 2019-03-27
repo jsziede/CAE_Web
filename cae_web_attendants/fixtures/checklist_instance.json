@@ -1,0 +1,44 @@
+[
+  {
+    "model": "cae_web_attendants.ChecklistInstance",
+    "pk": 1,
+    "fields": {
+      "template": 1,
+      "room": 225,
+      "employee": 2,
+      "task": [1,2,3,4,5],
+      "title": "General Open",
+      "date_completed": "2019-03-20T13:00:00.817Z",
+      "date_created": "2019-03-20T12:00:00.817Z",
+      "date_modified": "2019-03-20T12:00:00.817Z"
+    }
+  },
+  {
+    "model": "cae_web_attendants.ChecklistInstance",
+    "pk": 2,
+    "fields": {
+      "template": 2,
+      "room": 224,
+      "employee": 3,
+      "task": [6,7,6,9,10,11,12,13,14,15],
+      "title": "General Close",
+      "date_completed": "2019-03-20T18:00:00.817Z",
+      "date_created": "2019-03-20T12:00:00.817Z",
+      "date_modified": "2019-03-20T12:00:00.817Z"
+    }
+  },
+  {
+    "model": "cae_web_attendants.ChecklistInstance",
+    "pk": 3,
+    "fields": {
+      "template": 1,
+      "room": 223,
+      "employee": 3,
+      "task": [16,17,18,19,20],
+      "title": "General Open (unfinished)",
+      "date_completed": null,
+      "date_created": "2019-03-20T12:00:00.817Z",
+      "date_modified": "2019-03-20T12:00:00.817Z"
+    }
+  }
+]

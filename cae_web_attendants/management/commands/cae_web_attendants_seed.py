@@ -50,7 +50,8 @@ class Command(BaseCommand):
         """
         # Load preset fixtures. No need to create random models.
         call_command('loaddata', 'checklist_item')
-        call_command('loaddata', 'open_close_checklist')
+        call_command('loaddata', 'checklist_template')
+        call_command('loaddata', 'checklist_instance')
 
         print('Populated attendant checklist models.')
 
