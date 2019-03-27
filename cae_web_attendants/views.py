@@ -71,6 +71,13 @@ def checklists(request):
     # This variable is checked in the template language to determine the color of the panel heading.
     success = 0
 
+    # The name of the checklist template that was clicked on by the user.
+    checklist_template_name = request.GET.get('template')
+    # Checks get request for a checklist instance based on its pk
+    checklist_instance_primary = request.GET.get('checklist')
+    # Checks get request for all checklist instances from a certain month
+    checklist_instance_month = request.GET.get('month')
+
     # Allows user to change the sorting of the checklist table.
     # Default is by date from newest checklist to oldest.
     order_by = request.GET.get('order_by')
@@ -91,12 +98,22 @@ def checklists(request):
     page = request.GET.get('page')
     checklist_instances = paginator.get_page(page)
 
-    # The name of the checklist template that was clicked on by the user.
-    checklist_template_name = request.GET.get('name')
-    # Checks get request for a checklist instance based on its pk
-    checklist_instance_primary = request.GET.get('checklist')
-    # Checks get request for all checklist instances from a certain month
-    checklist_instance_month = request.GET.get('month')
+    # Determines which form, if any, to show on the page
+    create_checklist = request.GET.get('create')
+    form = None
+    create_template = None
+    create_instance = None
+    if create_checklist == "template":
+        create_template = True
+        #form = forms.RoomCheckoutForm()
+    elif create_checklist == "checklist":
+        create_instance = True
+        # Defaults the template option to the template the user is creating the checklist from
+        form = forms.ChecklistInstanceForm(initial={'template': checklist_template_name})
+        form.fields["template"].queryset = models.ChecklistTemplate.objects.filter(pk=checklist_template_name)
+        # Only show CAE Rooms
+        form.fields["room"].queryset = cae_home_models.Room.objects.filter(Q(department__exact=3))
+
     # Stores the checklist template item that was requested by the user, if it exists.
     focused_template = None
     focused_instance = None
@@ -106,27 +123,51 @@ def checklists(request):
     # Uses a get request to print out the contents of a checklist
     if request.method == 'GET':
         # .filter().first() will return object or None if doesn't exist
-        focused_template = models.ChecklistTemplate.objects.filter(title=checklist_template_name).first()
+        focused_template = models.ChecklistTemplate.objects.filter(pk=checklist_template_name).first()
         focused_instance = models.ChecklistInstance.objects.filter(pk=checklist_instance_primary).first()
 
-
-    #form = forms.RoomCheckoutForm()
-
-    # if request.method == 'POST':
-    # 	form = forms.RoomCheckoutForm(request.POST)
-
-    # 	if form.is_valid():
-    # 		checkout = form.save()focused_checklist
-    # 		success = 1
-    # 	else:
-    # 		success = -1
+    # If user submitted a form
+    if request.method == 'POST':
+        # Gets form with filled out data from user
+        form = forms.ChecklistInstanceForm(request.POST)
+        
+        # If all form fields are valid
+        if form.is_valid():
+            # Gets the title of the template that the checklist was made from
+            checklist_title = form.cleaned_data['template'].title
+            # If the user input their own title for the checklist, then replace the inherited template title
+            if form.cleaned_data['title']:
+                checklist_title = form.cleaned_data['title']
+            # Create a new checklist instance using cleaned data from the form
+            checklist = models.ChecklistInstance(template = form.cleaned_data['template'],
+                room = form.cleaned_data['room'],
+                employee = form.cleaned_data['employee'],
+                title = checklist_title)
+            checklist.save()
+            # Gets the list of tasks that are used for the template
+            tasks = form.cleaned_data['template'].checklist_item.all()
+            # For each task
+            for task in tasks:
+                # Inserts a new ChecklistItem with the same title as the template task
+                new_task = models.ChecklistItem(task = task.task, completed = False)
+                new_task.save()
+                # Add new task to the checklist instance
+                checklist.task.add(new_task.pk)
+            # Make the form become green
+            success = 1
+        # If form failed to validate then the form becomes red
+        else:
+            success = -1
 
     return TemplateResponse(request, 'cae_web_attendants/checklists.html', {
         'checklist_templates': checklist_templates,
         'checklist_instances': checklist_instances,
         'focused_template': focused_template,
         'focused_instance': focused_instance,
+        'create_template': create_template,
+        'create_instance': create_instance,
         'order_by': order_by,
         'direction': direction,
+        'form': form,
         'success': success,
     })

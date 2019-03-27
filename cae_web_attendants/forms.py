@@ -3,13 +3,15 @@ from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import ugettext as _
+from django.forms import ModelForm, TextInput
 
 from datetime import datetime
 
 from . import models
 from cae_home import forms as cae_home_forms
+from cae_home import models as cae_home_models
 
-class RoomCheckoutForm(forms.ModelForm):
+class RoomCheckoutForm(ModelForm):
     class Meta:
         model = models.RoomCheckout
         fields = [
@@ -64,3 +66,18 @@ class RoomCheckoutForm(forms.ModelForm):
             )
 
         return cleaned_data
+
+class ChecklistInstanceForm(ModelForm):
+    class Meta:
+        model = models.ChecklistInstance
+
+        fields = [
+            'title',
+            'employee',
+            'room',
+            'template',
+        ]
+
+        widgets = {
+            'title': TextInput(),
+        }

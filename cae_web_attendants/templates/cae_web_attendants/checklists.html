@@ -12,7 +12,30 @@
 {% endblock base_scripts %}
 
 {% block content %}
-	<h1>Welcome to the CAE Web Attendants Checklist page</h1>
+    <h1>Welcome to the CAE Web Attendants Checklist page</h1>
+    
+    {% if create_instance %}
+    {% if success == 1 %}
+    <div class="panel success">
+            <div class="header">Room Checkout Successfully Added</div>
+    {% elif success == -1 %}
+    <div class="panel error">
+        <div class="header">Failed to Add Room Checkout</div>
+    {% else %}
+    <div class="panel primary">
+        <div class="header">Check Out a Room</div>
+    {% endif %}
+        <div class="content">
+        {% include 'cae_home/include/form.html' %}
+        </div>
+        <div class="footer">
+                <button type="submit">
+                        Submit <i class="fas fa-sign-in-alt"></i>
+                </button>
+        </div>
+    </div>
+    {% endif %}
+
     <div class="panel primary">
         <div class="header">Checklist Templates</div>
         <div class="content" style="display: flex">
@@ -20,23 +43,24 @@
                 <p>Select a checklist to view its contents.</p>
                 {% if checklist_templates %}
                 {% for checklist in checklist_templates %}
-                <a href="?name={{ checklist.title }}">{{ checklist.title }}</a><br />
+                <a href="?template={{ checklist.pk }}">{{ checklist.title }}</a><br />
                 {% endfor %}
                 {% else %}
                 <p>No checklists have been created yet.</p>
                 {% endif %}
+                <p><a href="?create=template"><i class="fas fa-plus-square"></i> Create New Template</a></p>
             </div>
             <div style="flex: 50%; flex-direction: column">
                 {% if focused_template %}
                 {% for task in focused_template.checklist_item.all %}
                 <p>{{ task.task }}</p>
                 {% endfor %}
+                <p><a href="?create=checklist&template={{ focused_template.pk }}"><i class="fas fa-plus-square"></i> Create {{ focused_template.title }} Checklist</a></p>
                 {% endif %}
             </div>
         </div>
         <div class="footer"></div>
     </div>
-    <a href="#">Create New Checklist Template</a>
 
     {% if focused_instance %}
     <div class="panel secondary">
@@ -47,9 +71,11 @@
                 <p><b>Room:</b> {{ focused_instance.room }}</p>
                 <p><b>Created by:</b> {{ focused_instance.employee }}</p>
                 {% if focused_instance.date_completed %}
-                <p><b>Time Completed:</b> {{ focused_instance.date_completed }}</p>
+                <p><b style="color: green;"><i class="fas fa-check-circle"></i> Complete</b></p>
+                <p><b>Date Completed:</b> {{ focused_instance.date_completed | date:"F jS, Y" }}</p>
+                <p><b>Time Completed:</b> {{ focused_instance.date_completed | date:"P" }}</p>
                 {% else %}
-                <p><b>Not yet completed.</b></p>
+                <p><b style="color: red;"><i class="fas fa-exclamation-triangle"></i> Incomplete</b></p>
                 {% endif %}
             </div>
             <div style="flex: 50%; flex-direction: column">
@@ -66,7 +92,7 @@
         <div class="footer"></div>
     </div>
     {% endif %}
-
+    
     {% if checklist_instances %}
 	<table>
 		<thead>

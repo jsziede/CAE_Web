@@ -1,0 +1,64 @@
+{% if success == 1 %}
+<div class="panel success">
+		<div class="header">Room Checkout Successfully Added</div>
+{% elif success == -1 %}
+<div class="panel error">
+	<div class="header">Failed to Add Room Checkout</div>
+{% else %}
+<div class="panel primary">
+	<div class="header">Check Out a Room</div>
+{% endif %}
+	<div class="content">
+		<form id="roomCheckoutForm" method="POST" action="" onsubmit="createDatetimeString(datetimeInputId)" class="panel">
+			{% csrf_token %}
+            <div class="room-checkout-form-column-two">
+                <div class="fieldWrapper">
+                    {{ form.employee.errors }}
+                    <label for="{{ form.employee.id_for_label }}">Employee:</label>
+                    <div>
+                        {{ form.employee }}
+                    </div>
+                </div>
+                <div class="fieldWrapper">
+                    {{ form.student.errors }}
+                    <label for="{{ form.student.id_for_label }}">Student:</label>
+                    <div>
+                        {{ form.student }}
+                    </div>
+                </div>
+                <div class="fieldWrapper">
+                    {{ form.checkout_date.errors }}
+                    <input type="hidden" id="{{ form.checkout_date.id_for_label }}" name="{{ form.checkout_date.name }}" value="{% now "Y-m-d H:00:00" %}">
+                    <label for="dateInput">Date:</label>
+                    <div>
+                        <input type="date" id="dateInput" name="checkout_day" value="{% now "Y-m-d" %}"><br />
+                    </div>
+                </div>
+                <div>
+                    <label for="timeInput">Time:</label>
+                    <div>
+                        <input type="time" id="timeInput" name="checkout_time" value="{% now "H:00:00" %}">
+                    </div>
+                </div>
+			</div>
+			<div class="room-checkout-form-column-two">
+				<div>{{ form.non_field_errors }}</div>
+                <div class="fieldWrapper">
+                    {{ form.room.errors }}
+                    <label for="{{ form.room.id_for_label }}">Room:</label>
+                    <div>
+                        <input type="hidden" id="{{ form.room.id_for_label }}" name="{{ form.room.name }}" value="{{ form.room.value }}">
+                        {% for room in rooms %}
+                            <div id="{{ room.pk }}" class="room-option" onclick="roomSelect(this.id)">{{ room.name }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+		</form>
+	</div>
+	<div class="footer">
+			<button type="submit" form="roomCheckoutForm">
+					Submit <i class="fas fa-sign-in-alt"></i>
+			</button>
+	</div>
+</div>
