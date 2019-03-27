@@ -26,7 +26,7 @@ def attendants(request):
         ordering = '-{}'.format(ordering)
 
     # Splits the room checkout list into pages using GET data
-    checkouts_per_page = 25
+    checkouts_per_page = 50
     if order_by and direction:
         room_checkout_list = models.RoomCheckout.objects.all().order_by(ordering)
     else:
@@ -64,24 +64,51 @@ def attendants(request):
         'success': success,
     })
 
-# Allows attendants to create, view, and submit room checklists
+# Allows attendants to create, view, and submit room checklists.
 @login_required
 def checklists(request):
     # Determines whether or not a new checklist submission was successful.
     # This variable is checked in the template language to determine the color of the panel heading.
     success = 0
-    checklist_name = request.GET.get('name')
-    focused_checklist = None
-    task_list = None
 
-    checklist_templates = models.OpenCloseChecklist.objects.all()
+    # Allows user to change the sorting of the checklist table.
+    # Default is by date from newest checklist to oldest.
+    order_by = request.GET.get('order_by')
+    direction = request.GET.get('direction')
+    ordering = order_by
+
+    # Outputs checkout list in descending order
+    if direction == 'desc':
+        ordering = '-{}'.format(ordering)
+
+    # Splits the room checkout list into pages using GET data
+    checklists_per_page = 50
+    if order_by and direction:
+        checklist_instances_list = models.ChecklistInstance.objects.all().order_by(ordering)
+    else:
+        checklist_instances_list = models.ChecklistInstance.objects.all()
+    paginator = Paginator(checklist_instances_list, checklists_per_page)
+    page = request.GET.get('page')
+    checklist_instances = paginator.get_page(page)
+
+    # The name of the checklist template that was clicked on by the user.
+    checklist_template_name = request.GET.get('name')
+    # Checks get request for a checklist instance based on its pk
+    checklist_instance_primary = request.GET.get('checklist')
+    # Checks get request for all checklist instances from a certain month
+    checklist_instance_month = request.GET.get('month')
+    # Stores the checklist template item that was requested by the user, if it exists.
+    focused_template = None
+    focused_instance = None
+
+    checklist_templates = models.ChecklistTemplate.objects.all()
 
     # Uses a get request to print out the contents of a checklist
     if request.method == 'GET':
         # .filter().first() will return object or None if doesn't exist
-        focused_checklist = models.OpenCloseChecklist.objects.filter(name=checklist_name).first()
-        if focused_checklist:
-            task_list = focused_checklist.checklist_item.task.split(",")
+        focused_template = models.ChecklistTemplate.objects.filter(title=checklist_template_name).first()
+        focused_instance = models.ChecklistInstance.objects.filter(pk=checklist_instance_primary).first()
+
 
     #form = forms.RoomCheckoutForm()
 
@@ -96,8 +123,10 @@ def checklists(request):
 
     return TemplateResponse(request, 'cae_web_attendants/checklists.html', {
         'checklist_templates': checklist_templates,
-        'checklist_name': checklist_name,
-        'focused_checklist': focused_checklist,
-        'task_list': task_list,
+        'checklist_instances': checklist_instances,
+        'focused_template': focused_template,
+        'focused_instance': focused_instance,
+        'order_by': order_by,
+        'direction': direction,
         'success': success,
     })

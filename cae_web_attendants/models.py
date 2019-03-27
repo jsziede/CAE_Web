@@ -3,6 +3,7 @@ Models for CAE Web Attendants app.
 """
 from django.utils import timezone
 from django.db import models
+from django.db.models import F
 
 class RoomCheckout(models.Model):
     """
@@ -91,4 +92,4 @@ class ChecklistInstance(models.Model):
     class Meta:
         verbose_name = "Checklist Instance"
         verbose_name_plural = "Checklist Instances"
-        ordering = ('-date_completed',)
+        ordering = [F('date_completed').desc(nulls_first=True)]

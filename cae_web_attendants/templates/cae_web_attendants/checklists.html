@@ -1,7 +1,7 @@
 {% extends 'cae_web_core/main.html' %}
 {% load staticfiles%}
 
-{% block title_page_name %}Attendants |{% endblock title_page_name %}
+{% block title_page_name %}Attendant Checklists |{% endblock title_page_name %}
 
 {% block extra_styles %}
 {{ block.super }}
@@ -13,28 +13,176 @@
 
 {% block content %}
 	<h1>Welcome to the CAE Web Attendants Checklist page</h1>
-
-    <div>
-        <div style="float: left">
-            {% if checklist_templates %}
-            {% for checklist in checklist_templates %}
-            <a href="?name={{ checklist.name }}">{{ checklist.name }}</a><br />
-            {% endfor %}
-            {% else %}
-            <p>No checklists have been created yet.</p>
-            {% endif %}
+    <div class="panel primary">
+        <div class="header">Checklist Templates</div>
+        <div class="content" style="display: flex">
+            <div style="flex: 50%; flex-direction: column">
+                <p>Select a checklist to view its contents.</p>
+                {% if checklist_templates %}
+                {% for checklist in checklist_templates %}
+                <a href="?name={{ checklist.title }}">{{ checklist.title }}</a><br />
+                {% endfor %}
+                {% else %}
+                <p>No checklists have been created yet.</p>
+                {% endif %}
+            </div>
+            <div style="flex: 50%; flex-direction: column">
+                {% if focused_template %}
+                {% for task in focused_template.checklist_item.all %}
+                <p>{{ task.task }}</p>
+                {% endfor %}
+                {% endif %}
+            </div>
         </div>
-        <div style="float: right;">
-            {% if focused_checklist %}
-            {% for task in task_list %}
-            <p>{{ task }}</p>
-            {% endfor %}
-            {% else %}
-            <p>Select a checklist to view its contents.</p>
-            {% endif %}
-        </div>
+        <div class="footer"></div>
     </div>
-    <a href="#" style="clear: both; display: block">Create Checklist</a>
+    <a href="#">Create New Checklist Template</a>
+
+    {% if focused_instance %}
+    <div class="panel secondary">
+        <div class="header">Checklist Data</div>
+        <div class="content" style="display: flex">
+            <div style="flex: 50%; flex-direction: column">
+                <p><b>Name:</b> {{ focused_instance.title }}</p>
+                <p><b>Room:</b> {{ focused_instance.room }}</p>
+                <p><b>Created by:</b> {{ focused_instance.employee }}</p>
+                {% if focused_instance.date_completed %}
+                <p><b>Time Completed:</b> {{ focused_instance.date_completed }}</p>
+                {% else %}
+                <p><b>Not yet completed.</b></p>
+                {% endif %}
+            </div>
+            <div style="flex: 50%; flex-direction: column">
+                <p><b>Task list:</b></p>
+                {% for task in focused_instance.task.all %}
+                {% if task.completed is True %}
+                <p><i class="fas fa-check" style="color: green;"></i> {{ task.task }}</p>
+                {% else %}
+                <p><i class="fas fa-times" style="color: red;"></i> {{ task.task }}</p>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        <div class="footer"></div>
+    </div>
+    {% endif %}
+
+    {% if checklist_instances %}
+	<table>
+		<thead>
+			<tr>
+				<th colspan="3" class="table-caption-left">
+					Opened Checklists
+				</th>
+				<th class="table-caption-right">
+					<span class="step-links">
+						{% if checklist_instances.has_previous %}
+						<a class="button" href="?page=1{% if order_by %}&order_by={{ order_by }}{% endif %}{% if direction %}&direction={{ direction }}{% endif %}"><i class="fas fa-angle-double-left"></i></a>
+						<a class="button" href="?page={{ checklist_instances.previous_page_number }}{% if order_by %}&order_by={{ order_by }}{% endif %}{% if direction %}&direction={{ direction }}{% endif %}"><i class="fas fa-angle-left"></i></a>
+						{% else %}
+						<button><i class="fas fa-angle-double-left"></i></button>
+						<button><i class="fas fa-angle-left"></i></button>
+						{% endif %}
+
+						<span class="current">
+							{{ checklist_instances.number }} / {{ checklist_instances.paginator.num_pages }}
+						</span>
+
+						{% if checklist_instances.has_next %}
+						<a class="button" href="?page={{ checklist_instances.next_page_number }}{% if order_by %}&order_by={{ order_by }}{% endif %}{% if direction %}&direction={{ direction }}{% endif %}"><i class="fas fa-angle-right"></i></a>
+						<a class="button" href="?page={{ checklist_instances.paginator.num_pages }}{% if order_by %}&order_by={{ order_by }}{% endif %}{% if direction %}&direction={{ direction }}{% endif %}"><i class="fas fa-angle-double-right"></i></a>
+						{% else %}
+						<button><i class="fas fa-angle-right"></i></button>
+						<button><i class="fas fa-angle-double-right"></i></button>
+						{% endif %}
+					</span>
+				</th>
+			</tr>
+			<tr>
+				<th>
+					{% if order_by == "title" %}
+						{% if direction == "asc" %}
+							<a href="?order_by=title&direction=desc"><i class="fas fa-arrow-circle-up"> Title</i></a>
+						{% elif direction == "desc" %}
+							<a href="?order_by=title&direction=asc"><i class="fas fa-arrow-circle-down"> Title</i></a>
+						{% else %}
+							<a href="?order_by=title&direction=desc">Title</a>
+						{% endif %}
+					{% else %}
+						<a href="?order_by=title&direction=desc">Title</a>
+					{% endif %}
+				</th>
+				<th>
+					{% if order_by == "employee" %}
+						{% if direction == "asc" %}
+							<a href="?order_by=employee&direction=desc"><i class="fas fa-arrow-circle-up"> Employee</i></a>
+						{% elif direction == "desc" %}
+							<a href="?order_by=employee&direction=asc"><i class="fas fa-arrow-circle-down"> Employee</i></a>
+						{% else %}
+							<a href="?order_by=employee&direction=desc">Employee</a>
+						{% endif %}
+					{% else %}
+						<a href="?order_by=employee&direction=desc">Employee</a>
+					{% endif %}
+				</th>
+				<th>
+                    {% if order_by == "date_created" %}
+                        {% if direction == "asc" %}
+                            <a href="?order_by=date_created&direction=desc"><i class="fas fa-arrow-circle-up"> Date Created</i></a>
+                        {% elif direction == "desc" %}
+                            <a href="?order_by=date_created&direction=asc"><i class="fas fa-arrow-circle-down"> Date Created</i></a>
+                        {% else %}
+                            <a href="?order_by=date_created&direction=desc">Date Created</a>
+                        {% endif %}
+                    {% else %}
+                        <a href="?order_by=date_created&direction=desc">Date Created</a>
+                    {% endif %}
+                </th>
+                <th>
+                    {% if order_by == "date_completed" %}
+                        {% if direction == "asc" %}
+                            <a href="?order_by=date_completed&direction=desc"><i class="fas fa-arrow-circle-up"> Date Completed</i></a>
+                        {% elif direction == "desc" %}
+                            <a href="?order_by=date_completed&direction=asc"><i class="fas fa-arrow-circle-down"> Date Completed</i></a>
+                        {% else %}
+                            <a href="?order_by=date_completed&direction=asc">Date Completed</a>
+                        {% endif %}
+                    {% elif not order_by and not direction  %}
+                        <a href="?order_by=date_completed&direction=asc"><i class="fas fa-arrow-circle-down"> Date Completed</i></a>
+                    {% else %}
+                        <a href="?order_by=date_completed&direction=desc">Date Completed</a>
+                    {% endif %}
+                </th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for instance in checklist_instances %}
+			<tr>
+				<td>
+					<p><a href="?checklist={{ instance.pk }}">{{ instance.title }}</a></p>
+				</td>
+				<td>
+					<p>{{ instance.employee }}</p>
+				</td>
+				<td>
+					<p>{{ instance.date_created | date:"F jS, Y" }} @ {{ instance.date_created | date:"P" }}</p>
+                </td>
+                <td>
+                    {% if instance.date_completed %}
+                    <p>{{ instance.date_completed | date:"F jS, Y" }} @ {{ instance.date_completed | date:"P" }}</p>
+                    {% else %}
+                    <p style="color: red;">Incomplete</p>
+                    {% endif %}
+                </td>
+			</tr>
+			{% endfor %}
+		</tbody>
+    </table>
+    <p>Click a checklist's title to view more information about it.</p>
+	{% else %}
+	<p>Checklists will be shown here when started.</p>
+	{% endif %}
+
 {% endblock content %}
 
 {% block extra_scripts_body %}
