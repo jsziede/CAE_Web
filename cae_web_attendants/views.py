@@ -71,6 +71,39 @@ def checklists(request):
     # This variable is checked in the template language to determine the color of the panel heading.
     success = 0
 
+    # If user submitted a form
+    if request.method == 'POST':
+        # Gets form with filled out data from user
+        form = forms.ChecklistInstanceForm(request.POST)
+        
+        # If all form fields are valid
+        if form.is_valid():
+            # Gets the title of the template that the checklist was made from
+            checklist_title = form.cleaned_data['template'].title
+            # If the user input their own title for the checklist, then replace the inherited template title
+            if form.cleaned_data['title']:
+                checklist_title = form.cleaned_data['title']
+            # Create a new checklist instance using cleaned data from the form
+            checklist = models.ChecklistInstance(template = form.cleaned_data['template'],
+                room = form.cleaned_data['room'],
+                employee = form.cleaned_data['employee'],
+                title = checklist_title)
+            checklist.save()
+            # Gets the list of tasks that are used for the template
+            tasks = form.cleaned_data['template'].checklist_item.all()
+            # For each task
+            for task in tasks:
+                # Inserts a new ChecklistItem with the same title as the template task
+                new_task = models.ChecklistItem(task = task.task, completed = False)
+                new_task.save()
+                # Add new task to the checklist instance
+                checklist.task.add(new_task.pk)
+            # Make the form become green
+            success = 1
+        # If form failed to validate then the form becomes red
+        else:
+            success = -1
+
     # The name of the checklist template that was clicked on by the user.
     checklist_template_name = request.GET.get('template')
     # Checks get request for a checklist instance based on its pk
@@ -125,39 +158,6 @@ def checklists(request):
         # .filter().first() will return object or None if doesn't exist
         focused_template = models.ChecklistTemplate.objects.filter(pk=checklist_template_name).first()
         focused_instance = models.ChecklistInstance.objects.filter(pk=checklist_instance_primary).first()
-
-    # If user submitted a form
-    if request.method == 'POST':
-        # Gets form with filled out data from user
-        form = forms.ChecklistInstanceForm(request.POST)
-        
-        # If all form fields are valid
-        if form.is_valid():
-            # Gets the title of the template that the checklist was made from
-            checklist_title = form.cleaned_data['template'].title
-            # If the user input their own title for the checklist, then replace the inherited template title
-            if form.cleaned_data['title']:
-                checklist_title = form.cleaned_data['title']
-            # Create a new checklist instance using cleaned data from the form
-            checklist = models.ChecklistInstance(template = form.cleaned_data['template'],
-                room = form.cleaned_data['room'],
-                employee = form.cleaned_data['employee'],
-                title = checklist_title)
-            checklist.save()
-            # Gets the list of tasks that are used for the template
-            tasks = form.cleaned_data['template'].checklist_item.all()
-            # For each task
-            for task in tasks:
-                # Inserts a new ChecklistItem with the same title as the template task
-                new_task = models.ChecklistItem(task = task.task, completed = False)
-                new_task.save()
-                # Add new task to the checklist instance
-                checklist.task.add(new_task.pk)
-            # Make the form become green
-            success = 1
-        # If form failed to validate then the form becomes red
-        else:
-            success = -1
 
     return TemplateResponse(request, 'cae_web_attendants/checklists.html', {
         'checklist_templates': checklist_templates,
