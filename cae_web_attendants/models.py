@@ -92,4 +92,4 @@ class ChecklistInstance(models.Model):
     class Meta:
         verbose_name = "Checklist Instance"
         verbose_name_plural = "Checklist Instances"
-        ordering = [F('date_completed').desc(nulls_first=True)]
+        ordering = [F('date_completed').desc(nulls_first=True), ('-date_created')]
