@@ -1,0 +1,25 @@
+[
+    {
+      "model": "cae_web_attendants.ChecklistInstance",
+      "pk": 1,
+      "fields": {
+        "room": "C-224",
+        "checklist_item": [1,2,3,4,5],
+        "title": "General Open",
+        "date_created": "2019-03-20T12:00:00.817Z",
+        "date_modified": "2019-03-20T12:00:00.817Z"
+      }
+    },
+    {
+      "model": "cae_web_attendants.ChecklistInstance",
+      "pk": 2,
+      "fields": {
+        "checklist_item": [6,7,6,9,10,11,12,13,14,15,16],
+        "title": "General Close",
+        "room": "C-208",
+        "date_created": "2019-03-20T12:00:00.817Z",
+        "date_modified": "2019-03-20T12:00:00.817Z"
+      }
+    }
+  ]
+      
