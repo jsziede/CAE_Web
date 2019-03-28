@@ -75,6 +75,9 @@ class RoomEventAdmin(admin.ModelAdmin):
     # Read only fields for admin detail view.
     readonly_fields = ('date_created', 'date_modified',)
 
+    # Allow filtering by event start
+    date_hierarchy = 'start_time'
+
     # Organize fieldsets for admin detail view.
     fieldsets = (
         (None, {
