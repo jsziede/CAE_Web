@@ -32,6 +32,7 @@ class PayPeriod extends React.Component {
                 shifts.push(
                     <PayPeriodRow
                         key={ shift.pk }
+                        pk={ shift.pk }
                         clock_in={ shift.fields['clock_in'] }
                         clock_out={ shift.fields['clock_out'] }
                         current_shift_hours={ this.props.current_shift_hours }

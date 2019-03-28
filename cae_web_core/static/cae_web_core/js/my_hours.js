@@ -168,6 +168,7 @@ var PayPeriod = function (_React$Component) {
                 this.props.shifts.forEach(function (shift) {
                     shifts.push(React.createElement(_pay_period_row2.default, {
                         key: shift.pk,
+                        pk: shift.pk,
                         clock_in: shift.fields['clock_in'],
                         clock_out: shift.fields['clock_out'],
                         current_shift_hours: _this2.props.current_shift_hours,
@@ -345,6 +346,8 @@ var PayPeriodRow = function (_React$Component) {
                     shift_minutes = this.props.current_shift_minutes;
                 }
                 shift_time_display = shift_hours + ' Hours ' + shift_minutes + ' Minutes';
+
+                var shift_url = '/caeweb/employee/shifts/' + this.props.pk;
             } else {
                 shift_time_display = 'N/A';
             }
@@ -357,24 +360,20 @@ var PayPeriodRow = function (_React$Component) {
                     null,
                     React.createElement(
                         'a',
-                        { href: '' },
+                        { href: shift_url },
                         clock_in.toLocaleDateString('en-US', this.props.date_string_options)
                     )
                 ) : React.createElement(
                     'td',
                     null,
-                    React.createElement(
-                        'a',
-                        { href: '' },
-                        'N/A'
-                    )
+                    'N/A'
                 ),
-                clock_out ? React.createElement(
+                clock_in ? clock_out ? React.createElement(
                     'td',
                     null,
                     React.createElement(
                         'a',
-                        { href: '' },
+                        { href: shift_url },
                         clock_out.toLocaleDateString('en-US', this.props.date_string_options)
                     )
                 ) : React.createElement(
@@ -382,18 +381,26 @@ var PayPeriodRow = function (_React$Component) {
                     null,
                     React.createElement(
                         'a',
-                        { href: '' },
+                        { href: shift_url },
                         'N/A'
                     )
+                ) : React.createElement(
+                    'td',
+                    null,
+                    'N/A'
                 ),
-                React.createElement(
+                clock_in ? React.createElement(
                     'td',
                     null,
                     React.createElement(
                         'a',
-                        { href: '' },
+                        { href: shift_url },
                         shift_time_display
                     )
+                ) : React.createElement(
+                    'td',
+                    null,
+                    shift_time_display
                 )
             );
         }

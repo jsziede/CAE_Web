@@ -43,6 +43,8 @@ class PayPeriodRow extends React.Component {
                 shift_minutes = this.props.current_shift_minutes;
             }
             shift_time_display = shift_hours + ' Hours ' + shift_minutes + ' Minutes';
+
+            var shift_url = '/caeweb/employee/shifts/' + this.props.pk;
         } else {
             shift_time_display = 'N/A';
         }
@@ -50,18 +52,27 @@ class PayPeriodRow extends React.Component {
         return (
             <tr>
                 { clock_in ? (
-                        <td><a href=''>{ clock_in.toLocaleDateString('en-US', this.props.date_string_options) }</a></td>
+                        <td><a href={ shift_url }>{ clock_in.toLocaleDateString('en-US', this.props.date_string_options) }</a></td>
                     ) : (
-                        <td><a href=''>N/A</a></td>
+                        <td>N/A</td>
                     )
                 }
-                { clock_out ? (
-                        <td><a href=''>{ clock_out.toLocaleDateString('en-US', this.props.date_string_options) }</a></td>
+                { clock_in ? (
+                        clock_out ? (
+                            <td><a href={ shift_url }>{ clock_out.toLocaleDateString('en-US', this.props.date_string_options) }</a></td>
+                        ) : (
+                            <td><a href={ shift_url }>N/A</a></td>
+                        )
                     ) : (
-                        <td><a href=''>N/A</a></td>
+                        <td>N/A</td>
                     )
                 }
-                <td><a href=''>{ shift_time_display }</a></td>
+                { clock_in ? (
+                        <td><a href={ shift_url }>{ shift_time_display }</a></td>
+                    ) : (
+                        <td>{ shift_time_display }</td>
+                    )
+                }
             </tr>
         )
     }
