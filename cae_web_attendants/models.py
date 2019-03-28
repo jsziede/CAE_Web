@@ -1,9 +1,14 @@
 """
 Models for CAE Web Attendants app.
 """
+
 from django.utils import timezone
 from django.db import models
 from django.db.models import F
+
+
+MAX_LENGTH = 255
+
 
 class RoomCheckout(models.Model):
     """
@@ -25,8 +30,9 @@ class RoomCheckout(models.Model):
         verbose_name = "Room Checkout"
         verbose_name_plural = "Room Checkouts"
         ordering = ('-checkout_date',)
+        unique_together = ('room', 'checkout_date',)
 
-# Acts as a template for room checklists
+
 class ChecklistTemplate(models.Model):
     """
     Generic template for attendant checklists to inherit. A template should not be edited after creation.
@@ -52,12 +58,13 @@ class ChecklistTemplate(models.Model):
         verbose_name_plural = "Checklist Templates"
         ordering = ('title',)
 
+
 class ChecklistItem(models.Model):
     """
     Each individual task on an attendant checklist.
     """
     # Fields specific to ChecklistItem model
-    task = models.TextField()
+    task = models.CharField(max_length=MAX_LENGTH)#, unique=True)
     completed = models.BooleanField(default=False)
 
     # Self-setting/Non-user-editable fields.
@@ -68,10 +75,12 @@ class ChecklistItem(models.Model):
         verbose_name = "Checklist Item"
         verbose_name_plural = "Checklist Items"
         ordering = ('task',)
-        
+
+
 class ChecklistInstance(models.Model):
     """
-    An instance of an attendant checklist that inherits from a checklist template. This is what the attendants fill out and submit on a daily basis.
+    An instance of an attendant checklist that inherits from a checklist template.
+    This is what the attendants fill out and submit on a daily basis.
     """
     # Foreign keys
     template = models.ForeignKey('ChecklistTemplate', on_delete=models.CASCADE)

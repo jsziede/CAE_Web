@@ -84,7 +84,7 @@ class Command(BaseCommand):
             try_create_model = True
 
             # Loop attempt until 3 fails or model is created.
-            # Model creation may fail due to randomness of shift values and overlapping shifts being invalid.
+            # Model creation may fail due to randomness of shift values and overlapping shifts per user being invalid.
             while try_create_model:
                 # Get User.
                 index = randint(0, len(users) - 1)
@@ -106,6 +106,7 @@ class Command(BaseCommand):
                 if clock_out > pay_period.get_end_as_datetime():
                     clock_out = pay_period.get_end_as_datetime()
 
+                # Attempt to create model seed.
                 try:
                     models.EmployeeShift.objects.create(
                         employee=user,
@@ -115,13 +116,14 @@ class Command(BaseCommand):
                     )
                     try_create_model = False
                 except ValidationError:
-                    # Likely due to overlapping shift times. Nothing can be done about this without removing the random
-                    # generation aspect. If we want that, we should use fixtures instead.
+                    # Seed generation failed. Nothing can be done about this without removing the random generation
+                    # aspect. If we want that, we should use fixtures instead.
                     fail_count += 1
 
-                    # If failed 3 times, give up model creation and move on to next user/pay_period combination.
-                    if fail_count > 3:
+                    # If failed 3 times, give up model creation and move on to next model, to prevent infinite loops.
+                    if fail_count > 2:
                         try_create_model = False
+                        print('Failed to generate employee shift seed instance.')
 
         print('Populated employee shift models.')
 
@@ -136,29 +138,65 @@ class Command(BaseCommand):
         pre_initialized_count = len(models.RoomEvent.objects.all())
 
         # Get all related models.
-        rooms = cae_home_models.Room.objects.all()
+        complex_query = (Q(name='Breakout Room') | Q(name='Classroom') | Q(name='Computer Classroom'))
+        room_types = cae_home_models.RoomType.objects.filter(complex_query)
+        rooms = cae_home_models.Room.objects.filter(room_type__in=room_types)
+
+        server_timezone = pytz.timezone('America/Detroit')
 
         # Generate models equal to model count.
         for i in range(model_count - pre_initialized_count):
-            # Get Room.
-            index = randint(0, len(rooms) - 1)
-            room = rooms[index]
+            fail_count = 0
+            try_create_model = True
 
-            # Calculate start/end times.
-            start_time = timezone.make_aware(faker_factory.date_time_this_month())
-            end_time = start_time + timezone.timedelta(hours=randint(1, 8))
+            # Loop attempt until 3 fails or model is created.
+            # Model creation may fail due to randomness of event times and overlapping times per room being invalid.
+            while try_create_model:
+                # Get Room.
+                index = randint(0, len(rooms) - 1)
+                room = rooms[index]
 
-            # Generate description.
-            sentence_count = randint(1, 5)
-            description = faker_factory.paragraph(nb_sentences=sentence_count)
+                # Calculate start/end times.
+                start_time = pytz.timezone('America/Detroit').localize(datetime.datetime.now())
+                start_time = start_time - timezone.timedelta(days=randint(1, 30))
+                start_time = start_time.replace(
+                    hour=randint(9, 20),
+                    minute=randint(0, 59),
+                )
+                end_time = start_time + timezone.timedelta(hours=randint(1, 4), minutes=randint(0, 59))
 
-            models.RoomEvent.objects.create(
-                room=room,
-                event_type=randint(0, 1),
-                start_time=start_time,
-                end_time=end_time,
-                title=faker_factory.sentence(nb_words=2)[:-1],
-                description=description,
-                rrule='',
-            )
+                # Handle for a random end time that's past allowed schedule display.
+                if end_time.hour <= 7:
+                    end_time = end_time - timezone.timedelta(days=1)
+                if end_time.hour >= 22 or end_time.hour <= 7:
+                    end_time = end_time.replace(
+                        hour=21,
+                    )
+
+                # Generate description.
+                sentence_count = randint(1, 5)
+                description = faker_factory.paragraph(nb_sentences=sentence_count)
+
+                # Attempt to create model seed.
+                try:
+                    models.RoomEvent.objects.create(
+                        room=room,
+                        event_type=randint(0, 1),
+                        start_time=start_time,
+                        end_time=end_time,
+                        title=faker_factory.sentence(nb_words=2)[:-1],
+                        description=description,
+                        rrule='',
+                    )
+                    try_create_model = False
+                except ValidationError:
+                    # Seed generation failed. Nothing can be done about this without removing the random generation
+                    # aspect. If we want that, we should use fixtures instead.
+                    fail_count += 1
+
+                    # If failed 3 times, give up model creation and move on to next model, to prevent infinite loops.
+                    if fail_count > 2:
+                        try_create_model = False
+                        print('Failed to generate room event seed instance.')
+
         print('Populated room event models.')

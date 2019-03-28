@@ -72,6 +72,7 @@ class WorkLogSet(models.Model):
     class Meta:
         verbose_name = "Log Set"
         verbose_name_plural = "Log Sets"
+        unique_together = ('group', 'timeframe_type',)
 
     def __str__(self):
         return '{0}'.format(self.description)

@@ -59,7 +59,6 @@ class Command(BaseCommand):
         """
         Create Room Checkout models.
         """
-
         # Count number of models already created.
         pre_initialized_count = len(models.RoomCheckout.objects.all())
 
@@ -70,36 +69,50 @@ class Command(BaseCommand):
 
         # Generate models equal to model count.
         for i in range(model_count - pre_initialized_count):
-            # Get employee, room, and student
-            index = randint(0, len(employees) - 1)
-            employee = employees[index]
+            fail_count = 0
+            try_create_model = True
 
-            index = randint(0, len(rooms) - 1)
-            room = rooms[index]
+            # Loop attempt until 3 fails or model is created.
+            # Model creation may fail due to randomness of event times and overlapping times per room being invalid.
+            while try_create_model:
+                # Get employee.
+                index = randint(0, len(employees) - 1)
+                employee = employees[index]
 
-            index = randint(0, len(students) - 1)
-            student = students[index]
+                # Get room.
+                index = randint(0, len(rooms) - 1)
+                room = rooms[index]
 
-            # Generate random date.
-            day = randint(1, 25)
-            month = randint(1, 12)
-            year = randint(2015, 2018)
-            hour = randint(0, 23)
-            minute = randint(0, 3) * 15
-            second = 0
-            random_date = datetime.datetime(year, month, day, hour, minute, second, tzinfo=pytz.UTC)
-            
-            # Push
-            try:
-                models.RoomCheckout.objects.create(
-                    employee=employee,
-                    student=student,
-                    room=room,
-                    checkout_date=random_date,
-                )
-            except ValidationError:
-                print('Failed to populate room checkout models.')
-                pass
+                # Get student.
+                index = randint(0, len(students) - 1)
+                student = students[index]
+
+                # Generate random date.
+                day = randint(1, 25)
+                month = randint(1, 12)
+                year = randint(2015, 2018)
+                hour = randint(0, 23)
+                minute = randint(0, 3) * 15
+                second = 0
+                random_date = datetime.datetime(year, month, day, hour, minute, second, tzinfo=pytz.UTC)
+
+                # Push
+                try:
+                    models.RoomCheckout.objects.create(
+                        employee=employee,
+                        student=student,
+                        room=room,
+                        checkout_date=random_date,
+                    )
+                    try_create_model = False
+                except ValidationError:
+                    # Seed generation failed. Nothing can be done about this without removing the random generation
+                    # aspect. If we want that, we should use fixtures instead.
+                    fail_count += 1
+
+                    # If failed 3 times, give up model creation and move on to next model, to prevent infinite loops.
+                    if fail_count > 2:
+                        try_create_model = False
+                        print('Failed to generate room checkout seed instance.')
 
         print('Populated room checkout models.')
-        

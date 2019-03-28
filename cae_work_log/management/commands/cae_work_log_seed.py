@@ -81,24 +81,39 @@ class Command(BaseCommand):
 
         # Generate models equal to model count.
         for i in range(model_count - pre_initialized_count):
-            # Get User.
-            index = randint(0, len(users) - 1)
-            user = users[index]
+            fail_count = 0
+            try_create_model = True
 
-            # Get date.
-            entry_date = faker_factory.past_datetime(start_date='-{0}d'.format(randint(0, 735)))
+            # Loop attempt until 3 fails or model is created.
+            # Model creation may fail due to randomness of log dates and overlapping logs per user being invalid.
+            while try_create_model:
+                # Get User.
+                index = randint(0, len(users) - 1)
+                user = users[index]
 
-            # Generate description.
-            sentence_count = randint(1, 5)
-            description = faker_factory.paragraph(nb_sentences=sentence_count)
+                # Get date.
+                entry_date = faker_factory.past_datetime(start_date='-{0}d'.format(randint(0, 735)))
 
-            try:
-                models.WorkLogEntry.objects.create(
-                    user=user,
-                    entry_date=entry_date,
-                    description=description,
-                )
-            except ValidationError:
-                pass
+                # Generate description.
+                sentence_count = randint(1, 5)
+                description = faker_factory.paragraph(nb_sentences=sentence_count)
+
+                # Attempt to create model seed.
+                try:
+                    models.WorkLogEntry.objects.create(
+                        user=user,
+                        entry_date=entry_date,
+                        description=description,
+                    )
+                    try_create_model = False
+                except ValidationError:
+                    # Seed generation failed. Nothing can be done about this without removing the random generation
+                    # aspect. If we want that, we should use fixtures instead.
+                    fail_count += 1
+
+                    # If failed 3 times, give up model creation and move on to next model, to prevent infinite loops.
+                    if fail_count > 2:
+                        try_create_model = False
+                        print('Failed to generate log entry seed instance.')
 
         print('Populated log entry models.')

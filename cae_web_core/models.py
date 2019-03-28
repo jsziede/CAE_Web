@@ -18,8 +18,8 @@ class PayPeriod(models.Model):
     An instance of a two week pay period.
     """
     # Model fields.
-    date_start = models.DateField()
-    date_end = models.DateField(blank=True)
+    date_start = models.DateField(unique=True)
+    date_end = models.DateField(blank=True, unique=True)
 
     # Self-setting/Non-user-editable fields.
     date_created = models.DateTimeField(auto_now_add=True)
@@ -88,6 +88,10 @@ class EmployeeShift(models.Model):
         verbose_name = "Employee Shift"
         verbose_name_plural = "Employee Shifts"
         ordering = ('clock_in', 'clock_out',)
+        unique_together = (
+            ('employee', 'clock_in',),
+            ('employee', 'clock_out',),
+        )
 
     def __str__(self):
         return '{0}: {1} to {2}'.format(self.employee, self.clock_in, self.clock_out)
@@ -234,6 +238,10 @@ class RoomEvent(models.Model):
         verbose_name = "Room Event"
         verbose_name_plural = "Room Events"
         ordering = ('room', 'event_type', 'start_time', 'end_time',)
+        unique_together = (
+            ('room', 'start_time',),
+            ('room', 'end_time',)
+        )
 
     def __str__(self):
         return '{0} {1}: {2} - {3}, {4}'.format(
@@ -250,7 +258,8 @@ class RoomEvent(models.Model):
 
 
 class UploadedSchedule(models.Model):
-    """Represents an uploaded schedule.
+    """
+    Represents an uploaded schedule instance.
 
     Used to delete all events associated with a schedule.
     """
