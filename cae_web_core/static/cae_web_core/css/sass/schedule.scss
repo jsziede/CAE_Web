@@ -122,7 +122,7 @@ $light-border-color: $color-grey-70;
 
     // Different modes affect some of the grid placement
     .schedule-grid.mode-day {
-        grid-template-rows: 45px;
+        grid-template-rows: 2.5em;
         .schedule-resource {
             grid-row: 1;
         }
@@ -130,7 +130,7 @@ $light-border-color: $color-grey-70;
 
     .schedule-grid.mode-week {
         grid-auto-columns: minmax(25px, 1fr);
-        grid-template-rows: 15px 80px;
+        grid-template-rows: 1.5em 5em;
         .schedule-header-spacer {
             grid-row-end: span 2;
         }
@@ -143,11 +143,12 @@ $light-border-color: $color-grey-70;
 
             .vertical {
                 // These happen to make nicely aligned vertical text.
-                // Only found through trial and error.
-                transform: rotate(-90deg);
-                transform-origin: center;
-                height: 80px;
-                width: 110px;
+                // https://stackoverflow.com/a/47945825
+                writing-mode: vertical-rl;
+                transform: rotate(180deg);
+                position: absolute; // used to pull text to the bottom
+                bottom: 2px;
+                left: 0;
             }
         }
 
