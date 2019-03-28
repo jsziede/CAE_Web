@@ -223,7 +223,7 @@ class RoomEvent(models.Model):
     end_time = models.DateTimeField(blank=True, null=True)
     title = models.CharField(max_length=MAX_LENGTH)
     description = models.TextField(blank=True)
-    rrule = models.TextField(   # Recurrence rule?
+    rrule = models.TextField(   # Recurrence rule
         blank=True,
         help_text="Note: DTSTART and UNTIL will be replaced by Start Time and End Time, respectively."
     )
@@ -239,8 +239,8 @@ class RoomEvent(models.Model):
         verbose_name_plural = "Room Events"
         ordering = ('room', 'event_type', 'start_time', 'end_time',)
         unique_together = (
-            ('room', 'start_time',),
-            ('room', 'end_time',)
+            ('room', 'start_time', 'rrule'),
+            ('room', 'end_time', 'rrule'),
         )
 
     def __str__(self):
