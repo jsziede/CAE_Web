@@ -248,6 +248,25 @@ class RoomEvent(models.Model):
             self.room, self.TYPE_CHOICES[self.event_type][1], self.start_time, self.end_time, self.title,
         )
 
+    def clean(self, *args, **kwargs):
+        """
+        Verify there are no overlapping events.
+        """
+        if not self.rrule:
+            # Verify no event is within start and end
+            non_rrule_events = RoomEvent.objects.filter(
+                start_time__lt=self.end_time,
+                end_time__gt=self.start_time,
+                rrule='',
+            )
+            # TODO: Check rrule events
+            if non_rrule_events.exists():
+                raise ValidationError("Room Events can't overlap.")
+        else:
+            # Verify no event falls on an event from our rrule
+            pass # TODO: evaluate the rrule, and check
+        return super().clean(*args, **kwargs)
+
     def save(self, *args, **kwargs):
         """
         Modify model save behavior.
