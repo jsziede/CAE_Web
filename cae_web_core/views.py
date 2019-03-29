@@ -39,18 +39,18 @@ def populate_pay_periods():
     the pay period changes over.
     """
     pay_period_found = True
-    server_timezone = pytz.timezone('UTC')
     local_timezone = pytz.timezone('America/Detroit')
-    current_time = timezone.now().astimezone(server_timezone)
-    plus_1_time = current_time + timezone.timedelta(days=14)
+    # Get the current local date on campus
+    current_date = timezone.now().astimezone(local_timezone).date()
+    plus_1_date = current_date + datetime.timedelta(days=14)
 
     # Check for current pay period.
     try:
-        models.PayPeriod.objects.get(date_start__lte=current_time, date_end__gte=current_time)
+        models.PayPeriod.objects.get(date_start__lte=current_date, date_end__gte=current_date)
 
         # Check for current pay period + 1.
         try:
-            models.PayPeriod.objects.get(date_start__lte=plus_1_time, date_end__gte=plus_1_time)
+            models.PayPeriod.objects.get(date_start__lte=plus_1_date, date_end__gte=plus_1_date)
         except ObjectDoesNotExist:
             pay_period_found = False
     except ObjectDoesNotExist:
@@ -65,16 +65,12 @@ def populate_pay_periods():
 
         # If no pay periods found, manually create first one at 5-25-2015.
         if last_pay_period is None:
-            # Get desired start date from string.
-            unaware_date = datetime.datetime.strptime('2015 05 25 00 00 00', '%Y %m %d %H %M %S')
-            local_date = local_timezone.localize(unaware_date)
-            last_pay_period = models.PayPeriod.objects.create(date_start=local_date)
+            last_pay_period = models.PayPeriod.objects.create(date_start=datetime.date(2015, 5, 25))
 
         # Continue until pay_period + 1 is created.
-        while not ((last_pay_period.get_start_as_datetime() < plus_1_time) and (last_pay_period.get_end_as_datetime() > plus_1_time)):
-            utc_date = last_pay_period.get_start_as_datetime().astimezone(server_timezone) + timezone.timedelta(14)
-            local_date = utc_date.astimezone(local_timezone)
-            last_pay_period = models.PayPeriod.objects.create(date_start=local_date)
+        while not ((last_pay_period.date_start < plus_1_date) and (last_pay_period.date_end > plus_1_date)):
+            next_start = last_pay_period.date_start + datetime.timedelta(days=14)
+            last_pay_period = models.PayPeriod.objects.create(date_start=next_start)
 
 #endregion Standard Methods
 
@@ -322,7 +318,7 @@ def room_schedule(request, room_type_slug):
         form = forms.RoomEventForm(request.POST, instance=instance)
         if form.is_valid():
             form.save()
-            messages.success(request, "Event updated")
+            messages.success(request, "Event updated" if instance else "Event created")
             return redirect(reverse('cae_web_core:room_schedule', args=[room_type_slug]) + date_param)
         else:
             messages.error(request, "There were errors updating the event.")

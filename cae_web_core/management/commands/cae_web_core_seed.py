@@ -68,7 +68,7 @@ class Command(BaseCommand):
         pre_initialized_count = len(models.EmployeeShift.objects.all())
 
         # Get all related models.
-        date_holder = timezone.now()
+        date_holder = timezone.now().date()
         complex_query = (
             (
                 Q(groups__name='CAE Attendant') | Q(groups__name='CAE Admin') | Q(groups__name='CAE Programmer')

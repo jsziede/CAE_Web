@@ -129,7 +129,8 @@ class MyHoursConsumer(AsyncJsonWebsocketConsumer):
 
         # Validate passed pk.
         if pay_period_pk is None or not isinstance(pay_period_pk, int):
-            pay_period_pk = await self._get_current_pay_period_model_pk(timezone.now())
+            current_date = timezone.now().date() # Assuming settings.TIME_ZONE is America/Detroit
+            pay_period_pk = await self._get_current_pay_period_model_pk(current_date)
 
         # Validation for pk going below 0 or above model count.
         pay_period_count = await self._get_pay_period_model_count()
@@ -186,20 +187,20 @@ class MyHoursConsumer(AsyncJsonWebsocketConsumer):
         Submits shift for user at current time.
         """
         # Update current shift.
-        current_time = timezone.now()
-        pay_period = await self._get_current_pay_period_model(current_time)
+        current_date = timezone.now().date() # Assuming settings.TIME_ZONE is America/Detroit
+        pay_period = await self._get_current_pay_period_model(current_date)
         await self._update_employee_shift_model(pay_period, timezone.now())
 
         # Refresh pay period data and resend to user.
         await self._get_pay_period_data(content)
 
     @database_sync_to_async
-    def _get_current_pay_period_model(self, current_time):
-        return models.PayPeriod.objects.get(date_start__lte=current_time, date_end__gte=current_time)
+    def _get_current_pay_period_model(self, current_date):
+        return models.PayPeriod.objects.get(date_start__lte=current_date, date_end__gte=current_date)
 
     @database_sync_to_async
-    def _get_current_pay_period_model_pk(self, current_time):
-        return models.PayPeriod.objects.get(date_start__lte=current_time, date_end__gte=current_time).pk
+    def _get_current_pay_period_model_pk(self, current_date):
+        return models.PayPeriod.objects.get(date_start__lte=current_date, date_end__gte=current_date).pk
 
     @database_sync_to_async
     def _get_pay_period_model_count(self):

@@ -27,7 +27,7 @@ class PayPeriodTests(TestCase):
     def setUpTestData(cls):
         populate_pay_periods()
 
-        cls.date_start = datetime.datetime.now().date()
+        cls.date_start = timezone.now().date()
         midnight = datetime.time(0, 0, 0, 0, pytz.timezone('America/Detroit'))
         start_datetime = datetime.datetime.combine(cls.date_start, midnight)
         cls.date_end = (start_datetime + timezone.timedelta(days=13)).date()
@@ -425,7 +425,7 @@ class CAEWebCoreMiscTests(TestCase):
             self.assertEqual(first_pay_period.date_end, date_end)
 
             # Test current pay period.
-            date_start = datetime.datetime.now().date()
+            date_start = timezone.now().date()
             current_pay_period = models.PayPeriod.objects.get(date_start__lte=date_start, date_end__gte=date_start)
             self.assertIsNotNone(current_pay_period)
             self.assertIsNotNone(current_pay_period.date_start)
