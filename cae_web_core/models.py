@@ -258,6 +258,8 @@ class RoomEvent(models.Model):
                 start_time__lt=self.end_time,
                 end_time__gt=self.start_time,
                 rrule='',
+            ).exclude(
+                pk=self.pk,
             )
             # TODO: Check rrule events
             if non_rrule_events.exists():
