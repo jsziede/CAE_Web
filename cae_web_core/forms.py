@@ -27,6 +27,20 @@ class EmployeeShiftForm(forms.ModelForm):
             'clock_in',
             'clock_out',
         }
+        widgets = {
+            'clock_in': forms.widgets.SplitDateTimeWidget(
+                date_attrs={'type': 'date'},
+                time_attrs={'type': 'time'},
+            ),
+            'clock_out': forms.widgets.SplitDateTimeWidget(
+                date_attrs={'type': 'date'},
+                time_attrs={'type': 'time'},
+            ),
+        }
+        field_classes = {
+            'clock_in': forms.SplitDateTimeField,
+            'clock_out': forms.SplitDateTimeField,
+        }
 
 
 class RoomEventForm(forms.ModelForm):
