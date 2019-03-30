@@ -46,13 +46,7 @@ var createSchedule = function(container) {
 
     // Send message to socket.
     socket.onopen = function(event) {
-        socket.send(JSON.stringify({
-            'action': ACTION_GET_EVENTS,
-            'start_time': start.format(),
-            'end_time': end.format(),
-            'room_type_slug': roomTypeSlug,
-            'notify': true,
-        }));
+        changeDate(start);
     };
 
     socket.addEventListener('message', (message) => {
@@ -272,6 +266,12 @@ var createSchedule = function(container) {
 
     function changeDate(dateString) {
         var inputDate = moment(dateString)
+        if (mode == 'week') {
+            // convert inputDate to earliest Sunday
+            while (inputDate.isoWeekday() != 7) {
+                inputDate.subtract(1, 'days');
+            }
+        }
         // .clone().startOf('day') strips the time for a more accurate day diff
         var daysDiff = inputDate.clone().startOf('day').diff(start.clone().startOf('day'), 'days');
         start.add(daysDiff, 'days');
@@ -289,6 +289,24 @@ var createSchedule = function(container) {
           'room_type_slug': roomTypeSlug,
           'notify': true,
         }))
+
+        if (mode == 'week') {
+            // Update headers
+            var weekday = start.clone();
+            $('.schedule-weekday[data-day="7"]').html("Sun " + weekday.format("M/D"));
+            weekday.add(1, "days");
+            $('.schedule-weekday[data-day="1"]').html("Mon " + weekday.format("M/D"));
+            weekday.add(1, "days");
+            $('.schedule-weekday[data-day="2"]').html("Tue " + weekday.format("M/D"));
+            weekday.add(1, "days");
+            $('.schedule-weekday[data-day="3"]').html("Wed " + weekday.format("M/D"));
+            weekday.add(1, "days");
+            $('.schedule-weekday[data-day="4"]').html("Thu " + weekday.format("M/D"));
+            weekday.add(1, "days");
+            $('.schedule-weekday[data-day="5"]').html("Fri " + weekday.format("M/D"));
+            weekday.add(1, "days");
+            $('.schedule-weekday[data-day="6"]').html("Sat " + weekday.format("M/D"));
+        }
     }
 
     function onBtnTodayClicked(event) {
@@ -296,14 +314,16 @@ var createSchedule = function(container) {
     }
 
     function onBtnPrevClicked(event) {
-        var current = start.clone()
-        current.subtract(1, 'days');
+        var current = start.clone();
+        var days = (mode == 'week') ? 7 : 1;
+        current.subtract(days, 'days');
         changeDate(current.toDate());
     }
 
     function onBtnNextClicked(event) {
-        var current = start.clone()
-        current.add(1, 'days');
+        var current = start.clone();
+        var days = (mode == 'week') ? 7 : 1;
+        current.add(days, 'days');
         changeDate(current.toDate());
     }
 
