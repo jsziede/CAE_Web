@@ -199,6 +199,8 @@ class EmployeeShift(models.Model):
         return (hours, minutes, seconds)
 
 
+# TODO: Create Abstract class for events
+# TODO: Create an EmployeeSchedule model that uses that base class
 class RoomEvent(models.Model):
     """
     A schedule "event" for a room. IE: The room is reserved for a class, meeting, etc.
@@ -206,9 +208,12 @@ class RoomEvent(models.Model):
     # Preset field choices.
     TYPE_CLASS = 0
     TYPE_EVENT = 1
+    TYPE_MAINTENANCE = 2
+    # TODO: Create EventType Model so admins can set a color for the event.
     TYPE_CHOICES = (
         (TYPE_CLASS, "Class"),
         (TYPE_EVENT, "Event"),
+        (TYPE_MAINTENANCE, "Maintenance"),
     )
 
     # Relationship keys.
