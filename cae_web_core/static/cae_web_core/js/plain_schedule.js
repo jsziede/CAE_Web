@@ -247,7 +247,8 @@ var createSchedule = function(container) {
         var eventDivs = '';
         for (var eventId in processedEvents) {
             const data = processedEvents[eventId];
-            const style = `grid-area: ${data.rowStart} / ${data.column} / span ${data.span15Min} / span ${data.columnSpan}`;
+            const colors = `color: ${data.event.event_type.fg_color}; background-color: ${data.event.event_type.bg_color};`;
+            const style = `grid-area: ${data.rowStart} / ${data.column} / span ${data.span15Min} / span ${data.columnSpan}; ${colors}`;
             const eventStart = moment(data.event.start).format('LT');
             const eventEnd = moment(data.event.end).format('LT');
             const contents = `
@@ -357,7 +358,7 @@ var createSchedule = function(container) {
         dialogEventStart.setDate(moment(event.start).format('YYYY-MM-DD HH:mm'));
         dialogEventEnd.setDate(moment(event.end).format('YYYY-MM-DD HH:mm'));
         $('#id_description').val(event.description);
-        $('#id_event_type').val(event.event_type);
+        $('#id_event_type').val(event.event_type.pk);
         $('#id_room').val(event.resource);
 
         show_overlay_modal();

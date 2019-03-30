@@ -363,6 +363,14 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
         if end:
             events = events.filter(start_time__lte=end)
 
+        event_types = models.RoomEventType.objects.all().values(
+            'pk',
+            'name',
+            'fg_color',
+            'bg_color',
+        )
+        event_types = {x['pk']: x for x in event_types}
+
         events = events.values(
             'pk', 'room_id', 'event_type', 'start_time', 'end_time', 'title',
             'description', 'rrule', 'duration',
@@ -381,7 +389,7 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
                     'end': event['end_time'].isoformat(),
                     'title': event['title'],
                     'description': event['description'],
-                    'event_type': event['event_type'],
+                    'event_type': event_types[event['event_type']],
                 })
             else:
                 # Need to generate events using rrule, within start and end

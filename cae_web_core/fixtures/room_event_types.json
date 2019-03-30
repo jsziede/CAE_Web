@@ -1,0 +1,29 @@
+[
+{
+  "model": "cae_web_core.roomeventtype",
+  "pk": 1,
+  "fields": {
+    "name": "Event",
+    "fg_color": "black",
+    "bg_color": "white"
+  }
+},
+{
+  "model": "cae_web_core.roomeventtype",
+  "pk": 2,
+  "fields": {
+    "name": "Class",
+    "fg_color": "black",
+    "bg_color": "lightgoldenrodyellow"
+  }
+},
+{
+  "model": "cae_web_core.roomeventtype",
+  "pk": 3,
+  "fields": {
+    "name": "Maintenance",
+    "fg_color": "black",
+    "bg_color": "#FFB3B3"
+  }
+}
+]

@@ -3,6 +3,7 @@ Admin views for CAE Web Core app.
 """
 
 from django.contrib import admin
+from django.utils.html import format_html
 
 from . import models
 
@@ -62,6 +63,22 @@ class EmployeeShiftAdmin(admin.ModelAdmin):
     )
 
 
+class RoomEventTypeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'fg_color_span', 'bg_color_span')
+
+    def fg_color_span(self, instance):
+        """Show preview of colors"""
+        return format_html('<span style="display: inline-block; padding: 5px; color: {0}; background-color: {1}; border: 1px solid gray;">{0}</span>', instance.fg_color, instance.bg_color)
+    fg_color_span.admin_order_field = 'fg_color'
+    fg_color_span.short_description = 'FG Color'
+
+    def bg_color_span(self, instance):
+        """Show preview of colors"""
+        return format_html('<span style="display: inline-block; padding: 5px; color: {0}; background-color: {1}; border: 1px solid gray;">{1}</span>', instance.fg_color, instance.bg_color)
+    bg_color_span.admin_order_field = 'bg_color'
+    bg_color_span.short_description = 'BG Color'
+
+
 class RoomEventAdmin(admin.ModelAdmin):
     # Fields to display in admin list view.
     list_display = ('room', 'event_type', 'start_time', 'end_time', 'title',)
@@ -107,5 +124,6 @@ class UploadedScheduleAdmin(admin.ModelAdmin):
 
 admin.site.register(models.PayPeriod, PayPeriodAdmin)
 admin.site.register(models.EmployeeShift, EmployeeShiftAdmin)
+admin.site.register(models.RoomEventType, RoomEventTypeAdmin)
 admin.site.register(models.RoomEvent, RoomEventAdmin)
 admin.site.register(models.UploadedSchedule, UploadedScheduleAdmin)

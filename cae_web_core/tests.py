@@ -321,13 +321,16 @@ class RoomEventModelTests(TestCase):
         )
         cls.room.department.add(cls.department)
         cls.room.save()
+        cls.event_class = models.RoomEventType.objects.create(
+            name='Class',
+        )
 
     def setUp(self):
         self.end_time = timezone.now()
         self.start_time = self.end_time - timezone.timedelta(hours=1)
         self.test_room_event = models.RoomEvent.objects.create(
             room=self.room,
-            event_type=models.RoomEvent.TYPE_CLASS,
+            event_type=self.event_class,
             start_time=self.start_time,
             end_time=self.end_time,
             title='Test Title',
@@ -337,7 +340,7 @@ class RoomEventModelTests(TestCase):
 
     def test_model_creation(self):
         self.assertEqual(self.test_room_event.room, self.room)
-        self.assertEqual(self.test_room_event.event_type, self.test_room_event.TYPE_CLASS)
+        self.assertEqual(self.test_room_event.event_type, self.event_class)
         self.assertEqual(self.test_room_event.start_time, self.start_time)
         self.assertEqual(self.test_room_event.end_time, self.end_time)
         self.assertEqual(self.test_room_event.title, 'Test Title')

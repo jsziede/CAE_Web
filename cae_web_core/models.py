@@ -199,41 +199,70 @@ class EmployeeShift(models.Model):
         return (hours, minutes, seconds)
 
 
-# TODO: Create Abstract class for events
-# TODO: Create an EmployeeSchedule model that uses that base class
-class RoomEvent(models.Model):
+class AbstractEvent(models.Model):
     """
-    A schedule "event" for a room. IE: The room is reserved for a class, meeting, etc.
+    Abstract Model for Events. Models that inherit this class will also have these fields.
     """
-    # Preset field choices.
-    TYPE_CLASS = 0
-    TYPE_EVENT = 1
-    TYPE_MAINTENANCE = 2
-    # TODO: Create EventType Model so admins can set a color for the event.
-    TYPE_CHOICES = (
-        (TYPE_CLASS, "Class"),
-        (TYPE_EVENT, "Event"),
-        (TYPE_MAINTENANCE, "Maintenance"),
-    )
-
-    # Relationship keys.
-    room = models.ForeignKey('cae_home.Room', on_delete=models.CASCADE)
-
-    # Model fields.
-    event_type = models.PositiveSmallIntegerField(
-        choices=TYPE_CHOICES,
-        default=TYPE_CLASS,
-    )
     start_time = models.DateTimeField()
     end_time = models.DateTimeField(blank=True, null=True)
-    title = models.CharField(max_length=MAX_LENGTH)
-    description = models.TextField(blank=True)
-    rrule = models.TextField(   # Recurrence rule
+    # rrule means Recurrence rule
+    # See https://dateutil.readthedocs.io/en/stable/rrule.html
+    rrule = models.TextField(
         blank=True,
         help_text="Note: DTSTART and UNTIL will be replaced by Start Time and End Time, respectively."
     )
     duration = models.DurationField(
         blank=True, null=True, help_text="Used only with rrules.")
+
+    class Meta:
+        abstract = True
+
+
+class RoomEventTypeManager(models.Manager):
+    def get_by_natural_key(self, name):
+        """Allow fixtures to refer to Room Event Types by name instead of pk"""
+        return self.get(name=name)
+
+
+class RoomEventType(models.Model):
+    """
+    A type for a Room Event. Used to specify the event colors.
+    """
+    name = models.CharField(max_length=MAX_LENGTH, unique=True)
+    fg_color = models.CharField(
+        default='black',
+        help_text="Foreground css color. E.g. 'red' or '#FF0000'",
+        max_length=30)
+    bg_color = models.CharField(
+        default='lightgoldenrodyellow',
+        help_text="Foreground css color. E.g. 'red' or '#FF0000'",
+        max_length=30)
+
+    objects = RoomEventTypeManager()
+
+    class Meta:
+        verbose_name = "Room Event Type"
+        verbose_name_plural = "Room Event Types"
+
+    def __str__(self):
+        return self.name
+
+
+# TODO: Create an EmployeeSchedule model that uses that base class
+class RoomEvent(AbstractEvent):
+    """
+    A schedule "event" for a room. IE: The room is reserved for a class, meeting, etc.
+    """
+    # Relationship keys.
+    room = models.ForeignKey('cae_home.Room', on_delete=models.CASCADE)
+    event_type = models.ForeignKey(
+        RoomEventType,
+        on_delete=models.PROTECT, # Prevent deleting types if event exists
+    )
+
+    # Model fields.
+    title = models.CharField(max_length=MAX_LENGTH)
+    description = models.TextField(blank=True)
 
     # Self-setting/Non-user-editable fields.
     date_created = models.DateTimeField(auto_now_add=True)
@@ -242,7 +271,7 @@ class RoomEvent(models.Model):
     class Meta:
         verbose_name = "Room Event"
         verbose_name_plural = "Room Events"
-        ordering = ('room', 'event_type', 'start_time', 'end_time',)
+        ordering = ('room', 'event_type', 'start_time', 'end_time')
         unique_together = (
             ('room', 'start_time', 'rrule'),
             ('room', 'end_time', 'rrule'),
@@ -250,7 +279,7 @@ class RoomEvent(models.Model):
 
     def __str__(self):
         return '{0} {1}: {2} - {3}, {4}'.format(
-            self.room, self.TYPE_CHOICES[self.event_type][1], self.start_time, self.end_time, self.title,
+            self.room, self.event_type, self.start_time, self.end_time, self.title,
         )
 
     def clean(self, *args, **kwargs):

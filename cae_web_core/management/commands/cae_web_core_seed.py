@@ -5,6 +5,7 @@ Seeder command that initializes user models.
 import datetime, pytz
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db.models import Q
 from django.utils import timezone
@@ -45,6 +46,7 @@ class Command(BaseCommand):
         print('\nCAE_WEB_CORE: Seed command has been called.')
         self.create_pay_periods()
         self.create_employee_shifts(model_count)
+        self.create_room_event_types()
         self.create_room_events(model_count)
 
         print('CAE_WEB_CORE: Seeding complete.')
@@ -127,6 +129,14 @@ class Command(BaseCommand):
 
         print('Populated employee shift models.')
 
+    def create_room_event_types(self):
+        """
+        Create Room Event Types
+        """
+        call_command('loaddata', 'room_event_types')
+        print('Populated room event type models.')
+
+
     def create_room_events(self, model_count):
         """
         Create Room Event models.
@@ -138,9 +148,10 @@ class Command(BaseCommand):
         pre_initialized_count = len(models.RoomEvent.objects.all())
 
         # Get all related models.
-        complex_query = (Q(name='Breakout Room') | Q(name='Classroom') | Q(name='Computer Classroom'))
-        room_types = cae_home_models.RoomType.objects.filter(complex_query)
-        rooms = cae_home_models.Room.objects.filter(room_type__in=room_types)
+        rooms = cae_home_models.Room.objects.filter(room_type__slug__in=[
+            'breakout-room', 'classroom', 'computer-classroom',
+        ])
+        event_types = list(models.RoomEventType.objects.all())
 
         server_timezone = pytz.timezone('America/Detroit')
 
@@ -155,6 +166,10 @@ class Command(BaseCommand):
                 # Get Room.
                 index = randint(0, len(rooms) - 1)
                 room = rooms[index]
+
+                # Get Room Event Type
+                index = randint(0, len(event_types) - 1)
+                event_type = event_types[index]
 
                 # Calculate start/end times.
                 start_time = pytz.timezone('America/Detroit').localize(datetime.datetime.now())
@@ -181,7 +196,7 @@ class Command(BaseCommand):
                 try:
                     models.RoomEvent.objects.create(
                         room=room,
-                        event_type=randint(0, 1),
+                        event_type=event_type,
                         start_time=start_time,
                         end_time=end_time,
                         title=faker_factory.sentence(nb_words=2)[:-1],
