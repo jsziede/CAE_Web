@@ -102,6 +102,10 @@ class UploadRoomScheduleForm(forms.Form):
             uploaded_schedule.events.all().delete()
             uploaded_schedule.delete()
 
+        # TODO: Make this a system setting?
+        # Or allow user to choose?
+        event_type = models.RoomEventType.objects.get(name="Class")
+
         uploaded_schedule = models.UploadedSchedule.objects.create(
             name=name,
         )
@@ -145,6 +149,7 @@ class UploadRoomScheduleForm(forms.Form):
                 title=title,
                 rrule=str(rule),
                 duration=duration,
+                event_type=event_type,
             )
             db_events.append(event)
             valid_events.append((room_name, title, start, end, weekdays))

@@ -412,7 +412,7 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
                         'end': new_end.isoformat(),
                         'title': event['title'],
                         'description': event['description'],
-                        'event_type': event['event_type'],
+                        'event_type': event_types[event['event_type']],
                     })
 
         return event_dicts
