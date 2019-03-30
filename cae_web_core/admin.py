@@ -63,7 +63,10 @@ class EmployeeShiftAdmin(admin.ModelAdmin):
     )
 
 
-class RoomEventTypeAdmin(admin.ModelAdmin):
+class EventTypeAdmin(admin.ModelAdmin):
+    """
+    Used for both RoomEventType and AvailabilityEventType
+    """
     list_display = ('name', 'fg_color_span', 'bg_color_span')
 
     def fg_color_span(self, instance):
@@ -108,6 +111,32 @@ class RoomEventAdmin(admin.ModelAdmin):
         }),
     )
 
+class AvailabilityEventAdmin(admin.ModelAdmin):
+    # Fields to display in admin list view.
+    list_display = ('employee', 'event_type', 'start_time', 'end_time')
+
+    # Fields to filter by in admin list view.
+    list_filter = ['event_type', 'employee']
+
+    # Read only fields for admin detail view.
+    readonly_fields = ('date_created', 'date_modified')
+
+    # Allow filtering by event start
+    date_hierarchy = 'start_time'
+
+    # Organize fieldsets for admin detail view.
+    fieldsets = (
+        (None, {
+            'fields': (
+                'employee', 'event_type', 'start_time', 'end_time', 'rrule', 'duration'
+            )
+        }),
+        ('Advanced', {
+            'classes': ('collapse',),
+            'fields': ('date_created', 'date_modified',),
+        }),
+    )
+
 
 class UploadedScheduleRoomEventInline(admin.TabularInline):
     model = models.UploadedSchedule.events.through
@@ -124,6 +153,8 @@ class UploadedScheduleAdmin(admin.ModelAdmin):
 
 admin.site.register(models.PayPeriod, PayPeriodAdmin)
 admin.site.register(models.EmployeeShift, EmployeeShiftAdmin)
-admin.site.register(models.RoomEventType, RoomEventTypeAdmin)
+admin.site.register(models.AvailabilityEventType, EventTypeAdmin)
+admin.site.register(models.AvailabilityEvent, AvailabilityEventAdmin)
+admin.site.register(models.RoomEventType, EventTypeAdmin)
 admin.site.register(models.RoomEvent, RoomEventAdmin)
 admin.site.register(models.UploadedSchedule, UploadedScheduleAdmin)

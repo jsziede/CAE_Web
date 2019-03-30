@@ -289,6 +289,7 @@ class RoomEvent(AbstractEvent):
         if not self.rrule:
             # Verify no event is within start and end
             non_rrule_events = RoomEvent.objects.filter(
+                room=self.room,
                 start_time__lt=self.end_time,
                 end_time__gt=self.start_time,
                 rrule='',
@@ -309,7 +310,92 @@ class RoomEvent(AbstractEvent):
         """
         # Save model.
         self.full_clean()
-        super(RoomEvent, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
+
+
+class AvailabilityEventTypeManager(models.Manager):
+    def get_by_natural_key(self, name):
+        """Allow fixtures to refer to Availability Event Types by name instead of pk"""
+        return self.get(name=name)
+
+
+class AvailabilityEventType(models.Model):
+    """
+    A type for a Availability Event. Used to specify the event colors.
+    """
+    name = models.CharField(max_length=MAX_LENGTH, unique=True)
+    fg_color = models.CharField(
+        blank=True,
+        help_text="Foreground css color. E.g. 'red' or '#FF0000'",
+        max_length=30)
+    bg_color = models.CharField(
+        blank=True,
+        help_text="Foreground css color. E.g. 'red' or '#FF0000'",
+        max_length=30)
+
+    objects = AvailabilityEventTypeManager()
+
+    class Meta:
+        verbose_name = "Availability Event Type"
+        verbose_name_plural = "Availability Event Types"
+
+    def __str__(self):
+        return self.name
+
+
+class AvailabilityEvent(AbstractEvent):
+    """
+    A schedule "event" for an employee. E.g. Person is unavailable from 5:30 - 6:30.
+    """
+    # Relationship keys.
+    employee = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    event_type = models.ForeignKey(
+        AvailabilityEventType,
+        on_delete=models.PROTECT, # Prevent deleting types if event exists
+    )
+
+    # Self-setting/Non-user-editable fields.
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Availability Event"
+        verbose_name_plural = "Availability Events"
+        ordering = ('employee', 'event_type', 'start_time', 'end_time')
+        unique_together = (
+            ('employee', 'start_time', 'rrule'),
+            ('employee', 'end_time', 'rrule'),
+        )
+
+    def clean(self, *args, **kwargs):
+        """
+        Verify there are no overlapping events.
+        """
+        if not self.rrule:
+            # Verify no event is within start and end
+            non_rrule_events = AvailabilityEvent.objects.filter(
+                employee=self.employee,
+                start_time__lt=self.end_time,
+                end_time__gt=self.start_time,
+                rrule='',
+            ).exclude(
+                pk=self.pk,
+            )
+            # TODO: Check rrule events
+            if non_rrule_events.exists():
+                raise ValidationError("Availability Events can't overlap.")
+        else:
+            # Verify no event falls on an event from our rrule
+            pass # TODO: evaluate the rrule, and check
+        return super().clean(*args, **kwargs)
+
+    def save(self, *args, **kwargs):
+        """
+        Modify model save behavior.
+        """
+        # Save model.
+        self.full_clean()
+        super().save(*args, **kwargs)
 
 
 class UploadedSchedule(models.Model):

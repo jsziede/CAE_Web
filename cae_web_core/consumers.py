@@ -25,6 +25,7 @@ channel_layer = get_channel_layer()
 ACTION_GET_EVENTS = 'get-events'
 ACTION_SEND_EVENTS = 'send-events'
 GROUP_UPDATE_ROOM_EVENT = "on-update-room-event"
+GROUP_UPDATE_AVAILABILITY_EVENT = "on-update-availability-event"
 
 
 class MyHoursConsumer(AsyncJsonWebsocketConsumer):
@@ -237,6 +238,10 @@ class MyHoursConsumer(AsyncJsonWebsocketConsumer):
 class ScheduleConsumer(AsyncJsonWebsocketConsumer):
     ACTION_GET_EVENTS = 'get-events'
     ACTION_SEND_EVENTS = 'send-events'
+
+    MODE_ROOMS = 'rooms'
+    MODE_AVAILABILITY = 'availability'
+
     async def connect(self):
         #print("CONNECT:", self.scope['user'])
 
@@ -260,6 +265,7 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
             try:
                 await handler(content)
             except ValueError as err:
+                print(err)
                 await self.send_json({
                     'error': "Value Error: {!r}".format(str(err)),
                 })
@@ -271,9 +277,7 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
     async def _handle_get_events(self, content):
         start = content.get('start_time')
         end = content.get('end_time')
-        room = content.get('room')
-        room_type_slug = content.get('room_type_slug')
-        notify = content.get('notify')
+        mode = content.get('mode')
 
         if start:
             start = dateutil.parser.parse(start)
@@ -285,7 +289,19 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
             if timezone.is_naive(end):
                 raise ValueError("end_time is naive")
 
-        events = await self._get_events(start, end, room, room_type_slug)
+        if mode == self.MODE_ROOMS:
+            await self._handle_get_room_events(content, start, end)
+        elif mode == self.MODE_AVAILABILITY:
+            await self._handle_get_availability_events(content, start, end)
+        else:
+            raise ValueError("mode is missing or invalid")
+
+    async def _handle_get_room_events(self, content, start, end):
+        room = content.get('room')
+        room_type_slug = content.get('room_type_slug')
+        notify = content.get('notify')
+
+        events = await self._get_room_events(start, end, room, room_type_slug)
 
         await self.send_json({
             'action': self.ACTION_SEND_EVENTS,
@@ -303,6 +319,30 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
             self.scope['session']['pks'] = [x['id'] for x in events]
             await self.channel_layer.group_add(
                 GROUP_UPDATE_ROOM_EVENT, self.channel_name)
+
+    async def _handle_get_availability_events(self, content, start, end):
+        employee = content.get('employee')
+        employee_type_pk = content.get('employee_type')
+        notify = content.get('notify')
+
+        events = await self._get_availability_events(start, end, employee, employee_type_pk)
+
+        await self.send_json({
+            'action': self.ACTION_SEND_EVENTS,
+            'start': start.isoformat() if start else None,
+            'end': end.isoformat() if end else None,
+            'employee_type': employee_type_pk,
+            'events': events,
+        })
+
+        if notify:
+            self.scope['session']['start'] = start.isoformat() if start else None
+            self.scope['session']['end'] = end.isoformat() if end else None
+            self.scope['session']['employee'] = employee
+            self.scope['session']['employee_type'] = employee_type_pk
+            self.scope['session']['pks'] = [x['id'] for x in events]
+            await self.channel_layer.group_add(
+                GROUP_UPDATE_AVAILABILITY_EVENT, self.channel_name)
 
     async def on_update_room_event(self, content):
         room = self.scope['session'].get('room')
@@ -338,7 +378,7 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
                 notify_user = True
 
         if notify_user:
-            await self._handle_get_events({
+            await self._handle_get_room_events({
                 'start_time': self.scope['session'].get('start'),
                 'end_time': self.scope['session'].get('end'),
                 'room': room,
@@ -347,7 +387,7 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
             })
 
     @database_sync_to_async
-    def _get_events(self, start, end, room, room_type_slug):
+    def _get_room_events(self, start, end, room, room_type_slug):
         """Get room events"""
         events = models.RoomEvent.objects.all().order_by('room', 'start_time')
 
@@ -412,6 +452,72 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
                         'end': new_end.isoformat(),
                         'title': event['title'],
                         'description': event['description'],
+                        'event_type': event_types[event['event_type']],
+                    })
+
+        return event_dicts
+
+    @database_sync_to_async
+    def _get_availability_events(self, start, end, employee, employee_type_pk):
+        """Get room events"""
+        events = models.AvailabilityEvent.objects.all().order_by('employee', 'start_time')
+
+        if employee:
+            events = events.filter(employee__pk=employee)
+
+        if employee_type_pk:
+            events = events.filter(employee__groups=employee_type_pk)
+
+        if start:
+            events = events.filter(end_time__gte=start)
+
+        if end:
+            events = events.filter(start_time__lte=end)
+
+        event_types = models.AvailabilityEventType.objects.all().values(
+            'pk',
+            'name',
+            'fg_color',
+            'bg_color',
+        )
+        event_types = {x['pk']: x for x in event_types}
+
+        events = events.values(
+            'pk', 'employee', 'event_type', 'start_time', 'end_time', 'rrule', 'duration',
+        )
+
+        event_dicts = []
+
+        # Convert to format expected by schedule.js
+        for event in events:
+            if not event['rrule']:
+                # Simple event
+                event_dicts.append({
+                    'id': event['pk'],
+                    'resource': event['employee'],
+                    'start': event['start_time'].isoformat(),
+                    'end': event['end_time'].isoformat(),
+                    'event_type': event_types[event['event_type']],
+                })
+            else:
+                # Need to generate events using rrule, within start and end
+                # Convert time to EST and make naive to prevent DST from affecting event times
+                dtstart = timezone.make_naive(event['start_time'], timezone=pytz.timezone("America/Detroit"))
+                until = timezone.make_naive(event['end_time'], timezone=pytz.timezone("America/Detroit"))
+                # Override 'dtstart' and 'until' in case event model was changed but rrule was not.
+                new_starts = rrule.rrulestr(event['rrule']).replace(dtstart=dtstart, until=until)
+                for new_start in new_starts:
+                    # Convert time back to aware and then to UTC for the client.
+                    new_start = timezone.make_aware(new_start, timezone=pytz.timezone("America/Detroit")).astimezone(pytz.utc)
+                    if new_start < start or new_start > end:
+                        continue
+                    new_end = new_start + event['duration']
+                    # TODO: Add key to tell client that this is an rrule event
+                    event_dicts.append({
+                        'id': event['pk'],
+                        'resource': event['employee'],
+                        'start': new_start.isoformat(),
+                        'end': new_end.isoformat(),
                         'event_type': event_types[event['event_type']],
                     })
 

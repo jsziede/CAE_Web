@@ -46,6 +46,8 @@ class Command(BaseCommand):
         print('\nCAE_WEB_CORE: Seed command has been called.')
         self.create_pay_periods()
         self.create_employee_shifts(model_count)
+        self.create_availability_event_types()
+        self.create_availability_events(model_count)
         self.create_room_event_types()
         self.create_room_events(model_count)
 
@@ -128,6 +130,84 @@ class Command(BaseCommand):
                         print('Failed to generate employee shift seed instance.')
 
         print('Populated employee shift models.')
+
+    def create_availability_event_types(self):
+        """
+        Create Availability Event Types
+        """
+        call_command('loaddata', 'availability_event_types')
+        print('Populated availability event type models.')
+
+    def create_availability_events(self, model_count):
+        """
+        Create Availability Event models.
+        """
+        # Generate random data.
+        faker_factory = Faker()
+
+        # Count number of models already created.
+        pre_initialized_count = len(models.AvailabilityEvent.objects.all())
+
+        # Get all related models.
+        employees = list(cae_home_models.User.objects.all())
+        event_types = list(models.AvailabilityEventType.objects.all())
+
+        server_timezone = pytz.timezone('America/Detroit')
+
+        # Generate models equal to model count.
+        for i in range(model_count - pre_initialized_count):
+            fail_count = 0
+            try_create_model = True
+
+            # Loop attempt until 3 fails or model is created.
+            # Model creation may fail due to randomness of event times and overlapping times per room being invalid.
+            while try_create_model:
+                # Get Employee.
+                index = randint(0, len(employees) - 1)
+                employee = employees[index]
+
+                # Get Availability Event Type
+                index = randint(0, len(event_types) - 1)
+                event_type = event_types[index]
+
+                # Calculate start/end times.
+                start_time = pytz.timezone('America/Detroit').localize(datetime.datetime.now())
+                start_time = start_time - timezone.timedelta(days=randint(1, 30))
+                start_time = start_time.replace(
+                    hour=randint(9, 20),
+                    minute=randint(0, 59),
+                )
+                end_time = start_time + timezone.timedelta(hours=randint(1, 4), minutes=randint(0, 59))
+
+                # Handle for a random end time that's past allowed schedule display.
+                if end_time.hour <= 7:
+                    end_time = end_time - timezone.timedelta(days=1)
+                if end_time.hour >= 22 or end_time.hour <= 7:
+                    end_time = end_time.replace(
+                        hour=21,
+                    )
+
+                # Attempt to create model seed.
+                try:
+                    models.AvailabilityEvent.objects.create(
+                        employee=employee,
+                        event_type=event_type,
+                        start_time=start_time,
+                        end_time=end_time,
+                        rrule='',
+                    )
+                    try_create_model = False
+                except ValidationError:
+                    # Seed generation failed. Nothing can be done about this without removing the random generation
+                    # aspect. If we want that, we should use fixtures instead.
+                    fail_count += 1
+
+                    # If failed 3 times, give up model creation and move on to next model, to prevent infinite loops.
+                    if fail_count > 2:
+                        try_create_model = False
+                        print('Failed to generate availability event seed instance.')
+
+        print('Populated availability event models.')
 
     def create_room_event_types(self):
         """

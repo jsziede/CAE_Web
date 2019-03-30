@@ -1,0 +1,38 @@
+[
+{
+  "model": "cae_web_core.availabilityeventtype",
+  "pk": 1,
+  "fields": {
+    "name": "Scheduled",
+    "fg_color": "",
+    "bg_color": ""
+  }
+},
+{
+  "model": "cae_web_core.availabilityeventtype",
+  "pk": 2,
+  "fields": {
+    "name": "Unavailable",
+    "fg_color": "black",
+    "bg_color": "lightgray"
+  }
+},
+{
+  "model": "cae_web_core.availabilityeventtype",
+  "pk": 3,
+  "fields": {
+    "name": "Class (Parkview Campus)",
+    "fg_color": "white",
+    "bg_color": "gray"
+  }
+},
+{
+  "model": "cae_web_core.availabilityeventtype",
+  "pk": 4,
+  "fields": {
+    "name": "Class (Main Campus)",
+    "fg_color": "white",
+    "bg_color": "black"
+  }
+}
+]

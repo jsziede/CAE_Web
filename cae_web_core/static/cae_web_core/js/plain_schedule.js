@@ -14,6 +14,8 @@ var createSchedule = function(container) {
     var end = moment(container.data('end'));
     var resources = container.data('resources');
     var roomTypeSlug = container.data('room-type-slug');
+    var employeeType = container.data('employee-type');
+    var eventMode = container.data('event-mode');
     var mode = container.data('mode');
     var modeAllowChange = container.data('mode-allow-change');
 
@@ -51,6 +53,9 @@ var createSchedule = function(container) {
 
     socket.addEventListener('message', (message) => {
         var data = JSON.parse(message.data);
+        if (data.error) {
+            console.log(data.error);
+        }
         if (data.action == ACTION_SEND_EVENTS) {
             updateEvents(data.events);
         }
@@ -251,11 +256,15 @@ var createSchedule = function(container) {
             const style = `grid-area: ${data.rowStart} / ${data.column} / span ${data.span15Min} / span ${data.columnSpan}; ${colors}`;
             const eventStart = moment(data.event.start).format('LT');
             const eventEnd = moment(data.event.end).format('LT');
+            const title = '';
+            if (data.event.title) {
+                title = `${data.event.title}<br>`
+            }
             const contents = `
                 ${eventStart}<br/>
-                ${data.event.title}<br/>
+                ${title}
                 ${eventEnd}`;
-            eventDivs += `<div class="schedule-event" title="${data.event.title} (${eventStart} - ${eventEnd})&#10;${data.event.description}" style="${style}" data-event="${escape(JSON.stringify(data.event))}">${contents}</div>`;
+            eventDivs += `<div class="schedule-event" title="${data.event.title || ''} (${eventStart} - ${eventEnd})&#10;${data.event.description || ''}" style="${style}" data-event="${escape(JSON.stringify(data.event))}">${contents}</div>`;
         }
 
         grid.append(eventDivs);
@@ -287,7 +296,9 @@ var createSchedule = function(container) {
           'action': ACTION_GET_EVENTS,
           'start_time': start.format(),
           'end_time': end.format(),
+          'mode': eventMode,
           'room_type_slug': roomTypeSlug,
+          'employee_type': employeeType,
           'notify': true,
         }))
 

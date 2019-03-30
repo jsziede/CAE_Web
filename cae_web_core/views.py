@@ -6,6 +6,7 @@ Views for CAE_Web Core App.
 import datetime, dateutil.parser, json, pytz
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
@@ -20,6 +21,9 @@ from django.utils.html import format_html
 # User Class Imports.
 from . import forms, models
 from cae_home import models as cae_home_models
+
+
+UserModel = get_user_model()
 
 
 #region Standard Methods
@@ -176,7 +180,7 @@ def shift_manager(request, pk):
         )
         & Q(is_active=True)
     )
-    users = get_user_model().objects.filter(complex_query).order_by('last_name', 'first_name')
+    users = UserModel.objects.filter(complex_query).order_by('last_name', 'first_name')
     shifts = models.EmployeeShift.objects.filter(pay_period=pay_period, employee__in=users)
 
     # Determine pay period pks. First/Last query calls are reverse due to ordering.
@@ -228,8 +232,29 @@ def shift_manager(request, pk):
     })
 
 
-def employee_schedule(request): # TODO: Allow filtering by user group, like room type
+def _get_employee_types():
+    # This is used to display links to jump to another employee type.
+    return Group.objects.filter(
+        name__in=[
+            "CAE Admin",
+            "CAE Attendant",
+            "CAE Programmer",
+        ],
+    ).values(
+        'pk',
+        'name',
+    )
+
+
+def employee_schedule(request, employee_type_pk=None):
     date_string = request.GET.get('date')
+    if employee_type_pk is None:
+        employee_type_pk = Group.objects.get(name="CAE Admin").pk
+    employees = UserModel.objects.filter(
+        groups__pk=employee_type_pk,
+    ).order_by('first_name').values_list(
+        'pk', 'first_name',
+    )
     now = timezone.now() # UTC
     now = now.astimezone(pytz.timezone('America/Detroit')) # EST/EDT
     if date_string:
@@ -238,24 +263,20 @@ def employee_schedule(request): # TODO: Allow filtering by user group, like room
     start = now.replace(hour=8, minute=0, second=0)
     end = now.replace(hour=22, minute=0, second=0)
 
-    # TODO: Get from db, this is just debug data
-    employees = []
-    employees_json = [
-        {
-            'id': 1,
-            'html': 'Gumball',
-        },
-        {
-            'id': 2,
-            'html': 'Darwin',
-        },
-    ]
+    employees_json = []
+    for pk, name in employees:
+        employees_json.append({
+            'id': pk,
+            'html': name,
+        })
 
     return TemplateResponse(request, 'cae_web_core/employee/employee_schedule.html', {
         'employees': employees,
         'employees_json': json.dumps(employees_json),
         'start': start,
         'end': end,
+        'employee_types': _get_employee_types(),
+        'employee_type_pk': int(employee_type_pk),
     })
 
 #endregion Employee Views
