@@ -280,7 +280,7 @@ var createSchedule = function(container) {
             const style = `grid-area: ${data.rowStart} / ${data.column} / span ${data.span15Min} / span ${data.columnSpan}; ${colors}`;
             const eventStart = moment(data.event.start).format('LT');
             const eventEnd = moment(data.event.end).format('LT');
-            const title = '';
+            var title = '';
             if (data.event.title) {
                 title = `${data.event.title}<br>`
             }
