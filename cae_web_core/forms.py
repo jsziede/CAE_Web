@@ -12,6 +12,7 @@ import pytz
 
 from cae_home.models.wmu import SemesterDate, Room
 from . import models
+from .widgets import RRuleWidget
 from .utils import excel
 
 
@@ -56,6 +57,9 @@ class RoomEventForm(forms.ModelForm):
             'event_type',
             'room',
         ]
+        widgets = {
+            'rrule': RRuleWidget(),
+        }
 
 
 class AvailabilityEventForm(forms.ModelForm):

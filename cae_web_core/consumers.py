@@ -384,7 +384,7 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
                 'room': room,
                 'room_type_slug': room_type_slug,
                 'notify': True,
-            })
+            }, start, end)
 
     @database_sync_to_async
     def _get_room_events(self, start, end, room, room_type_slug):
