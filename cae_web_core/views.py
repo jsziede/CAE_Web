@@ -270,11 +270,34 @@ def employee_schedule(request, employee_type_pk=None):
             'html': name,
         })
 
+    form = forms.AvailabilityEventForm()
+    if request.POST: # TODO: Check user has permission to edit/create events
+        pk = request.POST.get('availability_event_pk')
+        delete = request.POST.get('_delete')
+        instance = None # New event
+        if pk:
+            instance = get_object_or_404(models.AvailabilityEvent, pk=pk)
+        date_param = ''
+        if date_string:
+            date_param = '?date=' + date_string
+        if delete:
+            instance.delete()
+            messages.success(request, "Event deleted")
+            return redirect(reverse('cae_web_core:employee_schedule', args=[employee_type_pk]) + date_param)
+        form = forms.AvailabilityEventForm(request.POST, instance=instance)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Event updated" if instance else "Event created")
+            return redirect(reverse('cae_web_core:employee_schedule', args=[employee_type_pk]) + date_param)
+        else:
+            messages.error(request, "There were errors updating the event.")
+
     return TemplateResponse(request, 'cae_web_core/employee/employee_schedule.html', {
         'employees': employees,
         'employees_json': json.dumps(employees_json),
         'start': start,
         'end': end,
+        'form': form,
         'employee_types': _get_employee_types(),
         'employee_type_pk': int(employee_type_pk),
     })

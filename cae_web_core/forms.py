@@ -58,6 +58,19 @@ class RoomEventForm(forms.ModelForm):
         ]
 
 
+class AvailabilityEventForm(forms.ModelForm):
+    availability_event_pk = forms.IntegerField(widget=forms.HiddenInput, required=False)
+    class Meta:
+        model = models.AvailabilityEvent
+        fields = [
+            'start_time',
+            'end_time',
+            'rrule',
+            'event_type',
+            'employee',
+        ]
+
+
 class UploadRoomScheduleForm(forms.Form):
     name = forms.CharField()
     semester = forms.ModelChoiceField(

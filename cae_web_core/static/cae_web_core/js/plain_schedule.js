@@ -180,11 +180,17 @@ var createSchedule = function(container) {
         // we may need to update some before actually creating React elements
         const processedEvents = {};
 
+        end_time = end.clone();
+        if (mode == 'week') {
+            // Get a week's worth
+            end_time.add(6, 'days');
+        }
+
         events.map((event) => {
             const eventStart = moment(event.start);
             const eventEnd = moment(event.end);
 
-            if (eventEnd < start || eventStart > end) {
+            if (eventEnd < start || eventStart > end_time) {
                 // Event happens outside schedule, skip it
                 console.log("Skipping event", event);
                 return null;
@@ -196,8 +202,26 @@ var createSchedule = function(container) {
                 console.log(event);
                 throw "Unknown resource!";
             }
-            const startDiff = Number((eventStart.diff(start, 'second') / 3600).toFixed(2)); // hours
-            const endDiff = Number((eventEnd.diff(end, 'second') / 3600).toFixed(2)); // hours
+
+            // Calculate that day's start and end time to figure out where in the grid it goes
+            var dayStart = start.clone();
+            var dayEnd = end.clone();
+
+            if (mode == 'week') {
+                // move dayStart and dayEnd into selected day
+                while (dayStart.isoWeekday() != eventStart.isoWeekday()) {
+                    dayStart.add(1, 'days');
+                    dayEnd.add(1, 'days');
+                }
+
+                // Update column to correct day
+                if (eventStart.isoWeekday() != 7) {
+                    column += resources.length * 2 * eventStart.isoWeekday();
+                }
+            }
+
+            const startDiff = Number((eventStart.diff(dayStart, 'second') / 3600).toFixed(2)); // hours
+            const endDiff = Number((eventEnd.diff(dayEnd, 'second') / 3600).toFixed(2)); // hours
             const rowStart = Math.round(Math.max(0, startDiff) * 4 + 2); // +2 for header
             var spanHours = Number((eventEnd.diff(eventStart, 'second') / 3600).toFixed(2));
             if (startDiff < 0) {
@@ -291,11 +315,17 @@ var createSchedule = function(container) {
 
         dateFlatpickr.setDate(start.format('YYYY-MM-DD'));
 
+        end_time = end.clone();
+        if (mode == 'week') {
+            // Get a week's worth
+            end_time.add(6, 'days');
+        }
+
         // Fetch events
         socket.send(JSON.stringify({
           'action': ACTION_GET_EVENTS,
           'start_time': start.format(),
-          'end_time': end.format(),
+          'end_time': end_time.format(),
           'mode': eventMode,
           'room_type_slug': roomTypeSlug,
           'employee_type': employeeType,
@@ -364,13 +394,19 @@ var createSchedule = function(container) {
     function onEventClicked(event) {
         var event = JSON.parse(unescape($(event.target).closest('.schedule-event').data('event')));
         console.log(event);
-        $('#id_room_event_pk').val(event.id);
-        $('#id_title').val(event.title);
         dialogEventStart.setDate(moment(event.start).format('YYYY-MM-DD HH:mm'));
         dialogEventEnd.setDate(moment(event.end).format('YYYY-MM-DD HH:mm'));
-        $('#id_description').val(event.description);
         $('#id_event_type').val(event.event_type.pk);
-        $('#id_room').val(event.resource);
+
+        if (eventMode == 'rooms') {
+            $('#id_room_event_pk').val(event.id);
+            $('#id_title').val(event.title);
+            $('#id_description').val(event.description);
+            $('#id_room').val(event.resource);
+        } else if (eventMode == 'availability') {
+            $('#id_availability_event_pk').val(event.id);
+            $('#id_employee').val(event.resource);
+        }
 
         show_overlay_modal();
     }
@@ -382,27 +418,35 @@ var createSchedule = function(container) {
         var timeOffset = gridLine.data('time-offset');
         var dayIsoNumber = gridLine.data('day');
 
-        if (mode == 'week') {
-            // debug
-            console.log("Day: ", dayIsoNumber);
-        }
-
         var eventStart = start.clone();
 
         for (var i = 0; i < timeOffset; ++i) {
             eventStart.add(15, 'minutes');
         }
 
+        if (mode == 'week') {
+            // move eventStart into selected day
+            while (eventStart.isoWeekday() != dayIsoNumber) {
+                eventStart.add(1, 'days');
+            }
+        }
+
         var eventEnd = eventStart.clone();
         eventEnd.add(1, 'hours');
 
-        $('#id_room_event_pk').val('');
-        $('#id_title').val('New Event');
         dialogEventStart.setDate(eventStart.format('YYYY-MM-DD HH:mm'));
         dialogEventEnd.setDate(eventEnd.format('YYYY-MM-DD HH:mm'));
-        $('#id_description').val('New Event Description');
         //$('#id_event_type').val(); // Just use whatever last value was
-        $('#id_room').val(resource.id);
+
+        if (eventMode == 'rooms') {
+            $('#id_room_event_pk').val('');
+            $('#id_title').val('New Event');
+            $('#id_description').val('New Event Description');
+            $('#id_room').val(resource.id);
+        } else if (eventMode == 'availability') {
+            $('#id_availability_event_pk').val('');
+            $('#id_employee').val(resource.id);
+        }
 
         show_overlay_modal();
     }

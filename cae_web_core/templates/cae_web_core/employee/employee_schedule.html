@@ -58,14 +58,10 @@
   <div id="div_event_dialog" {% if form.errors %}data-errors{% endif %} hidden>
     <form id="form_event" method="POST">
       {% csrf_token %}
-      {{ form.room_event_pk }}
+      {{ form.availability_event_pk }}
       {% if form.non_field_errors %}
         <label>Errors:</label> {{ form.non_field_errors }}
       {% endif %}
-      {% if form.title.errors %}
-        <div></div> {{ form.title.errors }}
-      {% endif %}
-      {{ form.title.label_tag }} <div>{{ form.title.errors }} {{ form.title }}</div>
       {% if form.start_time.errors %}
         <div></div> {{ form.start_time.errors }}
       {% endif %}
@@ -74,18 +70,14 @@
         <div></div> {{ form.end_time.errors }}
       {% endif %}
       {{ form.end_time.label_tag }} {{ form.end_time }}
-      {% if form.description.errors %}
-        <div></div> {{ form.description.errors }}
-      {% endif %}
-      {{ form.description.label_tag }} {{ form.description }}
       {% if form.event_type.errors %}
         <div></div> {{ form.event_type.errors }}
       {% endif %}
       {{ form.event_type.label_tag }} {{ form.event_type }}
-      {% if form.room.errors %}
-        <div></div> {{ form.room.errors }}
+      {% if form.employee.errors %}
+        <div></div> {{ form.employee.errors }}
       {% endif %}
-      {{ form.room.label_tag }} {{ form.room }}
+      {{ form.employee.label_tag }} {{ form.employee }}
     </form>
 
     <div class="dialog-buttons">
