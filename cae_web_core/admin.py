@@ -20,7 +20,7 @@ class PayPeriodAdmin(admin.ModelAdmin):
     search_fields = ['date_start', 'date_end', ]
 
     # Read only fields for admin detail view.
-    readonly_fields = ('date_created', 'date_modified',)
+    readonly_fields = ('id', 'date_created', 'date_modified',)
 
     # Organize fieldsets for admin detail view.
     fieldsets = (
@@ -31,7 +31,7 @@ class PayPeriodAdmin(admin.ModelAdmin):
         }),
         ('Advanced', {
             'classes': ('collapse',),
-            'fields': ('date_created', 'date_modified',),
+            'fields': ('id', 'date_created', 'date_modified',),
         }),
     )
 
@@ -44,10 +44,10 @@ class EmployeeShiftAdmin(admin.ModelAdmin):
     list_filter = ('error_flag', 'employee', 'pay_period',)
 
     # Fields to search in admin list view.
-    search_fields = ['id', 'clock_in', 'clock_out',]
+    search_fields = ['clock_in', 'clock_out',]
 
     # Read only fields for admin detail view.
-    readonly_fields = ('date_created', 'date_modified',)
+    readonly_fields = ('id', 'date_created', 'date_modified',)
 
     # Organize fieldsets for admin detail view.
     fieldsets = (
@@ -58,7 +58,7 @@ class EmployeeShiftAdmin(admin.ModelAdmin):
         }),
         ('Advanced', {
             'classes': ('collapse',),
-            'fields': ('date_created', 'date_modified',),
+            'fields': ('id', 'date_created', 'date_modified',),
         }),
     )
 
@@ -93,7 +93,7 @@ class RoomEventAdmin(admin.ModelAdmin):
     search_fields = ['title',]
 
     # Read only fields for admin detail view.
-    readonly_fields = ('date_created', 'date_modified',)
+    readonly_fields = ('id', 'date_created', 'date_modified',)
 
     # Allow filtering by event start
     date_hierarchy = 'start_time'
@@ -107,7 +107,7 @@ class RoomEventAdmin(admin.ModelAdmin):
         }),
         ('Advanced', {
             'classes': ('collapse',),
-            'fields': ('date_created', 'date_modified',),
+            'fields': ('id', 'date_created', 'date_modified',),
         }),
     )
 
@@ -119,7 +119,7 @@ class AvailabilityEventAdmin(admin.ModelAdmin):
     list_filter = ['event_type', 'employee']
 
     # Read only fields for admin detail view.
-    readonly_fields = ('date_created', 'date_modified')
+    readonly_fields = ('id', 'date_created', 'date_modified')
 
     # Allow filtering by event start
     date_hierarchy = 'start_time'
@@ -133,7 +133,7 @@ class AvailabilityEventAdmin(admin.ModelAdmin):
         }),
         ('Advanced', {
             'classes': ('collapse',),
-            'fields': ('date_created', 'date_modified',),
+            'fields': ('id', 'date_created', 'date_modified',),
         }),
     )
 
