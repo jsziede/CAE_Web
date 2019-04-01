@@ -5,22 +5,36 @@
 
 {% block extra_styles %}
 {{ block.super }}
-<link rel="stylesheet" type="text/css" href="{% static 'cae_web_attendants/css/room_select.css' %}">
 <link rel="stylesheet" type="text/css" href="{% static 'cae_web_attendants/css/attendants.css' %}">
 {% endblock extra_styles %}
 
 {% block base_scripts %}
 {{ block.super }}
-<script>let roomInputId = "{{ form.room.id_for_label }}";</script>
 <script>let userId = "{{ user.get_username }}";</script>
-<script>let roomCheckoutList = "{{ room_checkout_list }}";</script>
-<script>let datetimeInputId = "{{ form.checkout_date.id_for_label }}";</script>
 {% endblock base_scripts %}
 
 {% block content %}
 	<h1>Welcome to the CAE Web Attendants Checkout page</h1>
 
-	{% include "./forms/room-checkout.html" %}
+	{% if success == 1 %}
+    <div class="panel success">
+            <div class="header">Checklist Successfully Opened</div>
+    {% elif success == -1 %}
+    <div class="panel error">
+        <div class="header">Failed to Open Checklist</div>
+    {% else %}
+    <div class="panel primary">
+        <div class="header">Open a Checklist</div>
+    {% endif %}
+        <div class="content">
+        {% include 'cae_home/include/form.html' %}
+        </div>
+        <div class="footer">
+                <button type="submit">
+                        Submit <i class="fas fa-sign-in-alt"></i>
+                </button>
+        </div>
+    </div>
 
 	{% if room_checkouts %}
 	<table>
@@ -120,8 +134,6 @@
 
 {% block extra_scripts_body %}
 {{ block.super }}
-<script src="{% static 'cae_web_attendants/js/room_select.js' %}"></script>
 <script src="{% static 'cae_web_attendants/js/select_default_user.js' %}"></script>
-<script src="{% static 'cae_web_attendants/js/create_datetime_string.js' %}"></script>
 <script>selectDefaultUser(userId)</script>
 {% endblock extra_scripts_body %}
