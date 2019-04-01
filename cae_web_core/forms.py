@@ -69,12 +69,18 @@ class RRuleFormMixin(forms.Form):
         (5, "Fr"),
         (6, "Sa"),
     )
-    rrule_repeat = forms.TypedChoiceField(choices=REPEAT_CHOICES, coerce=int, initial=REPEAT_NEVER, label="Repeat")
+    rrule_repeat = forms.TypedChoiceField(
+        choices=REPEAT_CHOICES, coerce=int, initial=REPEAT_NEVER, label="Repeat")
     rrule_count = forms.IntegerField(min_value=1, initial=1, label="Count")
-    rrule_weekly_on = forms.TypedMultipleChoiceField(choices=DAY_CHOICES, coerce=int, widget=forms.widgets.CheckboxSelectMultiple(), label="Repeat On")
-    rrule_end = forms.TypedChoiceField(choices=END_CHOICES, coerce=int, initial=END_NEVER, widget=forms.widgets.RadioSelect(), label="End")
+    rrule_weekly_on = forms.TypedMultipleChoiceField(
+        choices=DAY_CHOICES, coerce=int, widget=forms.widgets.CheckboxSelectMultiple(),
+        label="Repeat On", required=False)
+    rrule_end = forms.TypedChoiceField(
+        choices=END_CHOICES, coerce=int, initial=END_NEVER, widget=forms.widgets.RadioSelect(),
+        label="End")
     rrule_end_after = forms.IntegerField(min_value=1, initial=1, label="After")
-    rrule_end_on = forms.DateField(label="On", initial=lambda: timezone.now().date())
+    rrule_end_on = forms.DateField(
+        label="On", initial=lambda: timezone.now().date())
 
     class RRuleMedia:
         """Subclasses should explicitly import these"""
@@ -89,6 +95,13 @@ class RRuleFormMixin(forms.Form):
 
         if repeat == self.REPEAT_WEEKLY and not weekly_on:
             self.add_error('rrule_repeat', "Days must be chosen if repeating Weekly.")
+
+    def rrule_get_string(self):
+        """
+        Return an RRULE string from form data.
+        """
+        if not self.is_valid():
+            raise Exception("Form must be valid")
 
 
 class RoomEventForm(forms.ModelForm, RRuleFormMixin):
