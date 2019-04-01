@@ -147,15 +147,11 @@ def checklists(request):
         create_instance = True
         # Defaults the template option to the template the user is creating the checklist from
         form = forms.ChecklistInstanceForm(initial={'template': checklist_template_name})
+
         form.fields["template"].queryset = models.ChecklistTemplate.objects.filter(pk=checklist_template_name)
+    
         # Only show CAE Rooms
-        complex_query = (
-        (
-            Q(room_type__slug='classroom') | Q(room_type__slug='computer-classroom')
-        )
-        & Q(department__name='CAE Center')
-    )
-    form.fields['room'].queryset = cae_home_models.Room.objects.filter(complex_query)
+        form.fields['room'].queryset = cae_home_models.Room.objects.filter(Q(department__name='CAE Center'))
 
     # Stores the checklist template item that was requested by the user, if it exists.
     focused_template = None
