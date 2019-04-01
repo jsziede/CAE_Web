@@ -21,28 +21,19 @@ class RoomCheckoutForm(ModelForm):
             'checkout_date'
         ]
         widgets = {
-            'student': cae_home_forms.Select2Widget,
+            'student': cae_home_forms.Select2Widget(),
+            'room': cae_home_forms.SelectButtonsSideWidget(),
         }
 
     # checks if room is checked out for a past date and that the room has not already been checked out for that day
     def clean(self):
         cleaned_data = super(RoomCheckoutForm, self).clean()
         input_date = cleaned_data['checkout_date']
-        """
-        If no room is selected then Django raises an error rather than just
-        creating an error message for the room field, so I get around this
-        with a try that returns nothing if it fails. This is probably worth
-        looking into because normally Django will automatically catch
-        form errors but in this case it does not.
-        """
-        try:
-            input_room = cleaned_data['room']
-        except:
-            return
+        input_room = cleaned_data['room']
 
         # allows a room checkout if it is from the current day or in the future, even if the time has passed
         # simply comment out or remove this block of code if retroactive checkouts are allowed
-        if input_date.date() < timezone.now().date():
+        if input_date < timezone.now().date():
             raise ValidationError(
                 _('Invalid date %(date)s: date cannot be from the past'),
                 code='invalid',
@@ -77,7 +68,6 @@ class ChecklistInstanceForm(ModelForm):
             'room',
             'template',
         ]
-
         widgets = {
             'title': TextInput(),
         }

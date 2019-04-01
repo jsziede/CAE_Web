@@ -20,7 +20,7 @@ class RoomCheckout(models.Model):
     student = models.ForeignKey('cae_home.WmuUser', on_delete=models.CASCADE)
 
     # Fields specific to RoomCheckout model
-    checkout_date = models.DateTimeField(default=timezone.now)
+    checkout_date = models.DateField(default=timezone.now)
 
     # Self-setting/Non-user-editable fields.
     date_created = models.DateTimeField(auto_now_add=True)
@@ -39,9 +39,9 @@ class ChecklistTemplate(models.Model):
     """
     # Foreign keys
     room = models.ForeignKey('cae_home.Room',
-    on_delete=models.CASCADE,
-    blank=True,
-    null=True)
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True)
 
     # Many to many keys
     checklist_item = models.ManyToManyField('ChecklistItem')

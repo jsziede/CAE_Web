@@ -35,7 +35,7 @@
                 </button>
         </div>
     </div>
-
+	
 	{% if room_checkouts %}
 	<table>
 		<thead>
@@ -121,7 +121,7 @@
 					<p>{{ checkout.student.first_name }} {{ checkout.student.last_name }} ({{ checkout.student.bronco_net }})</p>
 				</td>
 				<td>
-					<p>{{ checkout.checkout_date | date:"F jS, Y" }} @ {{ checkout.checkout_date | date:"P" }}</p>
+					<p>{{ checkout.checkout_date | date:"F jS, Y" }}</p>
 				</td>
 			</tr>
 			{% endfor %}

@@ -35,30 +35,33 @@ def attendants(request):
     page = request.GET.get('page')
     room_checkouts = paginator.get_page(page)
 
-    students = cae_home_models.WmuUser.objects.all()
-    # Gets all computer classrooms at the CAE Center
-    rooms = cae_home_models.Room.objects.filter(
-        Q(room_type__exact=5) &
-        Q(department__exact=3))
     form = forms.RoomCheckoutForm()
-    room_checkout_loop_counter = 0
 
     # If user has submitted a room checkout form
     if request.method == 'POST':
         form = forms.RoomCheckoutForm(request.POST)
 
         if form.is_valid():
-            checkout = form.save()
+            form.save()
             success = 1
+            print(form.fields['checkout_date'])
         else:
             success = -1
 
+    # Gets all computer classrooms at the CAE Center that are valid for checking out
+    complex_query = (
+        (
+            Q(room_type__slug='classroom') | Q(room_type__slug='computer-classroom')
+        )
+        & Q(department__name='CAE Center')
+    )
+    form.fields['room'].queryset = cae_home_models.Room.objects.filter(complex_query)
+
+    # TODO: Set current employee as the default employee using the view rather than a script 
+
     return TemplateResponse(request, 'cae_web_attendants/attendants.html', {
         'room_checkouts': room_checkouts,
-        'students': students,
-        'rooms': rooms,
         'form': form,
-        'counter': room_checkout_loop_counter,
         'order_by': order_by,
         'direction': direction,
         'success': success,
@@ -109,6 +112,7 @@ def checklists(request):
     # Checks get request for a checklist instance based on its pk
     checklist_instance_primary = request.GET.get('checklist')
     # Checks get request for all checklist instances from a certain month
+    # TODO: add button on page to filter by month
     checklist_instance_month = request.GET.get('month')
 
     # Allows user to change the sorting of the checklist table.
@@ -145,7 +149,13 @@ def checklists(request):
         form = forms.ChecklistInstanceForm(initial={'template': checklist_template_name})
         form.fields["template"].queryset = models.ChecklistTemplate.objects.filter(pk=checklist_template_name)
         # Only show CAE Rooms
-        form.fields["room"].queryset = cae_home_models.Room.objects.filter(Q(department__exact=3))
+        complex_query = (
+        (
+            Q(room_type__slug='classroom') | Q(room_type__slug='computer-classroom')
+        )
+        & Q(department__name='CAE Center')
+    )
+    form.fields['room'].queryset = cae_home_models.Room.objects.filter(complex_query)
 
     # Stores the checklist template item that was requested by the user, if it exists.
     focused_template = None

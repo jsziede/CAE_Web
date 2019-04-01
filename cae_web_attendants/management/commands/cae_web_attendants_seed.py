@@ -90,11 +90,8 @@ class Command(BaseCommand):
                 # Generate random date.
                 day = randint(1, 25)
                 month = randint(1, 12)
-                year = randint(2015, 2018)
-                hour = randint(0, 23)
-                minute = randint(0, 3) * 15
-                second = 0
-                random_date = datetime.datetime(year, month, day, hour, minute, second, tzinfo=pytz.UTC)
+                year = randint(2015, 2019)
+                random_date = datetime.date(year, month, day)
 
                 # Push
                 try:
