@@ -68,12 +68,12 @@
       {% if form.start_time.errors %}
         <div></div> {{ form.start_time.errors }}
       {% endif %}
-      {{ form.start_time.label_tag }} {{ form.start_time }}
+      {{ form.start_time.label_tag }} <div class="div-flatpickr">{{ form.start_time }} <i class="far fa-calendar-alt"></i></div>
       {% if form.end_time.errors %}
         <div></div> {{ form.end_time.errors }}
       {% endif %}
-      {{ form.end_time.label_tag }} {{ form.end_time }}
-      {{ form.rrule }}
+      {{ form.end_time.label_tag }} <div class="div-flatpickr">{{ form.end_time }} <i class="far fa-calendar-alt"></i></div>
+      {% include 'cae_web_core/_rrule_form.html' %}
       {% if form.description.errors %}
         <div></div> {{ form.description.errors }}
       {% endif %}
@@ -87,6 +87,7 @@
       {% endif %}
       {{ form.room.label_tag }} {{ form.room }}
     </form>
+    {{ form.media }}
 
     <div class="dialog-buttons">
       <button id="btn_delete" form="form_event" type="submit" name="_delete" value="1" class="danger">Delete</button>

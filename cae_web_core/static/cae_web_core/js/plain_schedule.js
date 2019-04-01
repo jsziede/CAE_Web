@@ -502,6 +502,11 @@ $(function() {
         dateFormat: "Y-m-d H:i",
         altFormat: "l, F j, Y h:i K",
     });
+    dialogEventEndOn = $('#id_rrule_end_on').flatpickr({
+        altInput: true,
+        dateFormat: "Y-m-d",
+        altFormat: "F j, Y",
+    })
 
     // Close dialog when cancel clicked
     $('#btn_cancel').on('click', function() {
