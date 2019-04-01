@@ -38,22 +38,37 @@ class Command(BaseCommand):
         elif model_count > 10000:
             model_count = 100
 
-        print('\nCAE_WEB_ATTENDANTS: Seed command has been called.')
-        self.create_checklists()
+        self.stdout.write(self.style.HTTP_INFO('CAE_WEB_ATTENDANTS: Seed command has been called.'))
+        self.create_checklist_items()
+        self.create_checklist_templates()
+        self.create_checklist_instances()
         self.create_room_checkouts(model_count)
 
-        print('CAE_WEB_ATTENDANTS: Seeding complete.')
+        self.stdout.write(self.style.HTTP_INFO('CAE_WEB_ATTENDANTS: Seeding complete.\n'))
 
-    def create_checklists(self):
+    def create_checklist_items(self):
         """
-        Creates attendant checklists templates and tasks.
+        Creates Checklist Item models.
         """
         # Load preset fixtures. No need to create random models.
         call_command('loaddata', 'checklist_item')
-        call_command('loaddata', 'checklist_template')
-        call_command('loaddata', 'checklist_instance')
+        self.stdout.write('Populated ' + self.style.SQL_FIELD('Checklist Item') + ' models.\n')
 
-        print('Populated attendant checklist models.')
+    def create_checklist_templates(self):
+        """
+        Creates Checklist Templates models.
+        """
+        # Load preset fixtures. No need to create random models.
+        call_command('loaddata', 'checklist_template')
+        self.stdout.write('Populated ' + self.style.SQL_FIELD('Checklist Template') + ' models.\n')
+
+    def create_checklist_instances(self):
+        """
+        Creates Checklists Instance models.
+        """
+        # Load preset fixtures. No need to create random models.
+        call_command('loaddata', 'checklist_instance')
+        self.stdout.write('Populated ' + self.style.SQL_FIELD('Checklist Instance') + ' models.\n')
 
     def create_room_checkouts(self, model_count):
         """
@@ -110,6 +125,6 @@ class Command(BaseCommand):
                     # If failed 3 times, give up model creation and move on to next model, to prevent infinite loops.
                     if fail_count > 2:
                         try_create_model = False
-                        print('Failed to generate room checkout seed instance.')
+                        self.stdout.write('Failed to generate room checkout seed instance.')
 
-        print('Populated room checkout models.')
+        self.stdout.write('Populated ' + self.style.SQL_FIELD('Room Checkout') + ' models.\n')

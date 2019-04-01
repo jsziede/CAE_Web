@@ -40,19 +40,19 @@ class Command(BaseCommand):
         elif model_count > 10000:
             model_count = 100
 
-        print('\nCAE_WEB_WORK_LOG: Seed command has been called.')
+        self.stdout.write(self.style.HTTP_INFO('CAE_WEB_WORK_LOG: Seed command has been called.'))
         self.create_timeframe_types()
         self.create_log_sets()
         self.create_log_entries(model_count)
 
-        print('CAE_WEB_WORK_LOG: Seeding complete.')
+        self.stdout.write(self.style.HTTP_INFO('CAE_WEB_WORK_LOG: Seeding complete.\n'))
 
     def create_timeframe_types(self):
         """
         Create Timeframe Type models.
         """
         call_command('loaddata', 'full_models/timeframe_types')
-        print('Populated timeframe type models.')
+        self.stdout.write('Populated ' + self.style.SQL_FIELD('Timeframe Type') + ' models.\n')
 
     def create_log_sets(self):
         """
@@ -60,7 +60,7 @@ class Command(BaseCommand):
         """
         call_command('loaddata', 'full_models/work_log_sets')
 
-        print('Populated log set models.')
+        self.stdout.write('Populated ' + self.style.SQL_FIELD('Log Set') + ' models.\n')
 
     def create_log_entries(self, model_count):
         """
@@ -114,6 +114,6 @@ class Command(BaseCommand):
                     # If failed 3 times, give up model creation and move on to next model, to prevent infinite loops.
                     if fail_count > 2:
                         try_create_model = False
-                        print('Failed to generate log entry seed instance.')
+                        self.stdout.write('Failed to generate log entry seed instance.')
 
-        print('Populated log entry models.')
+        self.stdout.write('Populated ' + self.style.SQL_FIELD('Log Entry') + ' models.\n')

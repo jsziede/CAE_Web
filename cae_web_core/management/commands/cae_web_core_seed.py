@@ -43,7 +43,7 @@ class Command(BaseCommand):
         elif model_count > 10000:
             model_count = 100
 
-        print('\nCAE_WEB_CORE: Seed command has been called.')
+        self.stdout.write(self.style.HTTP_INFO('CAE_WEB_CORE: Seed command has been called.'))
         self.create_pay_periods()
         self.create_employee_shifts(model_count)
         self.create_availability_event_types()
@@ -51,7 +51,7 @@ class Command(BaseCommand):
         self.create_room_event_types()
         self.create_room_events(model_count)
 
-        print('CAE_WEB_CORE: Seeding complete.')
+        self.stdout.write(self.style.HTTP_INFO('CAE_WEB_CORE: Seeding complete.\n'))
 
     def create_pay_periods(self):
         """
@@ -59,7 +59,7 @@ class Command(BaseCommand):
         Uses "auto population" method in views. Should create from 5-25-2015 up to a pay period after current date.
         """
         populate_pay_periods()
-        print('Populated pay period models.')
+        self.stdout.write('Populated ' + self.style.SQL_FIELD('Pay Period') + ' models.')
 
     def create_employee_shifts(self, model_count):
         """
@@ -127,16 +127,16 @@ class Command(BaseCommand):
                     # If failed 3 times, give up model creation and move on to next model, to prevent infinite loops.
                     if fail_count > 2:
                         try_create_model = False
-                        print('Failed to generate employee shift seed instance.')
+                        self.stdout.write('Failed to generate employee shift seed instance.')
 
-        print('Populated employee shift models.')
+        self.stdout.write('Populated ' + self.style.SQL_FIELD('Employee Shift') + ' models.')
 
     def create_availability_event_types(self):
         """
         Create Availability Event Types
         """
         call_command('loaddata', 'availability_event_types')
-        print('Populated availability event type models.')
+        self.stdout.write('Populated ' + self.style.SQL_FIELD('Availability Event Type') + ' models.')
 
     def create_availability_events(self, model_count):
         """
@@ -205,16 +205,16 @@ class Command(BaseCommand):
                     # If failed 3 times, give up model creation and move on to next model, to prevent infinite loops.
                     if fail_count > 2:
                         try_create_model = False
-                        print('Failed to generate availability event seed instance.')
+                        self.stdout.write('Failed to generate availability event seed instance.')
 
-        print('Populated availability event models.')
+        self.stdout.write('Populated ' + self.style.SQL_FIELD('Availability Event') + ' models.')
 
     def create_room_event_types(self):
         """
         Create Room Event Types
         """
         call_command('loaddata', 'room_event_types')
-        print('Populated room event type models.')
+        self.stdout.write('Populated ' + self.style.SQL_FIELD('Room Event Type') + ' models.')
 
 
     def create_room_events(self, model_count):
@@ -292,6 +292,6 @@ class Command(BaseCommand):
                     # If failed 3 times, give up model creation and move on to next model, to prevent infinite loops.
                     if fail_count > 2:
                         try_create_model = False
-                        print('Failed to generate room event seed instance.')
+                        self.stdout.write('Failed to generate room event seed instance.')
 
-        print('Populated room event models.')
+        self.stdout.write('Populated ' + self.style.SQL_FIELD('Room Event') + ' models.')
