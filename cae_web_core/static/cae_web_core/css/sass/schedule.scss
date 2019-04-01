@@ -166,6 +166,7 @@ $light-border-color: $color-grey-70;
 // Schedule Modal Dialog
 #overlay-modal {
     padding: 25px;
+    min-width: 450px; // Enough space for Rrule Weekday selector
 
     .dialog-buttons {
         margin-top: 25px;
@@ -181,15 +182,42 @@ $light-border-color: $color-grey-70;
         grid-template-columns: 100px 1fr;
         grid-row-gap: 10px;
         grid-column-gap: 10px;
-    }
 
-    #div_event_form {
         label {
             text-align: right;
         }
 
-        input {
-            font-size: 1.5em;
+        .rrule-main, .rrule-end {
+            text-align: left;
+        }
+
+        #id_rrule_count, #id_rrule_end_after {
+            width: 3em;
+        }
+
+        #id_rrule_weekly_on {
+            list-style-type: none;
+            display: inline-block;
+
+            li {
+                display: inline-block;
+            }
+        }
+
+        .div-flatpickr {
+            display: flex;
+
+            .flatpickr-input {
+                flex-grow: 1;
+                margin-right: 5px;
+            }
+        }
+
+        .errorlist {
+            color: red;
+            list-style-type: none;
+            padding-left: 0;
+            text-align: left;
         }
     }
 }

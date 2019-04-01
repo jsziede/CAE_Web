@@ -12,7 +12,6 @@ import pytz
 
 from cae_home.models.wmu import SemesterDate, Room
 from . import models
-from .widgets import RRuleWidget
 from .utils import excel
 
 
@@ -44,7 +43,68 @@ class EmployeeShiftForm(forms.ModelForm):
         }
 
 
-class RoomEventForm(forms.ModelForm):
+class RRuleFormMixin(forms.Form):
+    REPEAT_NEVER = 0
+    REPEAT_DAILY = 1
+    REPEAT_WEEKLY = 2
+    REPEAT_CHOICES = (
+        (REPEAT_NEVER, "Never"),
+        (REPEAT_DAILY, "Daily"),
+        (REPEAT_WEEKLY, "Weekly"),
+    )
+    END_NEVER = 0
+    END_AFTER = 1
+    END_ON = 2
+    END_CHOICES = (
+        (END_NEVER, "Never"),
+        (END_AFTER, "After"),
+        (END_ON, "On"),
+    )
+    DAY_CHOICES = (
+        (7, "Su"),
+        (1, "Mo"),
+        (2, "Tu"),
+        (3, "We"),
+        (4, "Th"),
+        (5, "Fr"),
+        (6, "Sa"),
+    )
+    rrule_repeat = forms.TypedChoiceField(
+        choices=REPEAT_CHOICES, coerce=int, initial=REPEAT_NEVER, label="Repeat")
+    rrule_count = forms.IntegerField(min_value=1, initial=1, label="Count")
+    rrule_weekly_on = forms.TypedMultipleChoiceField(
+        choices=DAY_CHOICES, coerce=int, widget=forms.widgets.CheckboxSelectMultiple(),
+        label="Repeat On", required=False)
+    rrule_end = forms.TypedChoiceField(
+        choices=END_CHOICES, coerce=int, initial=END_NEVER, widget=forms.widgets.RadioSelect(),
+        label="End")
+    rrule_end_after = forms.IntegerField(min_value=1, initial=1, label="After")
+    rrule_end_on = forms.DateField(
+        label="On", initial=lambda: timezone.now().date())
+
+    class RRuleMedia:
+        """Subclasses should explicitly import these"""
+        js = ("cae_web_core/js/rrule_form.js",)
+
+    def rrule_clean(self):
+        """
+        Subclasses should call this method in their clean() methods.
+        """
+        repeat = self.cleaned_data.get('rrule_repeat')
+        weekly_on = self.cleaned_data.get('rrule_weekly_on')
+
+        if repeat == self.REPEAT_WEEKLY and not weekly_on:
+            self.add_error('rrule_repeat', "Days must be chosen if repeating Weekly.")
+
+    def rrule_get_string(self):
+        """
+        Return an RRULE string from form data.
+        """
+        if not self.is_valid():
+            raise Exception("Form must be valid")
+
+
+class RoomEventForm(forms.ModelForm, RRuleFormMixin):
     room_event_pk = forms.IntegerField(widget=forms.HiddenInput, required=False)
     class Meta:
         model = models.RoomEvent
@@ -57,12 +117,14 @@ class RoomEventForm(forms.ModelForm):
             'event_type',
             'room',
         ]
-        widgets = {
-            'rrule': RRuleWidget(),
-        }
+    class Media:
+        js = RRuleFormMixin.RRuleMedia.js
+
+    def clean(self):
+        super().rrule_clean()
 
 
-class AvailabilityEventForm(forms.ModelForm):
+class AvailabilityEventForm(forms.ModelForm, RRuleFormMixin):
     availability_event_pk = forms.IntegerField(widget=forms.HiddenInput, required=False)
     class Meta:
         model = models.AvailabilityEvent
@@ -73,6 +135,11 @@ class AvailabilityEventForm(forms.ModelForm):
             'event_type',
             'employee',
         ]
+    class Media:
+        js = RRuleFormMixin.RRuleMedia.js
+
+    def clean(self):
+        super().rrule_clean()
 
 
 class UploadRoomScheduleForm(forms.Form):
