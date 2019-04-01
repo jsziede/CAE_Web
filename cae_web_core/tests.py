@@ -311,13 +311,14 @@ class RoomEventModelTests(TestCase):
     """
     @classmethod
     def setUpTestData(cls):
-        cls.room_type = cae_home_models.RoomType.objects.create(name='Test Room Type', slug='test-room-type')
-        cls.department = cae_home_models.Department.objects.create(name='Test Department')
+        cls.room_type = cae_home_models.RoomType.objects.create(name='Room Type', slug='room-type')
+        cls.department = cae_home_models.Department.objects.create(name='Department', slug='department')
         cls.room = cae_home_models.Room.objects.create(
             name='Test Room',
             room_type=cls.room_type,
             capacity=30,
             description="Test Room Description",
+            slug='test-room'
         )
         cls.room.department.add(cls.department)
         cls.room.save()
