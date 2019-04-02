@@ -222,7 +222,7 @@ var createSchedule = function(container) {
 
             const startDiff = Number((eventStart.diff(dayStart, 'second') / 3600).toFixed(2)); // hours
             const endDiff = Number((eventEnd.diff(dayEnd, 'second') / 3600).toFixed(2)); // hours
-            const rowStart = Math.round(Math.max(0, startDiff) * 4 + 2); // +2 for header
+            var rowStart = Math.round(Math.max(0, startDiff) * 4 + 2); // +2 for header
             var spanHours = Number((eventEnd.diff(eventStart, 'second') / 3600).toFixed(2));
             if (startDiff < 0) {
                 // Reduce span if we cut off the start (Add a negative)
@@ -253,6 +253,10 @@ var createSchedule = function(container) {
                 columnSpan = 1;
             }
 
+            if (mode == "week") {
+                rowStart += 1; // Because of extra header
+            }
+
             const data = {
                 event: event,
                 column: column,
@@ -261,10 +265,15 @@ var createSchedule = function(container) {
                 span15Min: span15Min,
             };
 
-            processedEvents[event.id] = data;
+            // TODO: RRule events may appear multiple times!
+            var eventId = event.id;
+            if (event.rrule) {
+                eventId = `${eventId}-${event.rrule_index}`;
+            }
+            processedEvents[eventId] = data;
 
             if (!hasEventConflict) {
-                resourceEvents[event.id] = data;
+                resourceEvents[eventId] = data;
                 resourceIdToEvents[event.resource] = resourceEvents;
             }
         })
@@ -394,6 +403,11 @@ var createSchedule = function(container) {
     function onEventClicked(event) {
         var event = JSON.parse(unescape($(event.target).closest('.schedule-event').data('event')));
         console.log(event);
+
+        if (event.rrule) {
+            // TODO: Show dialog asking if should edit occurence or series
+        }
+
         dialogEventStart.setDate(moment(event.start).format('YYYY-MM-DD HH:mm'));
         dialogEventEnd.setDate(moment(event.end).format('YYYY-MM-DD HH:mm'));
         $('#id_event_type').val(event.event_type.pk);

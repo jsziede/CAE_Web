@@ -71,7 +71,7 @@ class RRuleFormMixin(forms.Form):
     )
     rrule_repeat = forms.TypedChoiceField(
         choices=REPEAT_CHOICES, coerce=int, initial=REPEAT_NEVER, label="Repeat")
-    rrule_count = forms.IntegerField(min_value=1, initial=1, label="Count")
+    rrule_interval = forms.IntegerField(min_value=1, initial=1, label="Interval")
     rrule_weekly_on = forms.TypedMultipleChoiceField(
         choices=DAY_CHOICES, coerce=int, widget=forms.widgets.CheckboxSelectMultiple(),
         label="Repeat On", required=False)
@@ -96,13 +96,71 @@ class RRuleFormMixin(forms.Form):
         if repeat == self.REPEAT_WEEKLY and not weekly_on:
             self.add_error('rrule_repeat', "Days must be chosen if repeating Weekly.")
 
-    def rrule_get_string(self):
+        if self.errors:
+            return
+        # The following assumes parent classes have defined start_time, end_time, and duration
+
+        start_time = self.cleaned_data.get('start_time')
+        end_time = self.cleaned_data.get('end_time')
+
+        new_rrule, new_end_time = self.rrule_get_string(start_time)
+        print(new_rrule)
+        self.cleaned_data['rrule'] = new_rrule
+
+        if new_rrule:
+            duration = end_time - start_time
+            print(new_end_time, duration)
+            # Change end time to encompass the entire rrule
+            self.cleaned_data['end_time'] = new_end_time
+            self.cleaned_data['duration'] = duration
+
+    def rrule_get_string(self, dtstart):
         """
         Return an RRULE string from form data.
         """
         if not self.is_valid():
             raise Exception("Form must be valid")
+        repeat = self.cleaned_data['rrule_repeat']
+        interval = self.cleaned_data['rrule_interval']
+        weekly_on = self.cleaned_data['rrule_weekly_on']
+        end = self.cleaned_data['rrule_end']
+        end_after = self.cleaned_data['rrule_end_after']
+        end_on = self.cleaned_data['rrule_end_on']
 
+        if repeat == self.REPEAT_NEVER:
+            return "", None # No rrule necessary
+
+        # Make the times Eastern Time, then convert to UTC for rrule
+        dtstart = dtstart.astimezone(pytz.utc)
+        end_time = datetime.datetime.combine(end_on, datetime.time(0))
+        end_time = timezone.make_aware(end_time, timezone=pytz.timezone("America/Detroit")).astimezone(pytz.utc)
+
+        rrule_weekdays = [None, rrule.MO, rrule.TU, rrule.WE, rrule.TH, rrule.FR, rrule.SA, rrule.SU]
+
+        converted_days = [rrule_weekdays[x] for x in weekly_on]
+
+        kwargs = {
+            'freq': rrule.DAILY if repeat == self.REPEAT_DAILY else rrule.WEEKLY,
+            'dtstart': dtstart,
+            'interval': interval,
+            'count': end_after if end == self.END_AFTER else None,
+            'until': end_time if end == self.END_ON else None,
+            'byweekday': converted_days if repeat == self.REPEAT_WEEKLY else None,
+        }
+
+        rule = rrule.rrule(**kwargs)
+
+        new_end_time = None
+        if end == self.END_ON:
+            new_end_time = end_time
+        elif end == self.END_NEVER:
+            # Keep None
+            pass
+        else:
+            # Need to compute last date
+            new_end_time = list(rule)[-1]
+
+        return str(rule), new_end_time
 
 class RoomEventForm(forms.ModelForm, RRuleFormMixin):
     room_event_pk = forms.IntegerField(widget=forms.HiddenInput, required=False)
@@ -113,6 +171,7 @@ class RoomEventForm(forms.ModelForm, RRuleFormMixin):
             'start_time',
             'end_time',
             'rrule',
+            'duration',
             'description',
             'event_type',
             'room',
@@ -132,6 +191,7 @@ class AvailabilityEventForm(forms.ModelForm, RRuleFormMixin):
             'start_time',
             'end_time',
             'rrule',
+            'duration',
             'event_type',
             'employee',
         ]

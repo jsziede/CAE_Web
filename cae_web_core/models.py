@@ -248,7 +248,6 @@ class RoomEventType(models.Model):
         return self.name
 
 
-# TODO: Create an EmployeeSchedule model that uses that base class
 class RoomEvent(AbstractEvent):
     """
     A schedule "event" for a room. IE: The room is reserved for a class, meeting, etc.
