@@ -14,6 +14,7 @@
 {% block content %}
     <h1>Welcome to the CAE Web Attendants Checklist page</h1>
     
+    {# If user is creating a new checklist instance from an existing template #}
     {% if create_instance %}
     {% if success == 1 %}
     <div class="panel success">
@@ -62,6 +63,7 @@
         <div class="footer"></div>
     </div>
 
+    {# If user has selected a checklist from the table, show the checklist details #}
     {% if focused_instance %}
     <div class="panel secondary">
         <div class="header">Checklist Data</div>
@@ -77,6 +79,7 @@
                 {% else %}
                 <p><b style="color: red;"><i class="fas fa-exclamation-triangle"></i> Incomplete</b></p>
                 {% endif %}
+                <p><a href="?edit={{ focused_instance.pk }}"><i class="fas fa-edit"></i> Edit Checklist</a></p>
             </div>
             <div style="flex: 50%; flex-direction: column">
                 <p><b>Task list:</b></p>
@@ -93,6 +96,7 @@
     </div>
     {% endif %}
     
+    {# If there are checklists instances in the database, show them on a table #}
     {% if checklist_instances %}
 	<table>
 		<thead>
