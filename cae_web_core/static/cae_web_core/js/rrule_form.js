@@ -8,24 +8,24 @@ function rruleShowWeekly(visible) {
     if (visible) {
         $('#id_rrule_weekly_on').prev().show();
         $('#id_rrule_weekly_on').show();
-        $('.rrule-count-day').hide();
-        $('.rrule-count-week').show();
+        $('.rrule-interval-day').hide();
+        $('.rrule-interval-week').show();
     } else {
         $('#id_rrule_weekly_on').prev().hide();
         $('#id_rrule_weekly_on').hide();
-        $('.rrule-count-day').show();
-        $('.rrule-count-week').hide();
+        $('.rrule-interval-day').show();
+        $('.rrule-interval-week').hide();
     }
 }
 
 function rruleShowAll(visible) {
     if (visible) {
-        $('.rrule-count').show();
+        $('.rrule-interval').show();
         $('label[for="id_rrule_end_0"]').show();
         $('.rrule-end').show();
         // Caller must explicily call rruleShowWeekly(true);
     } else {
-        $('.rrule-count').hide();
+        $('.rrule-interval').hide();
         $('label[for="id_rrule_end_0"]').hide();
         $('.rrule-end').hide();
         rruleShowWeekly(false); // Hide this too
