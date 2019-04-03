@@ -79,6 +79,8 @@ def checklists(request):
         # Gets form with filled out data from user
         form = forms.ChecklistInstanceForm(request.POST)
         
+        # TODO: Replace this with transaction
+
         # If all form fields are valid
         if form.is_valid():
             # Gets the title of the template that the checklist was made from
