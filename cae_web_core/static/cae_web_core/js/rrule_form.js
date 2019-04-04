@@ -61,6 +61,10 @@ function rruleSetFromFormData(formData) {
     });
 }
 
+function rruleTurnOff() {
+    $('#id_rrule_repeat').val(RRULE_REPEAT_NEVER).trigger('change');
+}
+
 $(function() {
     // Do initial check for visibility
     rruleCheckVisibility($('#id_rrule_repeat'));

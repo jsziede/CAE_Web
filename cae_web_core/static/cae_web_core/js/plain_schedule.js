@@ -404,12 +404,6 @@ var createSchedule = function(container) {
         var event = JSON.parse(unescape($(event.target).closest('.schedule-event').data('event')));
         console.log(event);
 
-        if (event.rrule) {
-            // TODO: Show dialog asking if should edit occurence or series
-            // Update form with rrule data
-            rruleSetFromFormData(event.rrule);
-        }
-
         dialogEventStart.setDate(moment(event.start).format('YYYY-MM-DD HH:mm'));
         dialogEventEnd.setDate(moment(event.end).format('YYYY-MM-DD HH:mm'));
         $('#id_event_type').val(event.event_type.pk);
@@ -424,7 +418,15 @@ var createSchedule = function(container) {
             $('#id_employee').val(event.resource);
         }
 
-        show_overlay_modal();
+        if (event.rrule) {
+            // Update form with rrule data
+            rruleSetFromFormData(event.rrule);
+
+            // Show dialog asking if should edit occurence or series
+            showRRuleDialog();
+        } else {
+            showEventDialog();
+        }
     }
 
     function onGridLineDblClicked(event) {
@@ -464,7 +466,7 @@ var createSchedule = function(container) {
             $('#id_employee').val(resource.id);
         }
 
-        show_overlay_modal();
+        showEventDialog();
     }
 
     // Initialize
@@ -492,6 +494,23 @@ var createSchedule = function(container) {
         },
     });
 
+    // RRule Dialog Events
+    $('#btn_rrule_occurrence').on('click', function() {
+        // Remove pk so a new event will be created
+        if (eventMode == 'rooms') {
+            $('#id_room_event_pk').val('');
+        } else if (eventMode == 'availability') {
+            $('#id_availability_event_pk').val('');
+        }
+        // Turn off repeat
+        rruleTurnOff();
+        showEventDialog();
+    });
+    $('#btn_rrule_series').on('click', function() {
+        // Continue as normal
+        showEventDialog();
+    });
+
     return {
         dummy: function() {
             console.log("dummy");
@@ -499,13 +518,28 @@ var createSchedule = function(container) {
     }
 };
 
+function showEventDialog() {
+    $('#div_event_dialog').show();
+    $('#div_rrule_dialog').hide();
+    show_overlay_modal();
+}
+
+function showRRuleDialog() {
+    $('#div_event_dialog').hide();
+    $('#div_rrule_dialog').show();
+    $('#overlay-modal').addClass('no-margin');
+    show_overlay_modal();
+}
+
 $(function() {
     $('.schedule-container').each(function() {
         var schedule = createSchedule(this);
     });
 
-    // Move event dialog into modal dialog
+    // Move event dialog into modal dialog and show by default
     $('#div_event_dialog').appendTo('#overlay-modal').show();
+    // Move rrule dialog into modal dialog
+    $('#div_rrule_dialog').appendTo('#overlay-modal');
     dialogEventStart = $('#id_start_time').flatpickr({
         enableTime: true,
         altInput: true,
@@ -525,7 +559,7 @@ $(function() {
     })
 
     // Close dialog when cancel clicked
-    $('#btn_cancel').on('click', function() {
+    $('#btn_cancel,#btn_rrule_cancel').on('click', function() {
         hide_overlay_modal();
     });
 
@@ -539,6 +573,6 @@ $(function() {
 
     // Check if we have errors from previous POST
     if ($('#div_event_dialog[data-errors]').length) {
-        show_overlay_modal();
+        showEventDialog();
     }
 });
