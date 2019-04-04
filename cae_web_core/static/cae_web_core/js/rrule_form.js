@@ -42,6 +42,25 @@ function rruleCheckVisibility(element) {
     }
 }
 
+function rruleSetFromFormData(formData) {
+    // Fill out the form with given form data.
+    // See cae_web_core/forms.py RRuleFormMixin.rrule_get_form_data().
+    Object.keys(formData).map((key) => {
+        const value = formData[key];
+        if (key == "id_rrule_weekly_on") {
+            // Checkboxes must be handled differently
+            value.map(function(x) {
+                $(`input[name="rrule_weekly_on"][value="${x}"]`).prop('checked', true).trigger('change');
+            });
+        } else if (key == "id_rrule_end") {
+            // Radios must be handled differently
+            $(`input[name="rrule_end"][value="${value}"]`).prop('checked', true).trigger('change');
+        } else {
+            $('#' + key).val(value).trigger('change');
+        }
+    });
+}
+
 $(function() {
     // Do initial check for visibility
     rruleCheckVisibility($('#id_rrule_repeat'));

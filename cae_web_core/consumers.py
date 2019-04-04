@@ -16,6 +16,7 @@ from django.utils import timezone
 
 # User Class Imports.
 from . import models
+from . import forms
 from .views import populate_pay_periods
 
 
@@ -507,16 +508,17 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
                 # Override 'dtstart' and 'until' in case event model was changed but rrule was not.
                 new_starts = rrule.rrulestr(event['rrule']).replace(dtstart=dtstart, until=until)
 
+                rrule_form_data = forms.RRuleFormMixin.rrule_get_form_data(new_starts)
+
                 for i, new_start in enumerate(new_starts):
                     # Convert time back to aware and then to UTC for the client.
                     new_start = timezone.make_aware(new_start, timezone=pytz.timezone("America/Detroit")).astimezone(pytz.utc)
                     if new_start < start or new_start > end:
                         continue
                     new_end = new_start + event['duration']
-                    # TODO: Add key to tell client that this is an rrule event
                     event_dicts.append({
                         'id': event['pk'],
-                        'rrule': True, # TODO: Break down into format for form
+                        'rrule': rrule_form_data,
                         'rrule_index': i,
                         'resource': event['employee'],
                         'start': new_start.isoformat(),
