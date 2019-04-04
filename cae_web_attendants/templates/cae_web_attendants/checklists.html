@@ -94,6 +94,44 @@
         </div>
         <div class="footer"></div>
     </div>
+    {% elif edit_instance %}
+    {% if success == 1 %}
+    <div class="panel success">
+        <div class="header">Checklist Successfully Updated</div>
+    {% elif success == -1 %}
+    <div class="panel error">
+        <div class="header">Failed to Update Checklist</div>
+    {% else %}
+    <div class="panel primary">
+        <div class="header">Update Checklist</div>
+    {% endif %}
+            <div class="content" style="display: flex">
+                <div style="flex: 50%; flex-direction: column">
+                    <p><b>Name:</b> {{ edit_instance.title }}</p>
+                    <p><b>Room:</b> {{ edit_instance.room }}</p>
+                    <p><b>Created by:</b> {{ edit_instance.employee }}</p>
+                    {% if edit_instance.date_completed %}
+                    <p><b style="color: green;"><i class="fas fa-check-circle"></i> Complete</b></p>
+                    <p><b>Date Completed:</b> {{ edit_instance.date_completed | date:"F jS, Y" }}</p>
+                    <p><b>Time Completed:</b> {{ edit_instance.date_completed | date:"P" }}</p>
+                    {% else %}
+                    <p><b style="color: red;"><i class="fas fa-exclamation-triangle"></i> Incomplete</b></p>
+                    {% endif %}
+                </div>
+                <div style="flex: 50%; flex-direction: column">
+                    <form action="" method="POST" id="instance">
+                        {% csrf_token %}
+                        {{ formset }}
+                    </form>
+                </div>
+            </div>
+            <div class="footer">
+                    <button type="submit" name="action" value="Instance" form="instance">
+                            Save <i class="fas fa-sign-in-alt"></i>
+                    </button>
+            </div>
+        </div>
+    </div>
     {% endif %}
     
     {# If there are checklists instances in the database, show them on a table #}
