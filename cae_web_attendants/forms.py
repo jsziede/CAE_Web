@@ -75,11 +75,8 @@ class ChecklistInstanceForm(ModelForm):
 class ChecklistItemForm(ModelForm):
     class Meta:
         model = models.ChecklistItem
-        
+
         fields = [
             'task',
             'completed',
         ]
-        widgets = {
-            'tasks': TextInput(attrs={'readonly':'readonly'}),
-        }

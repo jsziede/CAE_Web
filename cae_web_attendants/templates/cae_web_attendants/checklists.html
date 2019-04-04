@@ -27,12 +27,15 @@
         <div class="header">Open a Checklist</div>
     {% endif %}
         <div class="content">
-        {% include 'cae_home/include/form.html' %}
+            <form action="" method="POST" id="checklist">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+            </form>
         </div>
         <div class="footer">
-                <button type="submit">
-                        Submit <i class="fas fa-sign-in-alt"></i>
-                </button>
+            <button type="submit" name="action" value="Instance" form="checklist">
+                    Create <i class="fas fa-sign-in-alt"></i>
+            </button>
         </div>
     </div>
     {% endif %}
@@ -102,7 +105,7 @@
     <div class="panel error">
         <div class="header">Failed to Update Checklist</div>
     {% else %}
-    <div class="panel primary">
+    <div class="panel secondary">
         <div class="header">Update Checklist</div>
     {% endif %}
             <div class="content" style="display: flex">
@@ -121,14 +124,14 @@
                 <div style="flex: 50%; flex-direction: column">
                     <form action="" method="POST" id="instance">
                         {% csrf_token %}
-                        {{ formset }}
+                        {{ formset.as_p }}
                     </form>
                 </div>
             </div>
             <div class="footer">
-                    <button type="submit" name="action" value="Instance" form="instance">
-                            Save <i class="fas fa-sign-in-alt"></i>
-                    </button>
+                <button type="submit" name="action" value="Edit" form="instance">
+                        Save <i class="fas fa-sign-in-alt"></i>
+                </button>
             </div>
         </div>
     </div>
