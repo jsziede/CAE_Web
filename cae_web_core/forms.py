@@ -132,7 +132,7 @@ class RRuleFormMixin(forms.Form):
 
         # Make the times Eastern Time, then convert to UTC for rrule
         dtstart = dtstart.astimezone(pytz.utc)
-        end_time = datetime.datetime.combine(end_on, datetime.time(0))
+        end_time = datetime.datetime.combine(end_on, datetime.time(11, 59))
         end_time = timezone.make_aware(end_time, timezone=pytz.timezone("America/Detroit")).astimezone(pytz.utc)
 
         rrule_weekdays = [None, rrule.MO, rrule.TU, rrule.WE, rrule.TH, rrule.FR, rrule.SA, rrule.SU]
@@ -161,6 +161,48 @@ class RRuleFormMixin(forms.Form):
             new_end_time = list(rule)[-1]
 
         return str(rule), new_end_time
+
+    @classmethod
+    def rrule_get_form_data(cls, rule):
+        """
+        Used by consumers socket to give client js form data.
+
+        See rrule_form.js rruleSetFromFormData().
+        """
+        repeat = {
+            rrule.DAILY: cls.REPEAT_DAILY,
+            rrule.WEEKLY: cls.REPEAT_WEEKLY,
+        }[rule._freq]
+
+        end = cls.END_NEVER
+        end_on = timezone.now().date()
+        end_after = 1
+        if rule._until:
+            end = cls.END_ON
+            end_on = rule._until
+        if rule._count:
+            end = cls.END_AFTER
+            end_after = rule._count
+
+        weekly_on = []
+        if rule._byweekday:
+            # Convert rrule weekday to our weekday
+            rrule_weekdays = [None, rrule.MO, rrule.TU, rrule.WE, rrule.TH, rrule.FR, rrule.SA, rrule.SU]
+            rrule_weekdays = [x.weekday if x else None for x in rrule_weekdays]
+
+            weekly_on = [rrule_weekdays.index(x) for x in rule._byweekday]
+
+        form_data = {
+            'id_rrule_repeat': repeat,
+            'id_rrule_interval': rule._interval,
+            'id_rrule_weekly_on': weekly_on,
+            'id_rrule_end': end,
+            'id_rrule_end_after': end_after,
+            'id_rrule_end_on': end_on.strftime('%Y-%m-%d'),
+        }
+
+        return form_data
+
 
 class RoomEventForm(forms.ModelForm, RRuleFormMixin):
     room_event_pk = forms.IntegerField(widget=forms.HiddenInput, required=False)

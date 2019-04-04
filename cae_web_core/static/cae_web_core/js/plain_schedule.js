@@ -406,6 +406,8 @@ var createSchedule = function(container) {
 
         if (event.rrule) {
             // TODO: Show dialog asking if should edit occurence or series
+            // Update form with rrule data
+            rruleSetFromFormData(event.rrule);
         }
 
         dialogEventStart.setDate(moment(event.start).format('YYYY-MM-DD HH:mm'));
