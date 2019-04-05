@@ -1,4 +1,4 @@
-{% extends 'cae_work_log/main.html' %}
+{% extends 'cae_web_work_log/main.html' %}
 
 
 {% block title_page_name %}Work Log | {% endblock title_page_name %}
@@ -35,7 +35,7 @@
   </div>
 
   <div class="entries">
-    <a href="{% url 'cae_work_log:create' %}">New</a>
+    <a href="{% url 'cae_web_work_log:create' %}">New</a>
     {% for entry in log_entries %}
       <div class="entry">
         <div class="entry_header"><span>{{ entry.entry_date }}</span><span>{{ entry.user }}</span></div>

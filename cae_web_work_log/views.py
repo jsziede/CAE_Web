@@ -30,7 +30,7 @@ def index(request):
     log_entries = models.WorkLogEntry.objects.all()
 
     # Send to template for user display.
-    return TemplateResponse(request, 'cae_work_log/index.html', {
+    return TemplateResponse(request, 'cae_web_work_log/index.html', {
         'groups': groups,
         'timeframes': timeframes,
         'log_sets': log_sets,
@@ -73,12 +73,12 @@ def create_entry(request):
 
             # Render response for user.
             messages.success(request, 'Successfully created log entry ({0}).'.format(entry))
-            return HttpResponseRedirect(reverse('cae_work_log:index'))
+            return HttpResponseRedirect(reverse('cae_web_work_log:index'))
         else:
             messages.warning(request, 'Failed to create log entry.')
 
     # Handle for non-post request.
-    return TemplateResponse(request, 'cae_work_log/log_entry_form.html', {
+    return TemplateResponse(request, 'cae_web_work_log/log_entry_form.html', {
         'form': form,
     })
 

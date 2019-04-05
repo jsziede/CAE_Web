@@ -1,6 +1,6 @@
 [
 {
-    "model": "cae_work_log.worklogset",
+    "model": "cae_web_work_log.worklogset",
     "pk": 1,
     "fields": {
         "group": 6,
@@ -11,7 +11,7 @@
     }
 },
 {
-    "model": "cae_work_log.worklogset",
+    "model": "cae_web_work_log.worklogset",
     "pk": 2,
     "fields": {
         "group": 6,
@@ -22,7 +22,7 @@
     }
 },
 {
-    "model": "cae_work_log.worklogset",
+    "model": "cae_web_work_log.worklogset",
     "pk": 3,
     "fields": {
         "group": 6,
@@ -33,7 +33,7 @@
     }
 },
 {
-    "model": "cae_work_log.worklogset",
+    "model": "cae_web_work_log.worklogset",
     "pk": 4,
     "fields": {
         "group": 6,
@@ -44,7 +44,7 @@
     }
 },
 {
-    "model": "cae_work_log.worklogset",
+    "model": "cae_web_work_log.worklogset",
     "pk": 5,
     "fields": {
         "group": 5,
@@ -55,7 +55,7 @@
     }
 },
 {
-    "model": "cae_work_log.worklogset",
+    "model": "cae_web_work_log.worklogset",
     "pk": 6,
     "fields": {
         "group": 5,
@@ -66,7 +66,7 @@
     }
 },
 {
-    "model": "cae_work_log.worklogset",
+    "model": "cae_web_work_log.worklogset",
     "pk": 7,
     "fields": {
         "group": 5,
@@ -77,7 +77,7 @@
     }
 },
 {
-    "model": "cae_work_log.worklogset",
+    "model": "cae_web_work_log.worklogset",
     "pk": 8,
     "fields": {
         "group": 5,

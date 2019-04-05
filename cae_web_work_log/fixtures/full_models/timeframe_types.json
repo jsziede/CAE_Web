@@ -1,6 +1,6 @@
 [
 {
-    "model": "cae_work_log.timeframetype",
+    "model": "cae_web_work_log.timeframetype",
     "pk": 1,
     "fields": {
         "name": 0,
@@ -9,7 +9,7 @@
     }
 },
 {
-    "model": "cae_work_log.timeframetype",
+    "model": "cae_web_work_log.timeframetype",
     "pk": 2,
     "fields": {
         "name": 1,
@@ -18,7 +18,7 @@
     }
 },
 {
-    "model": "cae_work_log.timeframetype",
+    "model": "cae_web_work_log.timeframetype",
     "pk": 3,
     "fields": {
         "name": 2,
@@ -27,7 +27,7 @@
     }
 },
 {
-    "model": "cae_work_log.timeframetype",
+    "model": "cae_web_work_log.timeframetype",
     "pk": 4,
     "fields": {
         "name": 3,
