@@ -59,6 +59,8 @@
     <form id="form_event" method="POST">
       {% csrf_token %}
       {{ form.availability_event_pk }}
+      {{ form.parent_pk }}
+      {{ form.exclusion }}
       {% if form.non_field_errors %}
         <label>Errors:</label> {{ form.non_field_errors }}
       {% endif %}

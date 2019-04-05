@@ -9,6 +9,8 @@ from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 
+from .fields import DatetimeListField
+
 
 MAX_LENGTH = 255
 
@@ -213,6 +215,8 @@ class AbstractEvent(models.Model):
     )
     duration = models.DurationField(
         blank=True, null=True, help_text="Used only with rrules.")
+    exclusions = DatetimeListField(
+        blank=True, help_text="Newline separated list of isoformat datetimes to exclude.")
 
     class Meta:
         abstract = True

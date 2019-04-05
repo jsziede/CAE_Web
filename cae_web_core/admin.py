@@ -128,7 +128,7 @@ class AvailabilityEventAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {
             'fields': (
-                'employee', 'event_type', 'start_time', 'end_time', 'rrule', 'duration'
+                'employee', 'event_type', 'start_time', 'end_time', 'rrule', 'duration', 'exclusions',
             )
         }),
         ('Advanced', {

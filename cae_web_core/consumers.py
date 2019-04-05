@@ -414,7 +414,7 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
 
         events = events.values(
             'pk', 'room', 'event_type', 'start_time', 'end_time', 'title',
-            'description', 'rrule', 'duration',
+            'description', 'rrule', 'duration', 'exclusions',
         )
 
         event_dicts = self._convert_events_to_dicts(
@@ -448,7 +448,7 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
         event_types = {x['pk']: x for x in event_types}
 
         events = events.values(
-            'pk', 'employee', 'event_type', 'start_time', 'end_time', 'rrule', 'duration',
+            'pk', 'employee', 'event_type', 'start_time', 'end_time', 'rrule', 'duration', 'exclusions',
         )
 
         event_dicts = self._convert_events_to_dicts(
@@ -482,10 +482,13 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
 
                 rrule_form_data = forms.RRuleFormMixin.rrule_get_form_data(new_starts)
 
+                # Get list of dates that have been excluded
+                exclusions = event['exclusions'].value
+
                 for i, new_start in enumerate(new_starts):
                     # Convert time back to aware and then to UTC for the client.
                     new_start = timezone.make_aware(new_start, timezone=pytz.timezone("America/Detroit")).astimezone(pytz.utc)
-                    if new_start < start or new_start > end:
+                    if new_start < start or new_start > end or new_start in exclusions:
                         continue
                     new_end = new_start + event['duration']
                     event_dicts.append({

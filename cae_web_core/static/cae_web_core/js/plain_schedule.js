@@ -502,10 +502,14 @@ var createSchedule = function(container) {
     $('#btn_rrule_occurrence').on('click', function() {
         // Remove pk so a new event will be created
         if (eventMode == 'rooms') {
+            $('#id_parent_pk').val($('#id_room_event_pk').val());
             $('#id_room_event_pk').val('');
         } else if (eventMode == 'availability') {
+            $('#id_parent_pk').val($('#id_availability_event_pk').val());
             $('#id_availability_event_pk').val('');
         }
+        // Record what datetime to exclude in the original series
+        $('#id_exclusion').val($('#id_start_time').val());
         // Turn off repeat
         rruleTurnOff();
         showEventDialog();
