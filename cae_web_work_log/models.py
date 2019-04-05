@@ -51,7 +51,28 @@ class TimeFrameType(models.Model):
         super(TimeFrameType, self).save(*args, **kwargs)
 
     def full_name(self):
+        """
+        Return name of current timeframe.
+        """
         return self.TIMEFRAME_CHOICES[self.name][1]
+
+    @staticmethod
+    def get_name_from_int(small_int):
+        """
+        Given the desired model int, return the associated name.
+        """
+        return TimeFrameType.TIMEFRAME_CHOICES[small_int][1]
+
+    @staticmethod
+    def get_int_from_name(name):
+        """
+        Given the desired model name, return the associated int.
+        """
+        return_value = -1
+        for timeframe in TimeFrameType.TIMEFRAME_CHOICES:
+            if timeframe[1] == str(name):
+                return_value = timeframe[0]
+        return return_value
 
 
 class WorkLogSet(models.Model):
