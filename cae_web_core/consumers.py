@@ -495,6 +495,8 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
                         'resource': event[resource_key],
                         'start': new_start.isoformat(),
                         'end': new_end.isoformat(),
+                        'orig_start': event['start_time'].isoformat(),
+                        'orig_end': (event['start_time'] + event['duration']).isoformat(),
                         'event_type': event_types[event['event_type']],
                         'title': event.get('title'),
                         'description': event.get('description'),

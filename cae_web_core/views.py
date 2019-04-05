@@ -278,6 +278,9 @@ def employee_schedule(request, employee_type_pk=None):
         if date_string:
             date_param = '?date=' + date_string
         if delete:
+            if not instance:
+                messages.error(request, "Nothing to delete")
+                return redirect(reverse('cae_web_core:employee_schedule', args=[employee_type_pk]) + date_param)
             instance.delete()
             messages.success(request, "Event deleted")
             return redirect(reverse('cae_web_core:employee_schedule', args=[employee_type_pk]) + date_param)
@@ -353,6 +356,9 @@ def room_schedule(request, room_type_slug):
         if date_string:
             date_param = '?date=' + date_string
         if delete:
+            if not instance:
+                messages.error(request, "Nothing to delete")
+                return redirect(reverse('cae_web_core:room_schedule', args=[room_type_slug]) + date_param)
             instance.delete()
             messages.success(request, "Event deleted")
             return redirect(reverse('cae_web_core:room_schedule', args=[room_type_slug]) + date_param)

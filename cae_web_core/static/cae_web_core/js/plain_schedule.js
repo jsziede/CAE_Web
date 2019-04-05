@@ -422,6 +422,10 @@ var createSchedule = function(container) {
             // Update form with rrule data
             rruleSetFromFormData(event.rrule);
 
+            // store original start and end in case series is edited
+            $('#id_start_time').data('rrule-original', event.orig_start);
+            $('#id_end_time').data('rrule-original', event.orig_end);
+
             // Show dialog asking if should edit occurence or series
             showRRuleDialog();
         } else {
@@ -507,7 +511,11 @@ var createSchedule = function(container) {
         showEventDialog();
     });
     $('#btn_rrule_series').on('click', function() {
-        // Continue as normal
+        // Change start and end to their original values
+        var eventStart = moment($('#id_start_time').data('rrule-original'));
+        var eventEnd = moment($('#id_end_time').data('rrule-original'));
+        dialogEventStart.setDate(eventStart.format('YYYY-MM-DD HH:mm'));
+        dialogEventEnd.setDate(eventEnd.format('YYYY-MM-DD HH:mm'));
         showEventDialog();
     });
 
