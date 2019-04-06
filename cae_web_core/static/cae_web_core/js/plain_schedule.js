@@ -19,6 +19,15 @@ var createSchedule = function(container) {
     var modeAllowChange = container.data('mode-allow-change');
     var showResourceHeader = container.data('show-resource-header');
     var totalEventType = container.data('total-event-type');
+    var hiddenResourceIds = JSON.parse(sessionStorage.getItem('schedule-hidden-resource-ids')) || [];
+
+    var allResources = resources;
+    if (hiddenResourceIds) {
+        // Remove hidden resources;
+        resources = resources.filter(function(resource) {
+            return !hiddenResourceIds.includes(resource.id);
+        });
+    }
 
     // validate mode
     if (mode == 'week') {
@@ -71,9 +80,13 @@ var createSchedule = function(container) {
 
     function createResourceHeader() {
         var resourceDivs = "";
-        resources.map(function(resource) {
+        allResources.map(function(resource) {
             const colors = `color: ${resource.fg_color || "black"}; background-color: ${resource.bg_color || "white"};`;
-            resourceDivs += `<div class="resource-total" data-id="${resource.id}" style="${colors}">${resource.name}<br><span class="total">0:00</span></div>`;
+            var hiddenClass = "";
+            if (hiddenResourceIds.includes(resource.id)) {
+                hiddenClass = "resource-hidden";
+            }
+            resourceDivs += `<div class="resource-total ${hiddenClass}" data-id="${resource.id}" style="${colors}">${resource.name}<br><span class="total">0:00</span></div>`;
         });
         var header = $('<div>', {
             class: "schedule-resource-header",
@@ -216,7 +229,7 @@ var createSchedule = function(container) {
             const eventStart = moment(event.start);
             const eventEnd = moment(event.end);
 
-            if (eventEnd < start || eventStart > end_time) {
+            if (eventEnd < start || eventStart > end_time || hiddenResourceIds.includes(event.resource)) {
                 // Event happens outside schedule, skip it
                 console.log("Skipping event", event);
                 return null;
@@ -523,6 +536,22 @@ var createSchedule = function(container) {
         showEventDialog();
     }
 
+    function onResourceTotalClicked(event) {
+        var resourceTotal = $(event.target).closest('.resource-total');
+        var resourceId = resourceTotal.data('id');
+        // Toggle its visibility
+        if (hiddenResourceIds.includes(resourceId)) {
+            hiddenResourceIds.splice(hiddenResourceIds.indexOf(resourceId), 1);
+        } else {
+            hiddenResourceIds.push(resourceId);
+        }
+        sessionStorage['schedule-hidden-resource-ids'] = JSON.stringify(hiddenResourceIds);
+
+        // Reload with things hidden or shown
+        // NOTE: We have to redraw the entire schedule, so a page reload isn't too bad
+        location.reload();
+    }
+
     // Initialize
     container.empty();
     var header = createHeader();
@@ -543,6 +572,7 @@ var createSchedule = function(container) {
     container.find('.schedule-btn-calendar').on('click', onBtnCalendarClicked);
     container.find('.schedule-grid-line').on('dblclick', onGridLineDblClicked);
     container.find('.schedule-btn-mode').on('click', onBtnModeClicked);
+    container.find('.resource-total').on('click', onResourceTotalClicked);
 
     // Setup flatpickr
     var dateFlatpickr = container.find('.schedule-txt-date').flatpickr({
