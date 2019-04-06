@@ -21,9 +21,6 @@ urlpatterns = [
     url(r'^employee/schedule/(?P<resource_identifier>[0-9]+)/$', views.EmployeeScheduleView.as_view(), name='employee_schedule'),
 
     # Room scheduler views.
-    # TODO: Note, these schedule api urls are public. Should they be permission based?
-    # TODO Response: Probably, yes. At least editing/adding them should be. Standard viewing probably should be public.
-    url(r'^schedule/', include(('schedule.urls', 'schedule'), namespace='schedule')),
     url(r'^room-schedule/upload/$', views.upload_schedule, name='upload_schedule'),
     url(r'^room-schedule/(?P<resource_identifier>[-\w]+)/$', views.RoomScheduleView.as_view(), name='room_schedule'),
 ]
