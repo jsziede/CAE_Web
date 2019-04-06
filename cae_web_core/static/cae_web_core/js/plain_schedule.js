@@ -170,9 +170,11 @@ var createSchedule = function(container) {
     function updateEvents(events) {
         const resourceIdToColumn = {};
         const resourceIdToEvents = {};
+        const resourcesById = {};
 
         resources.map((resource, column) => {
             resourceIdToColumn[resource.id] = column * 2 + 2;
+            resourcesById[resource.id] = resource;
         });
 
         // keep track of events that have been processsed
@@ -284,7 +286,8 @@ var createSchedule = function(container) {
         var eventDivs = '';
         for (var eventId in processedEvents) {
             const data = processedEvents[eventId];
-            const colors = `color: ${data.event.event_type.fg_color}; background-color: ${data.event.event_type.bg_color};`;
+            var resource = resourcesById[data.event.resource];
+            const colors = `color: ${data.event.event_type.fg_color || resource.fg_color || "black"}; background-color: ${data.event.event_type.bg_color || resource.bg_color || "white"};`;
             const style = `grid-area: ${data.rowStart} / ${data.column} / span ${data.span15Min} / span ${data.columnSpan}; ${colors}`;
             const eventStart = moment(data.event.start).format('LT');
             const eventEnd = moment(data.event.end).format('LT');

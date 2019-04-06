@@ -334,13 +334,17 @@ class EmployeeScheduleView(ScheduleView):
             groups__pk=resource_identifier,
         ).order_by('first_name').values_list(
             'pk', 'first_name',
+            'userintermediary__profile__fg_color',
+            'userintermediary__profile__bg_color',
         )
 
         employees_json = []
-        for pk, name in employees:
+        for pk, name, fg_color, bg_color in employees:
             employees_json.append({
                 'id': pk,
                 'html': name,
+                'fg_color': fg_color,
+                'bg_color': bg_color,
             })
 
         return employees, employees_json
