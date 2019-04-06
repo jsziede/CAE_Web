@@ -329,6 +329,16 @@ class EmployeeScheduleView(ScheduleView):
         pk = resource_identifier or Group.objects.get(name="CAE Admin").pk
         return int(pk) # Coerce to an int for template comparison
 
+    def get_context(self, context=None):
+        context = context or {}
+
+        context.update({
+            # Do total on Scheduled events only
+            'total_event_type': models.AvailabilityEventType.objects.filter(name='Scheduled').values_list('pk', flat=True).first(),
+        })
+
+        return context
+
     def get_resources(self, resource_identifier):
         employees = UserModel.objects.filter(
             groups__pk=resource_identifier,
@@ -342,6 +352,7 @@ class EmployeeScheduleView(ScheduleView):
         for pk, name, fg_color, bg_color in employees:
             employees_json.append({
                 'id': pk,
+                'name': name,
                 'html': name,
                 'fg_color': fg_color,
                 'bg_color': bg_color,

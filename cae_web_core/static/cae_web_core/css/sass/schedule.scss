@@ -16,6 +16,31 @@ $light-border-color: $color-grey-70;
     display: grid;
     grid-auto-rows: auto;
 
+    .schedule-resource-header {
+        @include display-flex;
+        justify-content: space-between;
+
+        .resources {
+            display: inline-flex;
+
+            .resource-total {
+                padding: 0 5px;
+                margin: 2px 5px;
+                border: 1px solid black;
+                border-radius: 5px;
+            }
+        }
+
+        .total-hours {
+            padding: 5px;
+            font-size: large;
+
+            .resource-grand-total {
+                font-size: large; // TODO: Fix _reset.css so parent rule is not overridden
+            }
+        }
+    }
+
     .schedule-header {
         padding: 2px;
         @include display-flex;

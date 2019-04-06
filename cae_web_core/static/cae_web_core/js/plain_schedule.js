@@ -17,6 +17,8 @@ var createSchedule = function(container) {
     var eventMode = container.data('event-mode');
     var mode = container.data('mode');
     var modeAllowChange = container.data('mode-allow-change');
+    var showResourceHeader = container.data('show-resource-header');
+    var totalEventType = container.data('total-event-type');
 
     // validate mode
     if (mode == 'week') {
@@ -36,6 +38,13 @@ var createSchedule = function(container) {
         mode = sessionStorage.getItem(STORAGE_KEY_MODE) || mode;
     } else {
         modeAllowChange = false;
+    }
+
+    // validate showResourceHeader to a boolean
+    if (showResourceHeader) {
+        showResourceHeader = true;
+    } else {
+        showResourceHeader = false;
     }
 
     // Establish socket connection.
@@ -59,6 +68,20 @@ var createSchedule = function(container) {
             updateEvents(data.events);
         }
     });
+
+    function createResourceHeader() {
+        var resourceDivs = "";
+        resources.map(function(resource) {
+            const colors = `color: ${resource.fg_color || "black"}; background-color: ${resource.bg_color || "white"};`;
+            resourceDivs += `<div class="resource-total" data-id="${resource.id}" style="${colors}">${resource.name}<br><span class="total">0:00</span></div>`;
+        });
+        var header = $('<div>', {
+            class: "schedule-resource-header",
+            html: `<div class="resources">${resourceDivs}</div><div class="total-hours">Total Hours: <span class="resource-grand-total">0:00</span></div>`,
+        });
+
+        return header;
+    }
 
     function createHeader() {
         var buttons = '<div class="buttons"><button class="schedule-btn-today">Today</button><button class="schedule-btn-prev"><i class="fas fa-angle-left"></i></button><button class="schedule-btn-next"><i class="fas fa-angle-right"></i></button></div>';
@@ -171,6 +194,8 @@ var createSchedule = function(container) {
         const resourceIdToColumn = {};
         const resourceIdToEvents = {};
         const resourcesById = {};
+        const resourceIdToTotal = {};
+        var grandTotal = 0;
 
         resources.map((resource, column) => {
             resourceIdToColumn[resource.id] = column * 2 + 2;
@@ -277,7 +302,28 @@ var createSchedule = function(container) {
                 resourceEvents[eventId] = data;
                 resourceIdToEvents[event.resource] = resourceEvents;
             }
-        })
+
+            // Update resource totals
+            if (!totalEventType || event.event_type.pk == totalEventType) {
+                var spanSeconds = eventEnd.diff(eventStart, 'second');
+                var resourceTotal = resourceIdToTotal[event.resource] || 0;
+                resourceIdToTotal[event.resource] = resourceTotal + spanSeconds;
+                grandTotal += spanSeconds;
+            }
+        });
+
+        // Dsiplay resource totals
+        resources.map(function(resource) {
+            var total = resourceIdToTotal[resource.id] || 0;
+            var hours = Math.floor(total / 3600);
+            var minutes = Math.floor((total % 3600) / 60);
+            minutes = String(minutes).padStart(2, '0');
+            $(`.resource-total[data-id="${resource.id}"] .total`).text(`${hours}:${minutes}`);
+        });
+        var hours = Math.floor(grandTotal / 3600);
+        var minutes = Math.floor((grandTotal % 3600) / 60);
+        minutes = String(minutes).padStart(2, '0');
+        $('.resource-grand-total').text(`${hours}:${minutes}`);
 
         // Clear out old events
         grid.children('.schedule-event').remove();
@@ -481,6 +527,11 @@ var createSchedule = function(container) {
     container.empty();
     var header = createHeader();
     var grid = createGrid();
+
+    if (showResourceHeader) {
+        var resourceHeader = createResourceHeader();
+        container.append(resourceHeader);
+    }
 
     container.append(header);
     container.append(grid);
