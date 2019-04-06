@@ -84,6 +84,7 @@ class RRuleFormMixin(forms.Form):
     pk = forms.IntegerField(widget=forms.HiddenInput, required=False)
     parent_pk = forms.IntegerField(widget=forms.HiddenInput, required=False)
     exclusion = forms.DateTimeField(widget=forms.HiddenInput, required=False)
+    delete = forms.BooleanField(widget=forms.HiddenInput, required=False)
 
     class RRuleMedia:
         """Subclasses should explicitly import these"""
@@ -107,12 +108,10 @@ class RRuleFormMixin(forms.Form):
         end_time = self.cleaned_data.get('end_time')
 
         new_rrule, new_end_time = self.rrule_get_string(start_time)
-        print(new_rrule)
         self.cleaned_data['rrule'] = new_rrule
 
         if new_rrule:
             duration = end_time - start_time
-            print(new_end_time, duration)
             # Change end time to encompass the entire rrule
             self.cleaned_data['end_time'] = new_end_time
             self.cleaned_data['duration'] = duration
@@ -251,7 +250,13 @@ class RoomEventForm(forms.ModelForm, RRuleFormMixin):
 
     @transaction.atomic
     def save(self, *args, **kwargs):
-        saved = super().save(*args, **kwargs)
+        saved = None
+        delete = self.cleaned_data.get('delete')
+        if delete:
+            if self.instance and self.instance.pk:
+                self.instance.delete()
+        else:
+            saved = super().save(*args, **kwargs)
 
         super().rrule_save()
 
@@ -277,7 +282,13 @@ class AvailabilityEventForm(forms.ModelForm, RRuleFormMixin):
 
     @transaction.atomic
     def save(self, *args, **kwargs):
-        saved = super().save(*args, **kwargs)
+        saved = None
+        delete = self.cleaned_data.get('delete')
+        if delete:
+            if self.instance and self.instance.pk:
+                self.instance.delete()
+        else:
+            saved = super().save(*args, **kwargs)
 
         super().rrule_save()
 

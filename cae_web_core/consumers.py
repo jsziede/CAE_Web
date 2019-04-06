@@ -299,7 +299,7 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
 
     async def _handle_get_room_events(self, content, start, end):
         room = content.get('room')
-        room_type_slug = content.get('room_type_slug')
+        room_type_slug = content.get('resource_identifier')
         notify = content.get('notify')
 
         events = await self._get_room_events(start, end, room, room_type_slug)
@@ -308,7 +308,7 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
             'action': self.ACTION_SEND_EVENTS,
             'start': start.isoformat() if start else None,
             'end': end.isoformat() if end else None,
-            'room_type_slug': room_type_slug,
+            'resource_identifier': room_type_slug,
             'events': events,
         })
 
@@ -316,7 +316,7 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
             self.scope['session']['start'] = start.isoformat() if start else None
             self.scope['session']['end'] = end.isoformat() if end else None
             self.scope['session']['room'] = room
-            self.scope['session']['room_type_slug'] = room_type_slug
+            self.scope['session']['resource_identifier'] = room_type_slug
             self.scope['session']['pks'] = [x['id'] for x in events]
             await self.channel_layer.group_add(
                 GROUP_UPDATE_ROOM_EVENT, self.channel_name)
@@ -332,7 +332,7 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
             'action': self.ACTION_SEND_EVENTS,
             'start': start.isoformat() if start else None,
             'end': end.isoformat() if end else None,
-            'employee_type': employee_type_pk,
+            'resource_identifier': employee_type_pk,
             'events': events,
         })
 
@@ -340,14 +340,14 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
             self.scope['session']['start'] = start.isoformat() if start else None
             self.scope['session']['end'] = end.isoformat() if end else None
             self.scope['session']['employee'] = employee
-            self.scope['session']['employee_type'] = employee_type_pk
+            self.scope['session']['resource_identifier'] = employee_type_pk
             self.scope['session']['pks'] = [x['id'] for x in events]
             await self.channel_layer.group_add(
                 GROUP_UPDATE_AVAILABILITY_EVENT, self.channel_name)
 
     async def on_update_room_event(self, content):
         room = self.scope['session'].get('room')
-        room_type_slug = self.scope['session'].get('room_type_slug')
+        room_type_slug = self.scope['session'].get('resource_identifier')
         event_start = dateutil.parser.parse(content['start_time'])
         event_end = dateutil.parser.parse(content['end_time'])
 
@@ -383,7 +383,7 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
                 'start_time': self.scope['session'].get('start'),
                 'end_time': self.scope['session'].get('end'),
                 'room': room,
-                'room_type_slug': room_type_slug,
+                'resource_identifier': room_type_slug,
                 'notify': True,
             }, event_start, event_end)
 

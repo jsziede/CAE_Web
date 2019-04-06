@@ -148,21 +148,19 @@ class ScheduleView(View):
 
     def post(self, request, *args, **kwargs):
         pk = request.POST.get('pk')
-        delete = request.POST.get('_delete')
+        delete = request.POST.get('delete')
         instance = None # New event
         if pk:
             instance = get_object_or_404(self.model, pk=pk)
-        if delete:
-            if not instance:
-                messages.error(request, "Nothing to delete")
-                return redirect(request.get_full_path())
-            instance.delete()
-            messages.success(request, "Event deleted")
-            return redirect(request.get_full_path())
         form = self.form_class(request.POST, instance=instance)
         if form.is_valid():
             form.save()
-            messages.success(request, "Event updated" if instance else "Event created")
+            message = "Event updated"
+            if delete:
+                message = "Event deleted"
+            elif not instance:
+                message = "Event created"
+            messages.success(request, message)
             return redirect(request.get_full_path())
         else:
             messages.error(request, "There were errors updating the event.")
