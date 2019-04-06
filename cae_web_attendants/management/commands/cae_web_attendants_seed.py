@@ -6,6 +6,7 @@ import datetime, pytz
 from django.core.exceptions import ValidationError
 from django.core.management.base import BaseCommand
 from django.core.management import call_command
+from django.db import IntegrityError
 from random import randint
 
 from apps.CAE_Web.cae_web_attendants import models
@@ -83,6 +84,7 @@ class Command(BaseCommand):
         students = cae_home_models.WmuUser.objects.all()
 
         # Generate models equal to model count.
+        total_fail_count = 0
         for i in range(model_count - pre_initialized_count):
             fail_count = 0
             try_create_model = True
@@ -120,7 +122,7 @@ class Command(BaseCommand):
                         checkout_date=random_date,
                     )
                     try_create_model = False
-                except ValidationError:
+                except (ValidationError, IntegrityError):
                     # Seed generation failed. Nothing can be done about this without removing the random generation
                     # aspect. If we want that, we should use fixtures instead.
                     fail_count += 1
@@ -128,6 +130,12 @@ class Command(BaseCommand):
                     # If failed 3 times, give up model creation and move on to next model, to prevent infinite loops.
                     if fail_count > 2:
                         try_create_model = False
-                        self.stdout.write('Failed to generate room checkout seed instance.')
+                        total_fail_count += 1
+
+        # Output if model instances failed to generate.
+        if total_fail_count > 0:
+            self.stdout.write(self.style.WARNING(
+                'Failed to generate {0}/{1} Room Checkout seed instances.'.format(total_fail_count, model_count)
+            ))
 
         self.stdout.write('Populated ' + self.style.SQL_FIELD('Room Checkout') + ' models.\n')
