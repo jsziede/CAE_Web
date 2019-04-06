@@ -269,7 +269,7 @@ def employee_schedule(request, employee_type_pk=None):
 
     form = forms.AvailabilityEventForm()
     if request.POST: # TODO: Check user has permission to edit/create events
-        pk = request.POST.get('availability_event_pk')
+        pk = request.POST.get('pk')
         delete = request.POST.get('_delete')
         instance = None # New event
         if pk:
@@ -347,7 +347,7 @@ def room_schedule(request, room_type_slug):
 
     form = forms.RoomEventForm()
     if request.POST: # TODO: Check user has permission to edit/create events
-        pk = request.POST.get('room_event_pk')
+        pk = request.POST.get('pk')
         delete = request.POST.get('_delete')
         instance = None # New event
         if pk:

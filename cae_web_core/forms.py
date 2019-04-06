@@ -81,6 +81,7 @@ class RRuleFormMixin(forms.Form):
     rrule_end_after = forms.IntegerField(min_value=1, initial=1, label="After")
     rrule_end_on = forms.DateField(
         label="On", initial=lambda: timezone.now().date())
+    pk = forms.IntegerField(widget=forms.HiddenInput, required=False)
     parent_pk = forms.IntegerField(widget=forms.HiddenInput, required=False)
     exclusion = forms.DateTimeField(widget=forms.HiddenInput, required=False)
 
@@ -230,7 +231,6 @@ class RRuleFormMixin(forms.Form):
 
 
 class RoomEventForm(forms.ModelForm, RRuleFormMixin):
-    room_event_pk = forms.IntegerField(widget=forms.HiddenInput, required=False)
     class Meta:
         model = models.RoomEvent
         fields = [
@@ -259,7 +259,6 @@ class RoomEventForm(forms.ModelForm, RRuleFormMixin):
 
 
 class AvailabilityEventForm(forms.ModelForm, RRuleFormMixin):
-    availability_event_pk = forms.IntegerField(widget=forms.HiddenInput, required=False)
     class Meta:
         model = models.AvailabilityEvent
         fields = [

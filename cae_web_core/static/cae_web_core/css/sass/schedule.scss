@@ -167,60 +167,47 @@ $light-border-color: $color-grey-70;
 #overlay-modal {
     min-width: 450px; // Enough space for Rrule Weekday selector
 
-    .dialog-buttons {
-        margin-top: 25px;
-        text-align: right;
+    #form_event {
+        display: grid;
+        grid-template-columns: 100px 1fr;
+        grid-row-gap: 10px;
+        grid-column-gap: 10px;
 
-        #btn_delete {
-            float: left;
+        label {
+            text-align: right;
         }
-    }
 
-    #div_event_dialog {
-        padding: 25px;
+        .rrule-main, .rrule-end {
+            text-align: left;
+        }
 
-        #form_event {
-            display: grid;
-            grid-template-columns: 100px 1fr;
-            grid-row-gap: 10px;
-            grid-column-gap: 10px;
+        #id_rrule_interval, #id_rrule_end_after {
+            width: 3em;
+        }
 
-            label {
-                text-align: right;
-            }
+        #id_rrule_weekly_on {
+            list-style-type: none;
+            display: inline-block;
 
-            .rrule-main, .rrule-end {
-                text-align: left;
-            }
-
-            #id_rrule_interval, #id_rrule_end_after {
-                width: 3em;
-            }
-
-            #id_rrule_weekly_on {
-                list-style-type: none;
+            li {
                 display: inline-block;
-
-                li {
-                    display: inline-block;
-                }
             }
+        }
 
-            .div-flatpickr {
-                display: flex;
+        .div-flatpickr {
+            display: flex;
 
-                .flatpickr-input {
-                    flex-grow: 1;
-                    margin-right: 5px;
-                }
+            .flatpickr-input {
+                flex-grow: 1;
+                margin-right: 5px;
             }
+        }
 
-            .errorlist {
-                color: red;
-                list-style-type: none;
-                padding-left: 0;
-                text-align: left;
-            }
+        .errorlist {
+            color: red;
+            list-style-type: none;
+            padding-left: 0;
+            text-align: left;
         }
     }
 }

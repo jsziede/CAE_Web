@@ -407,16 +407,15 @@ var createSchedule = function(container) {
         dialogEventStart.setDate(moment(event.start).format('YYYY-MM-DD HH:mm'));
         dialogEventEnd.setDate(moment(event.end).format('YYYY-MM-DD HH:mm'));
         $('#id_event_type').val(event.event_type.pk);
+        $('#id_pk').val(event.id);
         // Show delete button
         $('#btn_delete').show();
 
         if (eventMode == 'rooms') {
-            $('#id_room_event_pk').val(event.id);
             $('#id_title').val(event.title);
             $('#id_description').val(event.description);
             $('#id_room').val(event.resource);
         } else if (eventMode == 'availability') {
-            $('#id_availability_event_pk').val(event.id);
             $('#id_employee').val(event.resource);
         }
 
@@ -431,6 +430,7 @@ var createSchedule = function(container) {
             // Show dialog asking if should edit occurence or series
             showRRuleDialog();
         } else {
+            rruleTurnOff();
             showEventDialog();
         }
     }
@@ -461,16 +461,15 @@ var createSchedule = function(container) {
         dialogEventStart.setDate(eventStart.format('YYYY-MM-DD HH:mm'));
         dialogEventEnd.setDate(eventEnd.format('YYYY-MM-DD HH:mm'));
         //$('#id_event_type').val(); // Just use whatever last value was
+        $('#id_pk').val('');
         // Hide delete button
         $('#btn_delete').hide();
 
         if (eventMode == 'rooms') {
-            $('#id_room_event_pk').val('');
             $('#id_title').val('New Event');
             $('#id_description').val('New Event Description');
             $('#id_room').val(resource.id);
         } else if (eventMode == 'availability') {
-            $('#id_availability_event_pk').val('');
             $('#id_employee').val(resource.id);
         }
 
@@ -504,14 +503,9 @@ var createSchedule = function(container) {
 
     // RRule Dialog Events
     $('#btn_rrule_occurrence').on('click', function() {
+        $('#id_parent_pk').val($('#id_pk').val());
         // Remove pk so a new event will be created
-        if (eventMode == 'rooms') {
-            $('#id_parent_pk').val($('#id_room_event_pk').val());
-            $('#id_room_event_pk').val('');
-        } else if (eventMode == 'availability') {
-            $('#id_parent_pk').val($('#id_availability_event_pk').val());
-            $('#id_availability_event_pk').val('');
-        }
+        $('#id_pk').val('');
         // Record what datetime to exclude in the original series
         $('#id_exclusion').val($('#id_start_time').val());
         // Turn off repeat
