@@ -165,7 +165,12 @@ $light-border-color: $color-grey-70;
 
 // Schedule Modal Dialog
 #overlay-modal {
-    min-width: 450px; // Enough space for Rrule Weekday selector
+
+    @media only screen and (min-width: $screen-phone-max) {
+        // Enough space for Rrule Weekday selector, prevents width changing
+        // as repeat value is changed, when not on mobile.
+        min-width: 450px;
+    }
 
     #form_event {
         display: grid;
