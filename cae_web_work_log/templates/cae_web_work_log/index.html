@@ -7,30 +7,16 @@
 {% block content %}
   <h1>CAE Work Log</h1>
 
-  <div class="filters">
-    <div>
-      <p>Group</p>
-      <select>
-        {% for group in groups %}
-          <option value="{{ group.name }}">{{ group.name }}</option>
-        {% endfor %}
-      </select>
+  <div class="panel primary">
+    <div class="header">
+      <h1>Filter Logs</h1>
     </div>
-    <div>
-      <p>Time Frame</p>
-      <select>
-        {% for timeframe in timeframes %}
-          <option value="{{ timeframe }}">{{ timeframe }}</option>
-        {% endfor %}
-      </select>
-    </div>
-    <div>
-      <p>Log Set</p>
-      <select>
-        {% for set in log_sets %}
-          <option value="{{ set }}">{{ set }}</option>
-        {% endfor %}
-      </select>
+
+
+    <div class="body">
+
+      {% include 'cae_home/include/form.html' with button_text="Filter" form_cols=True %}
+
     </div>
   </div>
 

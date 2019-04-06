@@ -26,11 +26,41 @@ def index(request):
     )
     groups = Group.objects.filter(complex_query)
     timeframes = models.TimeFrameType.objects.all()
-    log_sets = models.WorkLogSet.objects.all()
-    log_entries = models.WorkLogEntry.objects.all()
+    log_sets = models.WorkLogSet.objects.filter(group__in=groups)
+    log_entries = models.WorkLogEntry.objects.filter(log_set__in=log_sets)
 
-    # Send to template for user display.
+    # Get filter form.
+    form = forms.LogFilterForm(
+        groups=groups,
+        timeframes=timeframes,
+    )
+
+    # Check if request is post.
+    if request.method == 'POST':
+        form = forms.LogFilterForm(request.POST, groups=groups, timeframes=timeframes)
+        if form.is_valid():
+            group_filter = form.cleaned_data['group']
+            timeframe_filter = form.cleaned_data['timeframe']
+
+            if group_filter == 'All':
+                group_filter = groups
+            else:
+                group_filter = Group.objects.filter(name=group_filter)
+
+            if timeframe_filter == 'All':
+                timeframe_filter = timeframes
+            else:
+                timeframe_filter = models.TimeFrameType.objects.filter(
+                    name=models.TimeFrameType.get_int_from_name(timeframe_filter)
+                )
+
+            # Update log display based on filters.
+            log_sets = models.WorkLogSet.objects.filter(group__in=group_filter, timeframe_type__in=timeframe_filter)
+            log_entries = models.WorkLogEntry.objects.filter(log_set__in=log_sets)
+
+    # Handle for non-post request.
     return TemplateResponse(request, 'cae_web_work_log/index.html', {
+        'form': form,
         'groups': groups,
         'timeframes': timeframes,
         'log_sets': log_sets,
@@ -49,36 +79,59 @@ def create_entry(request):
     default_group = None
     log_set = None
 
-    for group in user.groups.all():
-        if 'CAE Admin' == group.name or 'CAE Programmer' == group.name:
-            default_group = group
-    timeframe = models.TimeFrameType.objects.filter(id=2)
+    # Default to weekly timeframe.
+    timeframe = models.TimeFrameType.objects.get(
+        name=models.TimeFrameType.get_int_from_name('Weekly')
+    )
 
+    # Filter based on current user.
+    for group in user.groups.all():
+        if group.name == 'CAE Admin' or group.name == 'CAE Programmer':
+            default_group = group
+
+    # Get initial log set.
     if default_group is not None:
         log_set = models.WorkLogSet.objects.get(timeframe_type=timeframe, group=default_group)
 
-    form = forms.LogEntryForm(
-        initial={
-            'user': user,
-            'entry_date': entry_date,
-            'log_set': log_set,
-        }
-    )
+    initial_data = {
+        'user': user,
+        'entry_date': entry_date,
+        'log_set': log_set,
+    }
+
+    form = forms.LogEntryForm(initial=initial_data)
+
+    # Limit visible log sets based on user group.
+    if default_group is not None:
+        visible_log_sets = models.WorkLogSet.objects.filter(group=default_group)
+        form.fields['log_set'].queryset = visible_log_sets
 
     # Check if request is post.
     if request.method == 'POST':
-        form = forms.LogEntryForm(request.POST)
-        if form.is_valid():
-            entry = form.save()
+        form = forms.LogEntryForm(request.POST, initial=initial_data)
+        form.fields['log_set'].queryset = visible_log_sets
 
-            # Render response for user.
-            messages.success(request, 'Successfully created log entry ({0}).'.format(entry))
-            return HttpResponseRedirect(reverse('cae_web_work_log:index'))
+        if form.is_valid():
+            # Check form is valid and 'hidden' fields were not changed.
+            if 'user' in form.changed_data:
+                messages.error(request, 'Invalid form submitted. Please try again.')
+
+                # Reset form but save description input.
+                initial_data['description'] = form.cleaned_data['description']
+                form = forms.LogEntryForm(initial=initial_data)
+
+            else:
+                # Form is valid. Saving.
+                entry = form.save()
+
+                # Render response for user.
+                messages.success(request, 'Successfully created log entry ({0}).'.format(entry))
+                return HttpResponseRedirect(reverse('cae_web_work_log:index'))
+
         else:
-            messages.warning(request, 'Failed to create log entry.')
+            messages.error(request, 'Failed to create log entry.')
 
     # Handle for non-post request.
     return TemplateResponse(request, 'cae_web_work_log/log_entry_form.html', {
         'form': form,
     })
-

@@ -102,7 +102,7 @@ class WorkLogSet(models.Model):
         """
         Custom cleaning implementation. Includes validation, setting fields, etc.
         """
-        self.description = '{0} {1} work logs.'.format(self.timeframe_type.full_name(), self.group)
+        self.description = '{0} {1} work logs'.format(self.timeframe_type.full_name(), self.group)
 
     def save(self, *args, **kwargs):
         """
@@ -164,16 +164,19 @@ class WorkLogEntry(models.Model):
                     'log set.'.format(valid_log_groups)
                 )
 
-        # Determine date values based on associated log_set timeframe.
-        log_type = str(self.log_set.timeframe_type.full_name())
+        # Check that passed date is valid.
+        if self.entry_date is not None:
 
-        # Don't modify log date on daily. On all others, set date to start of given timeframe period.
-        if log_type == 'Weekly':  # Note: Start of week is considered Monday.
-            self.entry_date = self.entry_date - timezone.timedelta(days=self.entry_date.weekday())
-        elif log_type == 'Monthly':
-            self.entry_date = self.entry_date.replace(day=1)
-        elif log_type == 'Yearly':
-            self.entry_date = self.entry_date.replace(month=1, day=1)
+            # Determine date values based on associated log_set timeframe.
+            log_type = str(self.log_set.timeframe_type.full_name())
+
+            # Don't modify log date on daily. On all others, set date to start of given timeframe period.
+            if log_type == 'Weekly':  # Note: Start of week is considered Monday.
+                self.entry_date = self.entry_date - timezone.timedelta(days=self.entry_date.weekday())
+            elif log_type == 'Monthly':
+                self.entry_date = self.entry_date.replace(day=1)
+            elif log_type == 'Yearly':
+                self.entry_date = self.entry_date.replace(month=1, day=1)
 
     def save(self, *args, **kwargs):
         """

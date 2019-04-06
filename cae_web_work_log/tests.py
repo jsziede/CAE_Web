@@ -64,7 +64,7 @@ class WorkLogSetModelTests(TestCase):
     def test_model_creation(self):
         self.assertEqual(
             self.test_log_set.description,
-            self.timeframe_type.full_name() + ' ' + str(self.group) + ' work logs.'
+            self.timeframe_type.full_name() + ' ' + str(self.group) + ' work logs'
         )
         self.assertEqual(self.test_log_set.timeframe_type, self.timeframe_type)
 
