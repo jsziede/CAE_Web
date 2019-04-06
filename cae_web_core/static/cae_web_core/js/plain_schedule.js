@@ -13,8 +13,7 @@ var createSchedule = function(container) {
     var start = moment(container.data('start'));
     var end = moment(container.data('end'));
     var resources = container.data('resources');
-    var roomTypeSlug = container.data('room-type-slug');
-    var employeeType = container.data('employee-type');
+    var resourceIdentifier = container.data('resource-identifier');
     var eventMode = container.data('event-mode');
     var mode = container.data('mode');
     var modeAllowChange = container.data('mode-allow-change');
@@ -332,13 +331,12 @@ var createSchedule = function(container) {
 
         // Fetch events
         socket.send(JSON.stringify({
-          'action': ACTION_GET_EVENTS,
-          'start_time': start.format(),
-          'end_time': end_time.format(),
-          'mode': eventMode,
-          'room_type_slug': roomTypeSlug,
-          'employee_type': employeeType,
-          'notify': true,
+            'action': ACTION_GET_EVENTS,
+            'start_time': start.format(),
+            'end_time': end_time.format(),
+            'mode': eventMode,
+            'resource_identifier': resourceIdentifier,
+            'notify': true,
         }))
 
         if (mode == 'week') {

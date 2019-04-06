@@ -323,7 +323,7 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
 
     async def _handle_get_availability_events(self, content, start, end):
         employee = content.get('employee')
-        employee_type_pk = content.get('employee_type')
+        employee_type_pk = content.get('resource_identifier')
         notify = content.get('notify')
 
         events = await self._get_availability_events(start, end, employee, employee_type_pk)
