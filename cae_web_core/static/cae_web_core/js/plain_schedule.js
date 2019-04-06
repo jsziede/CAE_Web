@@ -407,6 +407,8 @@ var createSchedule = function(container) {
         dialogEventStart.setDate(moment(event.start).format('YYYY-MM-DD HH:mm'));
         dialogEventEnd.setDate(moment(event.end).format('YYYY-MM-DD HH:mm'));
         $('#id_event_type').val(event.event_type.pk);
+        // Show delete button
+        $('#btn_delete').show();
 
         if (eventMode == 'rooms') {
             $('#id_room_event_pk').val(event.id);
@@ -459,6 +461,8 @@ var createSchedule = function(container) {
         dialogEventStart.setDate(eventStart.format('YYYY-MM-DD HH:mm'));
         dialogEventEnd.setDate(eventEnd.format('YYYY-MM-DD HH:mm'));
         //$('#id_event_type').val(); // Just use whatever last value was
+        // Hide delete button
+        $('#btn_delete').hide();
 
         if (eventMode == 'rooms') {
             $('#id_room_event_pk').val('');
