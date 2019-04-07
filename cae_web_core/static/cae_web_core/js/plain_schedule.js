@@ -352,7 +352,10 @@ var createSchedule = function(container) {
         for (var eventId in processedEvents) {
             const data = processedEvents[eventId];
             var resource = resourcesById[data.event.resource];
-            const colors = `color: ${data.event.event_type.fg_color || resource.fg_color || "black"}; background-color: ${data.event.event_type.bg_color || resource.bg_color || "white"};`;
+            var colors = `color: ${data.event.event_type.fg_color || resource.fg_color || "black"}; background-color: ${data.event.event_type.bg_color || resource.bg_color || "white"};`;
+            if ((data.event.event_type.bg_color || resource.bg_color || "white") == "white") {
+                colors += ' border: 1px solid gray; margin: 0;';
+            }
             const style = `grid-area: ${data.rowStart} / ${data.column} / span ${data.span15Min} / span ${data.columnSpan}; ${colors}`;
             const eventStart = moment(data.event.start).format('LT').replace(' ', '&nbsp;');
             const eventEnd = moment(data.event.end).format('LT').replace(' ', '&nbsp;');
