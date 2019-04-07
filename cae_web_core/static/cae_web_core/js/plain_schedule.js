@@ -13,11 +13,25 @@ var createSchedule = function(container) {
     var start = moment(container.data('start'));
     var end = moment(container.data('end'));
     var resources = container.data('resources');
-    var roomTypeSlug = container.data('room-type-slug');
-    var employeeType = container.data('employee-type');
+    var resourceIdentifier = container.data('resource-identifier');
     var eventMode = container.data('event-mode');
     var mode = container.data('mode');
     var modeAllowChange = container.data('mode-allow-change');
+    var showResourceHeader = container.data('show-resource-header');
+    var totalEventType = container.data('total-event-type');
+    var hiddenResourceIds = JSON.parse(sessionStorage.getItem('schedule-hidden-resource-ids')) || [];
+
+    var allResources = resources;
+    // Only hide if the resource header is shown so they have the chance to unhide.
+    if (hiddenResourceIds && showResourceHeader) {
+        // Remove hidden resources;
+        // TODO: There is a chance one schedule's resource ids are the same as
+        // another schedule's resource ids, which may unintentionally hide both.
+        // One fix is to modify the sessionStorage key based on the eventMode.
+        resources = resources.filter(function(resource) {
+            return !hiddenResourceIds.includes(resource.id);
+        });
+    }
 
     // validate mode
     if (mode == 'week') {
@@ -37,6 +51,13 @@ var createSchedule = function(container) {
         mode = sessionStorage.getItem(STORAGE_KEY_MODE) || mode;
     } else {
         modeAllowChange = false;
+    }
+
+    // validate showResourceHeader to a boolean
+    if (showResourceHeader) {
+        showResourceHeader = true;
+    } else {
+        showResourceHeader = false;
     }
 
     // Establish socket connection.
@@ -61,6 +82,24 @@ var createSchedule = function(container) {
         }
     });
 
+    function createResourceHeader() {
+        var resourceDivs = "";
+        allResources.map(function(resource) {
+            const colors = `color: ${resource.fg_color || "black"}; background-color: ${resource.bg_color || "white"};`;
+            var hiddenClass = "";
+            if (hiddenResourceIds.includes(resource.id)) {
+                hiddenClass = "resource-hidden";
+            }
+            resourceDivs += `<div class="resource-total ${hiddenClass}" data-id="${resource.id}" style="${colors}">${resource.name}<br><span class="total">0:00</span></div>`;
+        });
+        var header = $('<div>', {
+            class: "schedule-resource-header",
+            html: `<div class="resources">${resourceDivs}</div><div class="total-hours">Total Hours: <span class="resource-grand-total">0:00</span></div>`,
+        });
+
+        return header;
+    }
+
     function createHeader() {
         var buttons = '<div class="buttons"><button class="schedule-btn-today">Today</button><button class="schedule-btn-prev"><i class="fas fa-angle-left"></i></button><button class="schedule-btn-next"><i class="fas fa-angle-right"></i></button></div>';
         var calendarButton = '<button class="schedule-btn-calendar"><i class="fas fa-calendar-alt"></i></button>';
@@ -77,9 +116,11 @@ var createSchedule = function(container) {
             modeChange = `<div class="buttons"><button class="${dayClass} schedule-btn-mode" data-mode="day">Day</button><button class="${weekClass} schedule-btn-mode" data-mode="week">Week</button></div>`;
         }
 
+        var expandButton = `<button class="schedule-btn-expand" title="Expand"><i class="fa fa-expand"></i></button>`;
+
         header = $('<div>', {
             class: "schedule-header",
-            html: `<div>${buttons}<div class="input-group">${calendarButton}${dateInput}</div></div>${modeChange}`,
+            html: `<div>${buttons}<div class="input-group">${calendarButton}${dateInput}</div></div><div>${modeChange}${expandButton}</div>`,
         });
 
         return header;
@@ -171,9 +212,13 @@ var createSchedule = function(container) {
     function updateEvents(events) {
         const resourceIdToColumn = {};
         const resourceIdToEvents = {};
+        const resourcesById = {};
+        const resourceIdToTotal = {};
+        var grandTotal = 0;
 
         resources.map((resource, column) => {
             resourceIdToColumn[resource.id] = column * 2 + 2;
+            resourcesById[resource.id] = resource;
         });
 
         // keep track of events that have been processsed
@@ -190,7 +235,7 @@ var createSchedule = function(container) {
             const eventStart = moment(event.start);
             const eventEnd = moment(event.end);
 
-            if (eventEnd < start || eventStart > end_time) {
+            if (eventEnd < start || eventStart > end_time || hiddenResourceIds.includes(event.resource)) {
                 // Event happens outside schedule, skip it
                 console.log("Skipping event", event);
                 return null;
@@ -276,7 +321,28 @@ var createSchedule = function(container) {
                 resourceEvents[eventId] = data;
                 resourceIdToEvents[event.resource] = resourceEvents;
             }
-        })
+
+            // Update resource totals
+            if (!totalEventType || event.event_type.pk == totalEventType) {
+                var spanSeconds = eventEnd.diff(eventStart, 'second');
+                var resourceTotal = resourceIdToTotal[event.resource] || 0;
+                resourceIdToTotal[event.resource] = resourceTotal + spanSeconds;
+                grandTotal += spanSeconds;
+            }
+        });
+
+        // Dsiplay resource totals
+        resources.map(function(resource) {
+            var total = resourceIdToTotal[resource.id] || 0;
+            var hours = Math.floor(total / 3600);
+            var minutes = Math.floor((total % 3600) / 60);
+            minutes = String(minutes).padStart(2, '0');
+            $(`.resource-total[data-id="${resource.id}"] .total`).text(`${hours}:${minutes}`);
+        });
+        var hours = Math.floor(grandTotal / 3600);
+        var minutes = Math.floor((grandTotal % 3600) / 60);
+        minutes = String(minutes).padStart(2, '0');
+        $('.resource-grand-total').text(`${hours}:${minutes}`);
 
         // Clear out old events
         grid.children('.schedule-event').remove();
@@ -285,10 +351,14 @@ var createSchedule = function(container) {
         var eventDivs = '';
         for (var eventId in processedEvents) {
             const data = processedEvents[eventId];
-            const colors = `color: ${data.event.event_type.fg_color}; background-color: ${data.event.event_type.bg_color};`;
+            var resource = resourcesById[data.event.resource];
+            var colors = `color: ${data.event.event_type.fg_color || resource.fg_color || "black"}; background-color: ${data.event.event_type.bg_color || resource.bg_color || "white"};`;
+            if ((data.event.event_type.bg_color || resource.bg_color || "white") == "white") {
+                colors += ' border: 1px solid gray; margin: 0;';
+            }
             const style = `grid-area: ${data.rowStart} / ${data.column} / span ${data.span15Min} / span ${data.columnSpan}; ${colors}`;
-            const eventStart = moment(data.event.start).format('LT');
-            const eventEnd = moment(data.event.end).format('LT');
+            const eventStart = moment(data.event.start).format('LT').replace(' ', '&nbsp;');
+            const eventEnd = moment(data.event.end).format('LT').replace(' ', '&nbsp;');
             var title = '';
             if (data.event.title) {
                 title = `${data.event.title}<br>`
@@ -332,13 +402,12 @@ var createSchedule = function(container) {
 
         // Fetch events
         socket.send(JSON.stringify({
-          'action': ACTION_GET_EVENTS,
-          'start_time': start.format(),
-          'end_time': end_time.format(),
-          'mode': eventMode,
-          'room_type_slug': roomTypeSlug,
-          'employee_type': employeeType,
-          'notify': true,
+            'action': ACTION_GET_EVENTS,
+            'start_time': start.format(),
+            'end_time': end_time.format(),
+            'mode': eventMode,
+            'resource_identifier': resourceIdentifier,
+            'notify': true,
         }))
 
         if (mode == 'week') {
@@ -404,27 +473,35 @@ var createSchedule = function(container) {
         var event = JSON.parse(unescape($(event.target).closest('.schedule-event').data('event')));
         console.log(event);
 
-        if (event.rrule) {
-            // TODO: Show dialog asking if should edit occurence or series
-            // Update form with rrule data
-            rruleSetFromFormData(event.rrule);
-        }
-
         dialogEventStart.setDate(moment(event.start).format('YYYY-MM-DD HH:mm'));
         dialogEventEnd.setDate(moment(event.end).format('YYYY-MM-DD HH:mm'));
         $('#id_event_type').val(event.event_type.pk);
+        $('#id_pk').val(event.id);
+        // Show delete button
+        $('#btn_delete').show();
 
         if (eventMode == 'rooms') {
-            $('#id_room_event_pk').val(event.id);
             $('#id_title').val(event.title);
             $('#id_description').val(event.description);
             $('#id_room').val(event.resource);
         } else if (eventMode == 'availability') {
-            $('#id_availability_event_pk').val(event.id);
             $('#id_employee').val(event.resource);
         }
 
-        show_overlay_modal();
+        if (event.rrule) {
+            // Update form with rrule data
+            rruleSetFromFormData(event.rrule);
+
+            // store original start and end in case series is edited
+            $('#id_start_time').data('rrule-original', event.orig_start);
+            $('#id_end_time').data('rrule-original', event.orig_end);
+
+            // Show dialog asking if should edit occurence or series
+            showRRuleDialog();
+        } else {
+            rruleTurnOff();
+            showEventDialog();
+        }
     }
 
     function onGridLineDblClicked(event) {
@@ -453,24 +530,65 @@ var createSchedule = function(container) {
         dialogEventStart.setDate(eventStart.format('YYYY-MM-DD HH:mm'));
         dialogEventEnd.setDate(eventEnd.format('YYYY-MM-DD HH:mm'));
         //$('#id_event_type').val(); // Just use whatever last value was
+        $('#id_pk').val('');
+        // Hide delete button
+        $('#btn_delete').hide();
 
         if (eventMode == 'rooms') {
-            $('#id_room_event_pk').val('');
             $('#id_title').val('New Event');
             $('#id_description').val('New Event Description');
             $('#id_room').val(resource.id);
         } else if (eventMode == 'availability') {
-            $('#id_availability_event_pk').val('');
             $('#id_employee').val(resource.id);
         }
 
-        show_overlay_modal();
+        showEventDialog();
+    }
+
+    function onResourceTotalClicked(event) {
+        var resourceTotal = $(event.target).closest('.resource-total');
+        var resourceId = resourceTotal.data('id');
+        // Toggle its visibility
+        if (hiddenResourceIds.includes(resourceId)) {
+            hiddenResourceIds.splice(hiddenResourceIds.indexOf(resourceId), 1);
+        } else {
+            hiddenResourceIds.push(resourceId);
+        }
+        sessionStorage['schedule-hidden-resource-ids'] = JSON.stringify(hiddenResourceIds);
+
+        // Reload with things hidden or shown
+        // NOTE: We have to redraw the entire schedule, so a page reload isn't too bad
+        location.reload();
+    }
+
+    function onBtnExpandClicked(event) {
+        var button = $(event.target).closest('button');
+        var expanded = button.data('expanded') || false;
+
+        if (expanded) {
+            // compress
+            button.find('.fa').removeClass('fa-compress').addClass('fa-expand');
+            button.attr('title', "Expand");
+            container.removeClass('fullscreen');
+        } else {
+            // expand
+            button.find('.fa').removeClass('fa-expand').addClass('fa-compress');
+            button.attr('title', "Compress");
+            container.addClass('fullscreen');
+        }
+
+        button.data('expanded', !expanded);
     }
 
     // Initialize
     container.empty();
     var header = createHeader();
     var grid = createGrid();
+
+    if (showResourceHeader) {
+        var resourceHeader = createResourceHeader();
+        container.append(resourceHeader);
+    }
 
     container.append(header);
     container.append(grid);
@@ -482,6 +600,8 @@ var createSchedule = function(container) {
     container.find('.schedule-btn-calendar').on('click', onBtnCalendarClicked);
     container.find('.schedule-grid-line').on('dblclick', onGridLineDblClicked);
     container.find('.schedule-btn-mode').on('click', onBtnModeClicked);
+    container.find('.resource-total').on('click', onResourceTotalClicked);
+    container.find('.schedule-btn-expand').on('click', onBtnExpandClicked);
 
     // Setup flatpickr
     var dateFlatpickr = container.find('.schedule-txt-date').flatpickr({
@@ -492,6 +612,26 @@ var createSchedule = function(container) {
         },
     });
 
+    // RRule Dialog Events
+    $('#btn_rrule_occurrence').on('click', function() {
+        $('#id_parent_pk').val($('#id_pk').val());
+        // Remove pk so a new event will be created
+        $('#id_pk').val('');
+        // Record what datetime to exclude in the original series
+        $('#id_exclusion').val($('#id_start_time').val());
+        // Turn off repeat
+        rruleTurnOff();
+        showEventDialog();
+    });
+    $('#btn_rrule_series').on('click', function() {
+        // Change start and end to their original values
+        var eventStart = moment($('#id_start_time').data('rrule-original'));
+        var eventEnd = moment($('#id_end_time').data('rrule-original'));
+        dialogEventStart.setDate(eventStart.format('YYYY-MM-DD HH:mm'));
+        dialogEventEnd.setDate(eventEnd.format('YYYY-MM-DD HH:mm'));
+        showEventDialog();
+    });
+
     return {
         dummy: function() {
             console.log("dummy");
@@ -499,13 +639,28 @@ var createSchedule = function(container) {
     }
 };
 
+function showEventDialog() {
+    $('#div_event_dialog').show();
+    $('#div_rrule_dialog').hide();
+    show_overlay_modal();
+}
+
+function showRRuleDialog() {
+    $('#div_event_dialog').hide();
+    $('#div_rrule_dialog').show();
+    $('#overlay-modal').addClass('no-margin');
+    show_overlay_modal();
+}
+
 $(function() {
     $('.schedule-container').each(function() {
         var schedule = createSchedule(this);
     });
 
-    // Move event dialog into modal dialog
+    // Move event dialog into modal dialog and show by default
     $('#div_event_dialog').appendTo('#overlay-modal').show();
+    // Move rrule dialog into modal dialog
+    $('#div_rrule_dialog').appendTo('#overlay-modal');
     dialogEventStart = $('#id_start_time').flatpickr({
         enableTime: true,
         altInput: true,
@@ -525,7 +680,7 @@ $(function() {
     })
 
     // Close dialog when cancel clicked
-    $('#btn_cancel').on('click', function() {
+    $('#btn_cancel,#btn_rrule_cancel').on('click', function() {
         hide_overlay_modal();
     });
 
@@ -539,6 +694,6 @@ $(function() {
 
     // Check if we have errors from previous POST
     if ($('#div_event_dialog[data-errors]').length) {
-        show_overlay_modal();
+        showEventDialog();
     }
 });

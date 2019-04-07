@@ -21,7 +21,7 @@ class TimeFrameTypeModelTests(TestCase):
 
     def test_model_creation(self):
         self.assertEqual(self.test_timeframe.name, models.TimeFrameType.DAILY)
-        self.assertEqual(models.TimeFrameType.TIMEFRAME_CHOICES[self.test_timeframe.name][1], 'Daily')
+        self.assertEqual(self.test_timeframe.get_name_from_int(self.test_timeframe.name), 'Daily')
 
     def test_string_representation(self):
         self.assertEqual(str(self.test_timeframe), self.test_timeframe.full_name())
@@ -32,6 +32,18 @@ class TimeFrameTypeModelTests(TestCase):
 
     def test_full_name(self):
         self.assertEqual(self.test_timeframe.full_name(), 'Daily')
+
+    def test_name_from_int(self):
+        self.assertEqual(models.TimeFrameType.get_name_from_int(0), 'Daily')
+        self.assertEqual(models.TimeFrameType.get_name_from_int(1), 'Weekly')
+        self.assertEqual(models.TimeFrameType.get_name_from_int(2), 'Monthly')
+        self.assertEqual(models.TimeFrameType.get_name_from_int(3), 'Yearly')
+
+    def test_int_from_name(self):
+        self.assertEqual(models.TimeFrameType.get_int_from_name('Daily'), 0)
+        self.assertEqual(models.TimeFrameType.get_int_from_name('Weekly'), 1)
+        self.assertEqual(models.TimeFrameType.get_int_from_name('Monthly'), 2)
+        self.assertEqual(models.TimeFrameType.get_int_from_name('Yearly'), 3)
 
 
 class WorkLogSetModelTests(TestCase):
@@ -52,7 +64,7 @@ class WorkLogSetModelTests(TestCase):
     def test_model_creation(self):
         self.assertEqual(
             self.test_log_set.description,
-            self.timeframe_type.full_name() + ' ' + str(self.group) + ' work logs.'
+            self.timeframe_type.full_name() + ' ' + str(self.group) + ' work logs'
         )
         self.assertEqual(self.test_log_set.timeframe_type, self.timeframe_type)
 

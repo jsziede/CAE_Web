@@ -16,6 +16,46 @@ $light-border-color: $color-grey-70;
     display: grid;
     grid-auto-rows: auto;
 
+    &.fullscreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 99; // on top of everything except modal
+        height: auto !important;
+    }
+
+    .schedule-resource-header {
+        @include display-flex;
+        justify-content: space-between;
+
+        .resources {
+            display: inline-flex;
+            cursor: pointer;
+
+            .resource-total {
+                padding: 0 5px;
+                margin: 2px 5px;
+                border: 1px solid black;
+                border-radius: 5px;
+
+                &.resource-hidden {
+                    opacity: 0.5;
+                }
+            }
+        }
+
+        .total-hours {
+            padding: 5px;
+            font-size: large;
+
+            .resource-grand-total {
+                font-size: large; // TODO: Fix _reset.css so parent rule is not overridden
+            }
+        }
+    }
+
     .schedule-header {
         padding: 2px;
         @include display-flex;
@@ -111,8 +151,9 @@ $light-border-color: $color-grey-70;
         }
 
         .schedule-event {
-            border: 1px solid gray;
-            border-radius: 5px;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+            margin: 1px;
             padding: 2px;
             overflow: hidden;
             cursor: pointer;
@@ -165,16 +206,11 @@ $light-border-color: $color-grey-70;
 
 // Schedule Modal Dialog
 #overlay-modal {
-    padding: 25px;
-    min-width: 450px; // Enough space for Rrule Weekday selector
 
-    .dialog-buttons {
-        margin-top: 25px;
-        text-align: right;
-
-        #btn_delete {
-            float: left;
-        }
+    @media only screen and (min-width: $screen-phone-max) {
+        // Enough space for Rrule Weekday selector, prevents width changing
+        // as repeat value is changed, when not on mobile.
+        min-width: 450px;
     }
 
     #form_event {

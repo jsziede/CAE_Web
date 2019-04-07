@@ -81,6 +81,10 @@ class RRuleFormMixin(forms.Form):
     rrule_end_after = forms.IntegerField(min_value=1, initial=1, label="After")
     rrule_end_on = forms.DateField(
         label="On", initial=lambda: timezone.now().date())
+    pk = forms.IntegerField(widget=forms.HiddenInput, required=False)
+    parent_pk = forms.IntegerField(widget=forms.HiddenInput, required=False)
+    exclusion = forms.DateTimeField(widget=forms.HiddenInput, required=False)
+    delete = forms.BooleanField(widget=forms.HiddenInput, required=False)
 
     class RRuleMedia:
         """Subclasses should explicitly import these"""
@@ -104,15 +108,36 @@ class RRuleFormMixin(forms.Form):
         end_time = self.cleaned_data.get('end_time')
 
         new_rrule, new_end_time = self.rrule_get_string(start_time)
-        print(new_rrule)
         self.cleaned_data['rrule'] = new_rrule
 
         if new_rrule:
             duration = end_time - start_time
-            print(new_end_time, duration)
             # Change end time to encompass the entire rrule
             self.cleaned_data['end_time'] = new_end_time
             self.cleaned_data['duration'] = duration
+
+        parent_pk = self.cleaned_data.get('parent_pk')
+        exclusion = self.cleaned_data.get('exclusion')
+
+        if parent_pk:
+            # Verify parent pk is an AvailabilityEvent
+            parent = self._meta.model.objects.filter(pk=parent_pk).first()
+            if not parent:
+                self.add_error("parent_pk", "Invalid Availability Event pk")
+
+        if parent_pk and not exclusion:
+            self.add_error(None, "Exclusion date is required with parent_pk")
+
+    @transaction.atomic
+    def rrule_save(self, *args, **kwargs):
+        # Check if parent and exclusion were given to update the parent
+        parent_pk = self.cleaned_data.get('parent_pk')
+        exclusion = self.cleaned_data.get('exclusion')
+        parent = self._meta.model.objects.filter(pk=parent_pk).first()
+        if parent:
+            exclusions = parent.exclusions.value
+            exclusions.append(exclusion)
+            parent.save(update_fields=['exclusions'])
 
     def rrule_get_string(self, dtstart):
         """
@@ -205,7 +230,6 @@ class RRuleFormMixin(forms.Form):
 
 
 class RoomEventForm(forms.ModelForm, RRuleFormMixin):
-    room_event_pk = forms.IntegerField(widget=forms.HiddenInput, required=False)
     class Meta:
         model = models.RoomEvent
         fields = [
@@ -221,12 +245,40 @@ class RoomEventForm(forms.ModelForm, RRuleFormMixin):
     class Media:
         js = RRuleFormMixin.RRuleMedia.js
 
+    def __init__(self, user, *args, **kwargs):
+        self._user = user
+        super().__init__(*args, **kwargs)
+
     def clean(self):
         super().rrule_clean()
 
+        delete = self.cleaned_data.get('delete')
+        if delete and not self._user.has_perm('cae_web_core.delete_roomevent'):
+            self.add_error(None, "You don't have permission to delete Room Events")
+
+        if self.instance and not self.instance.pk and not self._user.has_perm('cae_web_core.add_roomevent'):
+            self.add_error(None, "You don't have permission to create Room Events")
+
+        if self.instance and self.instance.pk and not self._user.has_perm('cae_web_core.change_roomevent'):
+            self.add_error(None, "You don't have permission to change Room Events")
+
+
+    @transaction.atomic
+    def save(self, *args, **kwargs):
+        saved = None
+        delete = self.cleaned_data.get('delete')
+        if delete:
+            if self.instance and self.instance.pk:
+                self.instance.delete()
+        else:
+            saved = super().save(*args, **kwargs)
+
+        super().rrule_save()
+
+        return saved
+
 
 class AvailabilityEventForm(forms.ModelForm, RRuleFormMixin):
-    availability_event_pk = forms.IntegerField(widget=forms.HiddenInput, required=False)
     class Meta:
         model = models.AvailabilityEvent
         fields = [
@@ -240,8 +292,36 @@ class AvailabilityEventForm(forms.ModelForm, RRuleFormMixin):
     class Media:
         js = RRuleFormMixin.RRuleMedia.js
 
+    def __init__(self, user, *args, **kwargs):
+        self._user = user
+        super().__init__(*args, **kwargs)
+
     def clean(self):
         super().rrule_clean()
+
+        delete = self.cleaned_data.get('delete')
+        if delete and not self._user.has_perm('cae_web_core.delete_availabilityevent'):
+            self.add_error(None, "You don't have permission to delete Availability Events")
+
+        if self.instance and not self.instance.pk and not self._user.has_perm('cae_web_core.add_availabilityevent'):
+            self.add_error(None, "You don't have permission to create Availability Events")
+
+        if self.instance and self.instance.pk and not self._user.has_perm('cae_web_core.change_availabilityevent'):
+            self.add_error(None, "You don't have permission to change Availability Events")
+
+    @transaction.atomic
+    def save(self, *args, **kwargs):
+        saved = None
+        delete = self.cleaned_data.get('delete')
+        if delete:
+            if self.instance and self.instance.pk:
+                self.instance.delete()
+        else:
+            saved = super().save(*args, **kwargs)
+
+        super().rrule_save()
+
+        return saved
 
 
 class UploadRoomScheduleForm(forms.Form):

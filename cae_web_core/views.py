@@ -6,6 +6,7 @@ Views for CAE_Web Core App.
 import datetime, dateutil.parser, json, pytz
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
@@ -17,6 +18,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html
+from django.views import View
 
 # User Class Imports.
 from . import forms, models
@@ -72,7 +74,7 @@ def populate_pay_periods():
             last_pay_period = models.PayPeriod.objects.create(date_start=datetime.date(2015, 5, 25))
 
         # Continue until pay_period + 1 is created.
-        while not ((last_pay_period.date_start < plus_1_date) and (last_pay_period.date_end > plus_1_date)):
+        while last_pay_period.date_start < plus_1_date and last_pay_period.date_end < plus_1_date:
             next_start = last_pay_period.date_start + datetime.timedelta(days=14)
             last_pay_period = models.PayPeriod.objects.create(date_start=next_start)
 
@@ -85,10 +87,7 @@ def index(request):
     Displays contact info of current CAE Director and Associated Building Coordinators.
     If user is logged in and admin or programmer, also shows contact info of other admins/programmers.
     """
-    try:
-        cae_phone_number = cae_home_models.PhoneNumber.objects.get(pk=1)
-    except ObjectDoesNotExist:
-        cae_phone_number = None
+    cae_center = cae_home_models.Profile.get_profile('ceas_cae')
     cae_directors = cae_home_models.User.objects.filter(groups__name='CAE Director')
     cae_coordinators = cae_home_models.User.objects.filter(groups__name='CAE Building Coordinator')
     cae_attendants = None
@@ -102,13 +101,106 @@ def index(request):
             cae_programmers = cae_home_models.User.objects.filter(groups__name='CAE Programmer')
 
     return TemplateResponse(request, 'cae_web_core/index.html', {
-        'cae_phone_number': cae_phone_number,
+        'cae_center': cae_center,
         'cae_directors': cae_directors,
         'cae_coordinators': cae_coordinators,
         'cae_attendants': cae_attendants,
         'cae_admins': cae_admins,
         'cae_programmers': cae_programmers,
     })
+
+
+class ScheduleView(View):
+    """
+    Base class for Schedule Views.
+    """
+    # Children must override these
+    form_class = None # Form to edit event object
+    model = None # Event Model
+    template_name = None # Template to render
+
+    def get(self, request, resource_identifier=None, *args, **kwargs):
+        date_string = request.GET.get('date')
+        resource_identifier = self.get_resource_identifier(resource_identifier)
+        resources, resources_json = self.get_resources(resource_identifier)
+        now = timezone.now() # UTC
+        now = now.astimezone(pytz.timezone('America/Detroit')) # EST/EDT
+        if date_string:
+            date_obj = datetime.datetime.strptime(date_string, '%Y-%m-%d')
+            now = now.replace(year=date_obj.year, month=date_obj.month, day=date_obj.day)
+        start = now.replace(hour=8, minute=0, second=0)
+        end = now.replace(hour=22, minute=0, second=0)
+
+        form = kwargs.pop('form', None) or self.form_class(request.user)
+
+        context = {
+            'start': start,
+            'end': end,
+            'form': form,
+            'resources': resources,
+            'resources_json': json.dumps(resources_json),
+            'resource_types': self.get_resource_types(),
+            'resource_identifier': resource_identifier,
+            'can_add': request.user.has_perm(self.model._meta.label_lower.replace('.', '.add_')),
+            'can_change': request.user.has_perm(self.model._meta.label_lower.replace('.', '.change_')),
+            'can_delete': request.user.has_perm(self.model._meta.label_lower.replace('.', '.delete_')),
+        }
+
+        context.update(self.get_context(context))
+
+        return TemplateResponse(request, self.template_name, context)
+
+    def post(self, request, *args, **kwargs):
+        pk = request.POST.get('pk')
+        delete = request.POST.get('delete')
+        instance = None # New event
+        if pk:
+            instance = get_object_or_404(self.model, pk=pk)
+        form = self.form_class(request.user, request.POST, instance=instance)
+        if form.is_valid():
+            form.save()
+            message = "Event updated"
+            if delete:
+                message = "Event deleted"
+            elif not instance:
+                message = "Event created"
+            messages.success(request, message)
+            return redirect(request.get_full_path())
+        else:
+            messages.error(request, "There were errors updating the event.")
+
+        return self.get(request, form=form)
+
+    def get_context(self, context=None):
+        """
+        Return a dict context.
+        Children can override.
+        """
+        return {
+
+        }
+
+    def get_resource_identifier(self, resource_identifier):
+        """
+        Return the identifier to use as an event object filter.
+        Can be used to coerce the type (e.g. to an int())
+        Children must override.
+        """
+        raise NotImplementedError()
+
+    def get_resources(self, resource_identifier):
+        """
+        Return a list of objects and a list of data to be converted into json.
+        Children must override.
+        """
+        raise NotImplementedError()
+
+    def get_resource_types(self):
+        """
+        Return a list of types used for naviation.
+        Children must override.
+        """
+        raise NotImplementedError()
 
 
 #region Employee Views
@@ -232,150 +324,109 @@ def shift_manager(request, pk):
     })
 
 
-def _get_employee_types():
-    # This is used to display links to jump to another employee type.
-    return Group.objects.filter(
-        name__in=[
-            "CAE Admin",
-            "CAE Attendant",
-            "CAE Programmer",
-        ],
-    ).values(
-        'pk',
-        'name',
-    )
+class EmployeeScheduleView(PermissionRequiredMixin, ScheduleView):
+    form_class = forms.AvailabilityEventForm
+    model = models.AvailabilityEvent
+    template_name = 'cae_web_core/employee/employee_schedule.html'
 
+    def has_permission(self):
+        """User must have some permission to view Employee Schedule"""
+        return any([
+            self.request.user.has_perm('cae_web_core.view_availabilityevent'),
+            self.request.user.has_perm('cae_web_core.add_availabilityevent'),
+            self.request.user.has_perm('cae_web_core.change_availabilityevent'),
+            self.request.user.has_perm('cae_web_core.delete_availabilityevent'),
+        ])
 
-def employee_schedule(request, employee_type_pk=None):
-    date_string = request.GET.get('date')
-    if employee_type_pk is None:
-        employee_type_pk = Group.objects.get(name="CAE Admin").pk
-    employees = UserModel.objects.filter(
-        groups__pk=employee_type_pk,
-    ).order_by('first_name').values_list(
-        'pk', 'first_name',
-    )
-    now = timezone.now() # UTC
-    now = now.astimezone(pytz.timezone('America/Detroit')) # EST/EDT
-    if date_string:
-        date_obj = datetime.datetime.strptime(date_string, '%Y-%m-%d')
-        now = now.replace(year=date_obj.year, month=date_obj.month, day=date_obj.day)
-    start = now.replace(hour=8, minute=0, second=0)
-    end = now.replace(hour=22, minute=0, second=0)
+    def get_resource_identifier(self, resource_identifier):
+        pk = resource_identifier or Group.objects.get(name="CAE Admin").pk
+        return int(pk) # Coerce to an int for template comparison
 
-    employees_json = []
-    for pk, name in employees:
-        employees_json.append({
-            'id': pk,
-            'html': name,
+    def get_context(self, context=None):
+        context = context or {}
+
+        context.update({
+            # Do total on Scheduled events only
+            'total_event_type': models.AvailabilityEventType.objects.filter(name='Scheduled').values_list('pk', flat=True).first(),
         })
 
-    form = forms.AvailabilityEventForm()
-    if request.POST: # TODO: Check user has permission to edit/create events
-        pk = request.POST.get('availability_event_pk')
-        delete = request.POST.get('_delete')
-        instance = None # New event
-        if pk:
-            instance = get_object_or_404(models.AvailabilityEvent, pk=pk)
-        date_param = ''
-        if date_string:
-            date_param = '?date=' + date_string
-        if delete:
-            instance.delete()
-            messages.success(request, "Event deleted")
-            return redirect(reverse('cae_web_core:employee_schedule', args=[employee_type_pk]) + date_param)
-        form = forms.AvailabilityEventForm(request.POST, instance=instance)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Event updated" if instance else "Event created")
-            return redirect(reverse('cae_web_core:employee_schedule', args=[employee_type_pk]) + date_param)
-        else:
-            messages.error(request, "There were errors updating the event.")
+        return context
 
-    return TemplateResponse(request, 'cae_web_core/employee/employee_schedule.html', {
-        'employees': employees,
-        'employees_json': json.dumps(employees_json),
-        'start': start,
-        'end': end,
-        'form': form,
-        'employee_types': _get_employee_types(),
-        'employee_type_pk': int(employee_type_pk),
-    })
+    def get_resources(self, resource_identifier):
+        employees = UserModel.objects.filter(
+            groups__pk=resource_identifier,
+        ).order_by('first_name').values_list(
+            'pk', 'first_name',
+            'userintermediary__profile__fg_color',
+            'userintermediary__profile__bg_color',
+        )
+
+        employees_json = []
+        for pk, name, fg_color, bg_color in employees:
+            employees_json.append({
+                'id': pk,
+                'name': name,
+                'html': name,
+                'fg_color': fg_color,
+                'bg_color': bg_color,
+            })
+
+        return employees, employees_json
+
+    def get_resource_types(self):
+        # This is used to display links to jump to another employee type.
+        return Group.objects.filter(
+            name__in=[
+                "CAE Admin",
+                "CAE Attendant",
+                "CAE Programmer",
+            ],
+        ).values(
+            'pk',
+            'name',
+        )
 
 #endregion Employee Views
 
-
 #region Room Schedule Views
 
+class RoomScheduleView(ScheduleView):
+    form_class = forms.RoomEventForm
+    model = models.RoomEvent
+    template_name = 'cae_web_core/room_schedule/room_schedule.html'
 
-def _get_room_types():
-    # This is used to display links to jump to another room type.
-    return cae_home_models.RoomType.objects.filter(
-        slug__in=[
-            "classroom",
-            "computer-classroom",
-            "breakout-room",
-        ],
-    ).values(
-        'pk',
-        'name',
-        'slug',
-    )
+    def get_resource_identifier(self, resource_identifier):
+        return resource_identifier or 'classroom'
 
-def room_schedule(request, room_type_slug):
-    room_type = get_object_or_404(cae_home_models.RoomType, slug=room_type_slug)
-    date_string = request.GET.get('date')
-    rooms = cae_home_models.Room.objects.filter(
-        room_type=room_type,
-    ).order_by('room_type', 'name').values_list(
-        'pk', 'name', 'capacity',
-    )
-    now = timezone.now() # UTC
-    now = now.astimezone(pytz.timezone('America/Detroit')) # EST/EDT
-    if date_string:
-        date_obj = datetime.datetime.strptime(date_string, '%Y-%m-%d')
-        now = now.replace(year=date_obj.year, month=date_obj.month, day=date_obj.day)
-    start = now.replace(hour=8, minute=0, second=0)
-    end = now.replace(hour=22, minute=0, second=0)
+    def get_resources(self, resource_identifier):
+        rooms = cae_home_models.Room.objects.filter(
+            room_type__slug=resource_identifier,
+        ).order_by('room_type', 'name').values_list(
+            'pk', 'name', 'capacity',
+        )
 
-    rooms_json = []
-    for pk, name, capacity in rooms:
-        rooms_json.append({
-            'id': pk,
-            'html': format_html('{}<br>{}'.format(name, capacity)),
-        })
+        rooms_json = []
+        for pk, name, capacity in rooms:
+            rooms_json.append({
+                'id': pk,
+                'html': format_html('{}<br>{}'.format(name, capacity)),
+            })
 
-    form = forms.RoomEventForm()
-    if request.POST: # TODO: Check user has permission to edit/create events
-        pk = request.POST.get('room_event_pk')
-        delete = request.POST.get('_delete')
-        instance = None # New event
-        if pk:
-            instance = get_object_or_404(models.RoomEvent, pk=pk)
-        date_param = ''
-        if date_string:
-            date_param = '?date=' + date_string
-        if delete:
-            instance.delete()
-            messages.success(request, "Event deleted")
-            return redirect(reverse('cae_web_core:room_schedule', args=[room_type_slug]) + date_param)
-        form = forms.RoomEventForm(request.POST, instance=instance)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Event updated" if instance else "Event created")
-            return redirect(reverse('cae_web_core:room_schedule', args=[room_type_slug]) + date_param)
-        else:
-            messages.error(request, "There were errors updating the event.")
+        return rooms, rooms_json
 
-    return TemplateResponse(request, 'cae_web_core/room_schedule/room_schedule.html', {
-        'rooms': rooms,
-        'rooms_json': json.dumps(rooms_json),
-        'start': start,
-        'end': end,
-        'form': form,
-        'room_types': _get_room_types(),
-        'room_type_slug': room_type_slug,
-    })
+    def get_resource_types(self):
+        # This is used to display links to jump to another room type.
+        return cae_home_models.RoomType.objects.filter(
+            slug__in=[
+                "classroom",
+                "computer-classroom",
+                "breakout-room",
+            ],
+        ).values(
+            'pk',
+            'name',
+            'slug',
+        )
 
 
 def _iso_weekdays_to_strings(weekdays):
@@ -443,7 +494,7 @@ def upload_schedule(request):
         'events': events,
         'errors': errors,
         'uploaded_schedules': uploaded_schedules,
-        'room_types': _get_room_types(),
+        'resource_types': RoomScheduleView.get_resource_types(None), # NOTE: This is calling an instance method without an instance. (A little hacky)
     })
 
 

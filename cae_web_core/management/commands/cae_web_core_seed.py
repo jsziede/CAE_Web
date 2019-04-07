@@ -7,6 +7,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
+from django.db import IntegrityError
 from django.db.models import Q
 from django.utils import timezone
 from faker import Faker
@@ -83,6 +84,7 @@ class Command(BaseCommand):
         pay_periods = models.PayPeriod.objects.filter(date_start__lte=date_holder)[:model_count/20]
 
         # Generate models equal to model count.
+        total_fail_count = 0
         for i in range(model_count - pre_initialized_count):
             fail_count = 0
             try_create_model = True
@@ -119,7 +121,7 @@ class Command(BaseCommand):
                         clock_out=clock_out,
                     )
                     try_create_model = False
-                except ValidationError:
+                except (ValidationError, IntegrityError):
                     # Seed generation failed. Nothing can be done about this without removing the random generation
                     # aspect. If we want that, we should use fixtures instead.
                     fail_count += 1
@@ -127,7 +129,13 @@ class Command(BaseCommand):
                     # If failed 3 times, give up model creation and move on to next model, to prevent infinite loops.
                     if fail_count > 2:
                         try_create_model = False
-                        self.stdout.write('Failed to generate employee shift seed instance.')
+                        total_fail_count +=1
+
+        # Output if model instances failed to generate.
+        if total_fail_count > 0:
+            self.stdout.write(self.style.WARNING(
+                'Failed to generate {0}/{1} Employee Shift seed instances.'.format(total_fail_count, model_count)
+            ))
 
         self.stdout.write('Populated ' + self.style.SQL_FIELD('Employee Shift') + ' models.')
 
@@ -155,6 +163,7 @@ class Command(BaseCommand):
         server_timezone = pytz.timezone('America/Detroit')
 
         # Generate models equal to model count.
+        total_fail_count = 0
         for i in range(model_count - pre_initialized_count):
             fail_count = 0
             try_create_model = True
@@ -197,7 +206,7 @@ class Command(BaseCommand):
                         rrule='',
                     )
                     try_create_model = False
-                except ValidationError:
+                except (ValidationError, IntegrityError):
                     # Seed generation failed. Nothing can be done about this without removing the random generation
                     # aspect. If we want that, we should use fixtures instead.
                     fail_count += 1
@@ -205,7 +214,13 @@ class Command(BaseCommand):
                     # If failed 3 times, give up model creation and move on to next model, to prevent infinite loops.
                     if fail_count > 2:
                         try_create_model = False
-                        self.stdout.write('Failed to generate availability event seed instance.')
+                        total_fail_count += 1
+
+        # Output if model instances failed to generate.
+        if total_fail_count > 0:
+            self.stdout.write(self.style.WARNING(
+                'Failed to generate {0}/{1} Availability Event seed instances.'.format(total_fail_count, model_count)
+            ))
 
         self.stdout.write('Populated ' + self.style.SQL_FIELD('Availability Event') + ' models.')
 
@@ -236,6 +251,7 @@ class Command(BaseCommand):
         server_timezone = pytz.timezone('America/Detroit')
 
         # Generate models equal to model count.
+        total_fail_count = 0
         for i in range(model_count - pre_initialized_count):
             fail_count = 0
             try_create_model = True
@@ -284,7 +300,7 @@ class Command(BaseCommand):
                         rrule='',
                     )
                     try_create_model = False
-                except ValidationError:
+                except (ValidationError, IntegrityError):
                     # Seed generation failed. Nothing can be done about this without removing the random generation
                     # aspect. If we want that, we should use fixtures instead.
                     fail_count += 1
@@ -292,6 +308,12 @@ class Command(BaseCommand):
                     # If failed 3 times, give up model creation and move on to next model, to prevent infinite loops.
                     if fail_count > 2:
                         try_create_model = False
-                        self.stdout.write('Failed to generate room event seed instance.')
+                        total_fail_count += 1
+
+        # Output if model instances failed to generate.
+        if total_fail_count > 0:
+            self.stdout.write(self.style.WARNING(
+                'Failed to generate {0}/{1} Room Event seed instances.'.format(total_fail_count, model_count)
+            ))
 
         self.stdout.write('Populated ' + self.style.SQL_FIELD('Room Event') + ' models.')

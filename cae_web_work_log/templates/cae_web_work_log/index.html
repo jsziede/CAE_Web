@@ -1,0 +1,32 @@
+{% extends 'cae_web_work_log/main.html' %}
+
+
+{% block title_page_name %}Work Log | {% endblock title_page_name %}
+
+
+{% block content %}
+  <h1>CAE Work Log</h1>
+
+  <div class="panel primary">
+    <div class="header">
+      <h1>Filter Logs</h1>
+    </div>
+
+
+    <div class="body">
+
+      {% include 'cae_home/include/form.html' with button_text="Filter" form_cols=True %}
+
+    </div>
+  </div>
+
+  <div class="entries">
+    <a href="{% url 'cae_web_work_log:create' %}">New</a>
+    {% for entry in log_entries %}
+      <div class="entry">
+        <div class="entry_header"><span>{{ entry.entry_date }}</span><span>{{ entry.user }}</span></div>
+        <div class="entry_body">{{ entry.description }}</div>
+      </div>
+    {% endfor %}
+  </div>
+{% endblock content %}

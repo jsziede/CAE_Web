@@ -299,7 +299,7 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
 
     async def _handle_get_room_events(self, content, start, end):
         room = content.get('room')
-        room_type_slug = content.get('room_type_slug')
+        room_type_slug = content.get('resource_identifier')
         notify = content.get('notify')
 
         events = await self._get_room_events(start, end, room, room_type_slug)
@@ -308,7 +308,7 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
             'action': self.ACTION_SEND_EVENTS,
             'start': start.isoformat() if start else None,
             'end': end.isoformat() if end else None,
-            'room_type_slug': room_type_slug,
+            'resource_identifier': room_type_slug,
             'events': events,
         })
 
@@ -316,14 +316,14 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
             self.scope['session']['start'] = start.isoformat() if start else None
             self.scope['session']['end'] = end.isoformat() if end else None
             self.scope['session']['room'] = room
-            self.scope['session']['room_type_slug'] = room_type_slug
+            self.scope['session']['resource_identifier'] = room_type_slug
             self.scope['session']['pks'] = [x['id'] for x in events]
             await self.channel_layer.group_add(
                 GROUP_UPDATE_ROOM_EVENT, self.channel_name)
 
     async def _handle_get_availability_events(self, content, start, end):
         employee = content.get('employee')
-        employee_type_pk = content.get('employee_type')
+        employee_type_pk = content.get('resource_identifier')
         notify = content.get('notify')
 
         events = await self._get_availability_events(start, end, employee, employee_type_pk)
@@ -332,7 +332,7 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
             'action': self.ACTION_SEND_EVENTS,
             'start': start.isoformat() if start else None,
             'end': end.isoformat() if end else None,
-            'employee_type': employee_type_pk,
+            'resource_identifier': employee_type_pk,
             'events': events,
         })
 
@@ -340,14 +340,14 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
             self.scope['session']['start'] = start.isoformat() if start else None
             self.scope['session']['end'] = end.isoformat() if end else None
             self.scope['session']['employee'] = employee
-            self.scope['session']['employee_type'] = employee_type_pk
+            self.scope['session']['resource_identifier'] = employee_type_pk
             self.scope['session']['pks'] = [x['id'] for x in events]
             await self.channel_layer.group_add(
                 GROUP_UPDATE_AVAILABILITY_EVENT, self.channel_name)
 
     async def on_update_room_event(self, content):
         room = self.scope['session'].get('room')
-        room_type_slug = self.scope['session'].get('room_type_slug')
+        room_type_slug = self.scope['session'].get('resource_identifier')
         event_start = dateutil.parser.parse(content['start_time'])
         event_end = dateutil.parser.parse(content['end_time'])
 
@@ -383,7 +383,7 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
                 'start_time': self.scope['session'].get('start'),
                 'end_time': self.scope['session'].get('end'),
                 'room': room,
-                'room_type_slug': room_type_slug,
+                'resource_identifier': room_type_slug,
                 'notify': True,
             }, event_start, event_end)
 
@@ -413,48 +413,12 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
         event_types = {x['pk']: x for x in event_types}
 
         events = events.values(
-            'pk', 'room_id', 'event_type', 'start_time', 'end_time', 'title',
-            'description', 'rrule', 'duration',
+            'pk', 'room', 'event_type', 'start_time', 'end_time', 'title',
+            'description', 'rrule', 'duration', 'exclusions',
         )
 
-        event_dicts = []
-
-        # Convert to format expected by schedule.js
-        for event in events:
-            if not event['rrule']:
-                # Simple event
-                event_dicts.append({
-                    'id': event['pk'],
-                    'resource': event['room_id'],
-                    'start': event['start_time'].isoformat(),
-                    'end': event['end_time'].isoformat(),
-                    'title': event['title'],
-                    'description': event['description'],
-                    'event_type': event_types[event['event_type']],
-                })
-            else:
-                # Need to generate events using rrule, within start and end
-                # Convert time to EST and make naive to prevent DST from affecting event times
-                dtstart = timezone.make_naive(event['start_time'], timezone=pytz.timezone("America/Detroit"))
-                until = timezone.make_naive(event['end_time'], timezone=pytz.timezone("America/Detroit"))
-                # Override 'dtstart' and 'until' in case event model was changed but rrule was not.
-                new_starts = rrule.rrulestr(event['rrule']).replace(dtstart=dtstart, until=until)
-                for new_start in new_starts:
-                    # Convert time back to aware and then to UTC for the client.
-                    new_start = timezone.make_aware(new_start, timezone=pytz.timezone("America/Detroit")).astimezone(pytz.utc)
-                    if new_start < start or new_start > end:
-                        continue
-                    new_end = new_start + event['duration']
-                    # TODO: Add key to tell client that this is an rrule event
-                    event_dicts.append({
-                        'id': event['pk'],
-                        'resource': event['room_id'],
-                        'start': new_start.isoformat(),
-                        'end': new_end.isoformat(),
-                        'title': event['title'],
-                        'description': event['description'],
-                        'event_type': event_types[event['event_type']],
-                    })
+        event_dicts = self._convert_events_to_dicts(
+            events, event_types, start, end, 'room')
 
         return event_dicts
 
@@ -484,9 +448,15 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
         event_types = {x['pk']: x for x in event_types}
 
         events = events.values(
-            'pk', 'employee', 'event_type', 'start_time', 'end_time', 'rrule', 'duration',
+            'pk', 'employee', 'event_type', 'start_time', 'end_time', 'rrule', 'duration', 'exclusions',
         )
 
+        event_dicts = self._convert_events_to_dicts(
+            events, event_types, start, end, 'employee')
+
+        return event_dicts
+
+    def _convert_events_to_dicts(self, events, event_types, start, end, resource_key):
         event_dicts = []
 
         # Convert to format expected by schedule.js
@@ -495,10 +465,12 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
                 # Simple event
                 event_dicts.append({
                     'id': event['pk'],
-                    'resource': event['employee'],
+                    'resource': event[resource_key],
                     'start': event['start_time'].isoformat(),
                     'end': event['end_time'].isoformat(),
                     'event_type': event_types[event['event_type']],
+                    'title': event.get('title'),
+                    'description': event.get('description'),
                 })
             else:
                 # Need to generate events using rrule, within start and end
@@ -510,20 +482,27 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
 
                 rrule_form_data = forms.RRuleFormMixin.rrule_get_form_data(new_starts)
 
+                # Get list of dates that have been excluded
+                exclusions = event['exclusions'].value
+
                 for i, new_start in enumerate(new_starts):
                     # Convert time back to aware and then to UTC for the client.
                     new_start = timezone.make_aware(new_start, timezone=pytz.timezone("America/Detroit")).astimezone(pytz.utc)
-                    if new_start < start or new_start > end:
+                    if new_start < start or new_start > end or new_start in exclusions:
                         continue
                     new_end = new_start + event['duration']
                     event_dicts.append({
                         'id': event['pk'],
                         'rrule': rrule_form_data,
                         'rrule_index': i,
-                        'resource': event['employee'],
+                        'resource': event[resource_key],
                         'start': new_start.isoformat(),
                         'end': new_end.isoformat(),
+                        'orig_start': event['start_time'].isoformat(),
+                        'orig_end': (event['start_time'] + event['duration']).isoformat(),
                         'event_type': event_types[event['event_type']],
+                        'title': event.get('title'),
+                        'description': event.get('description'),
                     })
 
         return event_dicts

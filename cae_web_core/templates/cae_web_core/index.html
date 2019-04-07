@@ -15,8 +15,8 @@
         <p>Contact for help with IT, A/V, or other building issues on WMU's Engineering Campus.</p>
         <br>
         <p>Room: C-225</p>
-        <p>Phone: <a href="tel:{{ cae_phone_number.display_int }}">{{ cae_phone_number.display }}</a></p>
-        <p>Email: <a href="mailto:ceas_cae@wmich.edu">ceas_cae@wmich.edu</a></p>
+        <p>Phone: <a href="tel:{{ cae_center.phone_number.display_int }}">{{ cae_center.phone_number.display }}</a></p>
+        <p>Email: <a href="mailto:{{ cae_center.get_official_email }}">{{ cae_center.get_official_email }}</a></p>
       </div>
     </div>
   </article>

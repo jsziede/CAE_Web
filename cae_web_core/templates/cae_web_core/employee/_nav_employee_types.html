@@ -1,10 +1,10 @@
 <label>Filter Employee Type:</label>
 <div style="display: inline-block">
     <div class="buttons">
-    {% for employee_type in employee_types %}
+    {% for employee_type in resource_types %}
         <a
         href="{% url 'cae_web_core:employee_schedule' employee_type.pk %}"
-        class="button {% if employee_type.pk == employee_type_pk %}primary{% endif %}"
+        class="button {% if employee_type.pk == resource_identifier %}primary{% endif %}"
         >{{ employee_type.name }}</a>
     {% endfor %}
     </div>

@@ -1,0 +1,106 @@
+<div class="schedule-container"
+  data-start="{{ start.isoformat }}"
+  data-end="{{ end.isoformat }}"
+  data-resources="{{ resources_json }}"
+  data-resource-identifier="{{ resource_identifier }}"
+  data-event-mode="{{ event_mode }}"
+  data-mode="{{ mode }}"
+  data-mode-allow-change="{{ mode_allow_change }}"
+  data-show-resource-header="{{ show_resource_header }}"
+  data-total-event-type="{{ total_event_type }}"
+>
+  <h2>Please Wait</h2>
+  <p>The calendar view should load in a moment.</p>
+  <noscript>Please enable Javascript to view the calendar.</noscript>
+</div>
+<div id="div_event_dialog" class="panel" {% if form.errors %}data-errors{% endif %} hidden>
+  <div class="header">Edit Event</div>
+  <div class="content">
+    <form id="form_event" method="POST">
+      {% csrf_token %}
+      {{ form.pk }}
+      {{ form.parent_pk }}
+      {{ form.exclusion }}
+      {% if form.non_field_errors %}
+        <label>Errors:</label> {{ form.non_field_errors }}
+      {% endif %}
+      {% if form.title %}
+        {% if form.title.errors %}
+          <div></div> {{ form.title.errors }}
+        {% endif %}
+        {{ form.title.label_tag }} <div>{{ form.title.errors }} {{ form.title }}</div>
+      {% endif %}
+      {% if form.start_time.errors %}
+        <div></div> {{ form.start_time.errors }}
+      {% endif %}
+      {{ form.start_time.label_tag }} <div class="div-flatpickr">{{ form.start_time }} <i class="far fa-calendar-alt"></i></div>
+      {% if form.end_time.errors %}
+        <div></div> {{ form.end_time.errors }}
+      {% endif %}
+      {{ form.end_time.label_tag }} <div class="div-flatpickr">{{ form.end_time }} <i class="far fa-calendar-alt"></i></div>
+      {# -- RRule Form Part -- #}
+      {% if form.rrule_repeat.errors %}
+        <div></div> {{ form.rrule_repeat.errors }}
+      {% endif %}
+      {{ form.rrule_repeat.label_tag }} <div>
+        <div class="rrule-main">
+          {{ form.rrule_repeat }}<span class="rrule-interval"> every {{ form.rrule_interval }} <span class="rrule-interval-day">day</span><span class="rrule-interval-week">week</span>(s)</span>
+        </div>
+      </div>
+      {{ form.rrule_weekly_on.label_tag }} {{ form.rrule_weekly_on }}
+      {{ form.rrule_end.label_tag }} <div class="rrule-end">
+        {{ form.rrule_end.0 }}<br>
+        {{ form.rrule_end.1 }} {{ form.rrule_end_after }} occurrence(s)<br>
+        {{ form.rrule_end.2 }} {{ form.rrule_end_on }} <i class="far fa-calendar-alt"></i>
+      </div>
+      {# -- End RRule Form Part -- #}
+      {% if form.description %}
+        {% if form.description.errors %}
+          <div></div> {{ form.description.errors }}
+        {% endif %}
+        {{ form.description.label_tag }} {{ form.description }}
+      {% endif %}
+      {% if form.event_type.errors %}
+        <div></div> {{ form.event_type.errors }}
+      {% endif %}
+      {{ form.event_type.label_tag }} {{ form.event_type }}
+      {% if form.room %}
+        {% if form.room.errors %}
+          <div></div> {{ form.room.errors }}
+        {% endif %}
+        {{ form.room.label_tag }} {{ form.room }}
+      {% endif %}
+      {% if form.employee %}
+        {% if form.employee.errors %}
+          <div></div> {{ form.employee.errors }}
+        {% endif %}
+        {{ form.employee.label_tag }} {{ form.employee }}
+      {% endif %}
+    </form>
+    {{ form.media }}
+  </div>
+  <div class="footer">
+    <div>{# This div prevents buttons from left-aligning when delete is hidden #}
+      {% if can_delete %}
+        <button id="btn_delete" form="form_event" type="submit" name="delete" value="on" class="danger">Delete</button>
+      {% endif %}
+    </div>
+    <div>
+      {% if can_add or can_change %}
+        <button id="btn_cancel" class="warning">Cancel</button>
+        <button form="form_event" type="submit" class="success">Save</button>
+      {% else %}
+        <button id="btn_cancel">Close</button>
+      {% endif %}
+    </div>
+  </div>
+</div>
+<div id="div_rrule_dialog" class="panel" hidden>
+  <div class="header">Edit Recurring Event</div>
+  <div class="content">Do you want to edit only this occurrence or the whole series?</div>
+  <div class="footer">
+    <button id="btn_rrule_cancel" class="warning">Cancel</button>
+    <button id="btn_rrule_occurrence" class="default">Edit occurrence</button>
+    <button id="btn_rrule_series" class="default">Edit series</button>
+  </div>
+</div>
