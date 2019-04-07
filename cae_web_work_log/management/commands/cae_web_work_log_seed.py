@@ -38,8 +38,6 @@ class Command(BaseCommand):
         model_count = kwargs['model_count']
         if model_count < 1:
             model_count = 100
-        elif model_count > 10000:
-            model_count = 100
 
         self.stdout.write(self.style.HTTP_INFO('CAE_WEB_WORK_LOG: Seed command has been called.'))
         self.create_timeframe_types()
