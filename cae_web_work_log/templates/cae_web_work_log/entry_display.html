@@ -1,0 +1,20 @@
+
+<div class="entry">
+  <div class="entry_header">
+    <span>{{ entry.entry_date }} - {{ entry.log_set.timeframe_type }}</span>
+    <span>
+      {% if edit %}
+        <a href="">edit</a>
+      {% else %}
+
+        {% if entry.user.first_name and entry.user.last_name %}
+          {{ entry.user.first_name }} {{ entry.user.last_name|first }}
+        {% else %}
+          {{ entry.user }}
+        {% endif %}
+
+      {% endif %}
+    </span>
+  </div>
+  <div class="entry_body">{{ entry.description }}</div>
+</div>

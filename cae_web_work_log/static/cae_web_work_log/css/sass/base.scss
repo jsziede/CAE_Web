@@ -36,27 +36,6 @@
 
 .cae-work-log {
 
-    .filters {
-        @include display-flex;
-        @include flex-direction(row);
-        @include justify-content(space-evenly);
-        @include flex-wrap(wrap);
-
-        padding: 5px;
-
-        div {
-            @include display-flex;
-            @include flex-direction(column);
-            @include justify-content(center);
-            @include align-items(center);
-        }
-    }
-
-    .entries {
-
-        padding: 5px;
-    }
-
     .entry {
         @include display-flex;
         @include flex-direction(column);
@@ -72,6 +51,11 @@
         @include display-flex;
         @include flex-direction(row);
         @include justify-content(space-between);
+
+        a {
+            margin-top: -1px;
+            margin-bottom: -1px;
+        }
     }
 
     .entry_body {
@@ -117,6 +101,10 @@
     .entry_header span {
         font-size: 80%;
         font-style: italic;
+
+        a {
+            font-size: 90%;
+        }
     }
 }
 
@@ -161,14 +149,6 @@
 
     @each $theme, $theme-dict in $theme-colors {
     .theme-#{$theme} & {
-
-        .filters {
-            border: 1px solid theme-background($theme, 'border');
-        }
-
-        .entries {
-            border: 1px solid theme-background($theme, 'border');
-        }
 
         .entry {
             border-top: 1px solid theme-background($theme, 'border');
