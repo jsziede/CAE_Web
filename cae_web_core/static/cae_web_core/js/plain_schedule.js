@@ -116,9 +116,11 @@ var createSchedule = function(container) {
             modeChange = `<div class="buttons"><button class="${dayClass} schedule-btn-mode" data-mode="day">Day</button><button class="${weekClass} schedule-btn-mode" data-mode="week">Week</button></div>`;
         }
 
+        var expandButton = `<button class="schedule-btn-expand" title="Expand"><i class="fa fa-expand"></i></button>`;
+
         header = $('<div>', {
             class: "schedule-header",
-            html: `<div>${buttons}<div class="input-group">${calendarButton}${dateInput}</div></div>${modeChange}`,
+            html: `<div>${buttons}<div class="input-group">${calendarButton}${dateInput}</div></div><div>${modeChange}${expandButton}</div>`,
         });
 
         return header;
@@ -352,8 +354,8 @@ var createSchedule = function(container) {
             var resource = resourcesById[data.event.resource];
             const colors = `color: ${data.event.event_type.fg_color || resource.fg_color || "black"}; background-color: ${data.event.event_type.bg_color || resource.bg_color || "white"};`;
             const style = `grid-area: ${data.rowStart} / ${data.column} / span ${data.span15Min} / span ${data.columnSpan}; ${colors}`;
-            const eventStart = moment(data.event.start).format('LT');
-            const eventEnd = moment(data.event.end).format('LT');
+            const eventStart = moment(data.event.start).format('LT').replace(' ', '&nbsp;');
+            const eventEnd = moment(data.event.end).format('LT').replace(' ', '&nbsp;');
             var title = '';
             if (data.event.title) {
                 title = `${data.event.title}<br>`
@@ -556,6 +558,25 @@ var createSchedule = function(container) {
         location.reload();
     }
 
+    function onBtnExpandClicked(event) {
+        var button = $(event.target).closest('button');
+        var expanded = button.data('expanded') || false;
+
+        if (expanded) {
+            // compress
+            button.find('.fa').removeClass('fa-compress').addClass('fa-expand');
+            button.attr('title', "Expand");
+            container.removeClass('fullscreen');
+        } else {
+            // expand
+            button.find('.fa').removeClass('fa-expand').addClass('fa-compress');
+            button.attr('title', "Compress");
+            container.addClass('fullscreen');
+        }
+
+        button.data('expanded', !expanded);
+    }
+
     // Initialize
     container.empty();
     var header = createHeader();
@@ -577,6 +598,7 @@ var createSchedule = function(container) {
     container.find('.schedule-grid-line').on('dblclick', onGridLineDblClicked);
     container.find('.schedule-btn-mode').on('click', onBtnModeClicked);
     container.find('.resource-total').on('click', onResourceTotalClicked);
+    container.find('.schedule-btn-expand').on('click', onBtnExpandClicked);
 
     // Setup flatpickr
     var dateFlatpickr = container.find('.schedule-txt-date').flatpickr({

@@ -16,6 +16,16 @@ $light-border-color: $color-grey-70;
     display: grid;
     grid-auto-rows: auto;
 
+    &.fullscreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 99; // on top of everything except modal
+        height: auto !important;
+    }
+
     .schedule-resource-header {
         @include display-flex;
         justify-content: space-between;
@@ -141,8 +151,9 @@ $light-border-color: $color-grey-70;
         }
 
         .schedule-event {
-            border: 1px solid gray;
-            border-radius: 5px;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+            margin: 1px;
             padding: 2px;
             overflow: hidden;
             cursor: pointer;
