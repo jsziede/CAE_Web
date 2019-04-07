@@ -11,9 +11,11 @@ from django.db import IntegrityError, transaction
 from . import forms, models
 from cae_home import models as cae_home_models
 
-# Gets all the checkouts from the RoomCheckout model to show on the page and provides a form to submit a new room checkout
 @login_required
 def attendants(request):
+    """
+    Gets all the checkouts from the RoomCheckout model to show on the page and provides a form to submit a new room checkout.
+    """
     # Determines whether or not a new checkout submission was successful.
     # This variable is checked in the template language to determine the color of the panel heading.
     success = 0
@@ -23,20 +25,8 @@ def attendants(request):
     order_by = request.GET.get('order_by')
     direction = request.GET.get('direction')
     ordering = order_by
-
-    # Outputs checkout list in descending order
-    if direction == 'desc':
-        ordering = '-{}'.format(ordering)
-
-    # Splits the room checkout list into pages using GET data
-    checkouts_per_page = 50
-    if order_by and direction:
-        room_checkout_list = models.RoomCheckout.objects.all().order_by(ordering)
-    else:
-        room_checkout_list = models.RoomCheckout.objects.all()
-    paginator = Paginator(room_checkout_list, checkouts_per_page)
     page = request.GET.get('page')
-    room_checkouts = paginator.get_page(page)
+    room_checkouts = get_paginated_models(direction, ordering, order_by, page, 50, models.RoomCheckout)
 
     form = forms.RoomCheckoutForm()
 
@@ -69,24 +59,24 @@ def attendants(request):
         'success': success,
     })
 
-# Allows attendants to create, view, and submit room checklists.
 @login_required
 def checklists(request):
+    """
+    Allows attendants to create, view, and submit room checklists.
+    """
     # Determines whether or not a new checklist submission was successful.
     # This variable is checked in the template language to determine the color of the panel heading.
     success = 0
 
-    # If user submitted a form
-    if request.method == 'POST':
-        # If user submitted a form to edit the completion of tasks for a checklist instance
-        """
-        Note that this will only update the checklist instance object
-        itself if this edit completed the checklist tasks, or if the
-        tasks were all completed but at least one task was edited to
-        be incomplete.
+    """
+    If user submitted a form.
 
-        Otherwise, only the checklist item objects are updated.
-        """
+    Each form on the checklist web page has a separate action
+    value to differentiate themselves from the other forms that
+    can be submitted via post request.
+    """
+    if request.method == 'POST':
+        # If edit checklist form
         if request.POST['action'] == 'Edit':
             # Gets the instance pk
             pk = request.GET.get('edit')
@@ -96,70 +86,12 @@ def checklists(request):
             TaskFormset = modelformset_factory(models.ChecklistItem,
                 fields=('task', 'completed'))
             formset = TaskFormset(request.POST, queryset=instance.task.all())
-            for form in formset:
-                form.fields['task'].disabled = True
-            if formset.is_valid():
-                formset.save()
-                try:
-                    with transaction.atomic():
-                        # Checks if the checklist instance was completed or not after the user submitted the edit
-                        completed = True
-                        # Looks for any unfinished tasks
-                        for form in formset:
-                            if form.cleaned_data['completed'] == False:
-                                completed = False
-                        # If checklist was not completed prior to submission
-                        if instance.date_completed == None:
-                            # Mark it as completed if all tasks were completed
-                            if completed == True:
-                                instance.date_completed = timezone.now()
-                                instance.save()
-                        # Else if checklist was completed prior to submission
-                        else:
-                            # Mark it as incomplete if a tasks was marked as incomplete
-                            if completed == False:
-                                instance.date_completed = None
-                                instance.save()
-                        success = 1
-                except IntegrityError:
-                    success = -1
-            else:
-                success = -1
+            success = handle_edit_checklist_form(pk, instance, formset)
+        # If create instance form
         elif request.POST['action'] == 'Instance':
             # Gets form with filled out data from user
             form = forms.ChecklistInstanceForm(request.POST)
-            # TODO: Replace this with transaction
-            # If all form fields are valid
-            if form.is_valid():
-                # Gets the title of the template that the checklist was made from
-                checklist_title = form.cleaned_data['template'].title
-                # If the user input their own title for the checklist, then replace the inherited template title
-                if form.cleaned_data['title']:
-                    checklist_title = form.cleaned_data['title']
-                try:
-                    with transaction.atomic():
-                        # Create a new checklist instance using cleaned data from the form
-                        checklist = models.ChecklistInstance(template = form.cleaned_data['template'],
-                            room = form.cleaned_data['room'],
-                            employee = form.cleaned_data['employee'],
-                            title = checklist_title)
-                        checklist.save()
-                        # Gets the list of tasks that are used for the template
-                        tasks = form.cleaned_data['template'].checklist_item.all()
-                        # For each task
-                        for task in tasks:
-                            # Inserts a new ChecklistItem with the same title as the template task
-                            new_task = models.ChecklistItem(task = task.task, completed = False)
-                            new_task.save()
-                            # Add new task to the checklist instance
-                            checklist.task.add(new_task.pk)
-                        # Make the form become green
-                        success = 1
-                except IntegrityError:
-                    success = -1
-            # If form failed to validate then the form becomes red
-            else:
-                success = -1
+            success = handle_create_checklist_instance_form(form)
 
     # The name of the checklist template that was clicked on by the user.
     checklist_template_primary = request.GET.get('template')
@@ -170,22 +102,12 @@ def checklists(request):
     # checklist_instance_month = request.GET.get('month')
 
     # Allows user to change the sorting of the checklist table.
-    # Default is by date from newest checklist to oldest.
+    # Default is by date from newest checklist to oldest, with incomplete checklists appearing before completed
     order_by = request.GET.get('order_by')
     direction = request.GET.get('direction')
     ordering = order_by
-    # Outputs checkout list in descending order
-    if direction == 'desc':
-        ordering = '-{}'.format(ordering)
-    # Splits the room checkout list into pages using GET data
-    checklists_per_page = 50
-    if order_by and direction:
-        checklist_instances_list = models.ChecklistInstance.objects.all().order_by(ordering)
-    else:
-        checklist_instances_list = models.ChecklistInstance.objects.all()
-    paginator = Paginator(checklist_instances_list, checklists_per_page)
     page = request.GET.get('page')
-    checklist_instances = paginator.get_page(page)
+    checklist_instances = get_paginated_models(direction, ordering, order_by, page, 50, models.ChecklistInstance)
 
     # Determines which form, if any, to show on the page
     create_checklist = request.GET.get('create')
@@ -248,3 +170,97 @@ def checklists(request):
         'formset': formset,
         'success': success,
     })
+
+
+def handle_edit_checklist_form(pk, instance, formset):
+    """
+    Edits a collection of checklist tasks from one checklist instance to
+    be set as either completed or not based on user input from the
+    edit checklist form.
+    """
+    for form in formset:
+        form.fields['task'].disabled = True
+    if formset.is_valid():
+        formset.save()
+        try:
+            with transaction.atomic():
+                # Checks if the checklist instance was completed or not after the user submitted the edit
+                completed = True
+                # Looks for any unfinished tasks
+                for form in formset:
+                    if form.cleaned_data['completed'] == False:
+                        completed = False
+                # If checklist was not completed prior to submission
+                if instance.date_completed == None:
+                    # Mark it as completed if all tasks were completed
+                    if completed == True:
+                        instance.date_completed = timezone.now()
+                        instance.save()
+                # Else if checklist was completed prior to submission
+                else:
+                    # Mark it as incomplete if a tasks was marked as incomplete
+                    if completed == False:
+                        instance.date_completed = None
+                        instance.save()
+                success = 1
+        # If the transaction failed
+        except IntegrityError:
+            success = -1
+    else:
+        success = -1
+    return success
+
+def handle_create_checklist_instance_form(form):
+    """
+    Creates a new checklist instance based on a checklist
+    template that was selected by the user from the web page.
+    """
+    # If all form fields are valid
+    if form.is_valid():
+        # Gets the title of the template that the checklist was made from
+        checklist_title = form.cleaned_data['template'].title
+        # If the user input their own title for the checklist, then replace the inherited template title
+        if form.cleaned_data['title']:
+            checklist_title = form.cleaned_data['title']
+        try:
+            with transaction.atomic():
+                # Create a new checklist instance using cleaned data from the form
+                checklist = models.ChecklistInstance(template = form.cleaned_data['template'],
+                    room = form.cleaned_data['room'],
+                    employee = form.cleaned_data['employee'],
+                    title = checklist_title)
+                checklist.save()
+                # Gets the list of tasks that are used for the template
+                tasks = form.cleaned_data['template'].checklist_item.all()
+                # For each task
+                for task in tasks:
+                    # Inserts a new ChecklistItem with the same title as the template task
+                    new_task = models.ChecklistItem(task = task.task, completed = False)
+                    new_task.save()
+                    # Add new task to the checklist instance
+                    checklist.task.add(new_task.pk)
+                # Make the form become green
+                success = 1
+        # If the transaction failed
+        except IntegrityError:
+            success = -1
+    # If form failed to validate then the form becomes red
+    else:
+        success = -1
+    return success
+
+def get_paginated_models(direction, ordering, order_by, page, per_page, model):
+    """
+    Gets a subset of consecutive models based on ordering. 
+    """
+    # Outputs checkout list in descending order
+    if direction == 'desc':
+        ordering = '-{}'.format(ordering)
+    # Splits the room checkout list into pages using GET data
+    if order_by and direction:
+        instances_list = model.objects.all().order_by(ordering)
+    else:
+        instances_list = model.objects.all()
+    paginator = Paginator(instances_list, per_page)
+
+    return paginator.get_page(page)
