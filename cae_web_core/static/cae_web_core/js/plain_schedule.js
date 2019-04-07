@@ -22,8 +22,12 @@ var createSchedule = function(container) {
     var hiddenResourceIds = JSON.parse(sessionStorage.getItem('schedule-hidden-resource-ids')) || [];
 
     var allResources = resources;
-    if (hiddenResourceIds) {
+    // Only hide if the resource header is shown so they have the chance to unhide.
+    if (hiddenResourceIds && showResourceHeader) {
         // Remove hidden resources;
+        // TODO: There is a chance one schedule's resource ids are the same as
+        // another schedule's resource ids, which may unintentionally hide both.
+        // One fix is to modify the sessionStorage key based on the eventMode.
         resources = resources.filter(function(resource) {
             return !hiddenResourceIds.includes(resource.id);
         });
