@@ -6,6 +6,7 @@ Views for CAE_Web Core App.
 import datetime, dateutil.parser, json, pytz
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
@@ -130,7 +131,7 @@ class ScheduleView(View):
         start = now.replace(hour=8, minute=0, second=0)
         end = now.replace(hour=22, minute=0, second=0)
 
-        form = kwargs.pop('form', None) or self.form_class()
+        form = kwargs.pop('form', None) or self.form_class(request.user)
 
         context = {
             'start': start,
@@ -140,6 +141,9 @@ class ScheduleView(View):
             'resources_json': json.dumps(resources_json),
             'resource_types': self.get_resource_types(),
             'resource_identifier': resource_identifier,
+            'can_add': request.user.has_perm(self.model._meta.label_lower.replace('.', '.add_')),
+            'can_change': request.user.has_perm(self.model._meta.label_lower.replace('.', '.change_')),
+            'can_delete': request.user.has_perm(self.model._meta.label_lower.replace('.', '.delete_')),
         }
 
         context.update(self.get_context(context))
@@ -152,7 +156,7 @@ class ScheduleView(View):
         instance = None # New event
         if pk:
             instance = get_object_or_404(self.model, pk=pk)
-        form = self.form_class(request.POST, instance=instance)
+        form = self.form_class(request.user, request.POST, instance=instance)
         if form.is_valid():
             form.save()
             message = "Event updated"
@@ -320,10 +324,19 @@ def shift_manager(request, pk):
     })
 
 
-class EmployeeScheduleView(ScheduleView):
+class EmployeeScheduleView(PermissionRequiredMixin, ScheduleView):
     form_class = forms.AvailabilityEventForm
     model = models.AvailabilityEvent
     template_name = 'cae_web_core/employee/employee_schedule.html'
+
+    def has_permission(self):
+        """User must have some permission to view Employee Schedule"""
+        return any([
+            self.request.user.has_perm('cae_web_core.view_availabilityevent'),
+            self.request.user.has_perm('cae_web_core.add_availabilityevent'),
+            self.request.user.has_perm('cae_web_core.change_availabilityevent'),
+            self.request.user.has_perm('cae_web_core.delete_availabilityevent'),
+        ])
 
     def get_resource_identifier(self, resource_identifier):
         pk = resource_identifier or Group.objects.get(name="CAE Admin").pk

@@ -81,11 +81,17 @@
   </div>
   <div class="footer">
     <div>{# This div prevents buttons from left-aligning when delete is hidden #}
-      <button id="btn_delete" form="form_event" type="submit" name="delete" value="on" class="danger">Delete</button>
+      {% if can_delete %}
+        <button id="btn_delete" form="form_event" type="submit" name="delete" value="on" class="danger">Delete</button>
+      {% endif %}
     </div>
     <div>
-      <button id="btn_cancel" class="warning">Cancel</button>
-      <button form="form_event" type="submit" class="success">Save</button>
+      {% if can_add or can_change %}
+        <button id="btn_cancel" class="warning">Cancel</button>
+        <button form="form_event" type="submit" class="success">Save</button>
+      {% else %}
+        <button id="btn_cancel">Close</button>
+      {% endif %}
     </div>
   </div>
 </div>

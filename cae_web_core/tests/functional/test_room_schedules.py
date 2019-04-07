@@ -20,6 +20,7 @@ class TestRoomSchedules(utils.LiveServerTestCase):
     def test_live_update(self):
         """Test that one user creating an event, is immediately seen by another user in the Room Schedule"""
         # Log in the first user
+        self.addPermission(self.user1, "add_roomevent")
         self._login(self.driver1, self.user1.username, self.password1)
         self.driver1.get(self.live_server_url + reverse('cae_web_core:room_schedule', args=['classroom']))
 

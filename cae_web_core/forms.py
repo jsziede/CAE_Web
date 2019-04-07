@@ -245,8 +245,23 @@ class RoomEventForm(forms.ModelForm, RRuleFormMixin):
     class Media:
         js = RRuleFormMixin.RRuleMedia.js
 
+    def __init__(self, user, *args, **kwargs):
+        self._user = user
+        super().__init__(*args, **kwargs)
+
     def clean(self):
         super().rrule_clean()
+
+        delete = self.cleaned_data.get('delete')
+        if delete and not self._user.has_perm('cae_web_core.delete_roomevent'):
+            self.add_error(None, "You don't have permission to delete Room Events")
+
+        if self.instance and not self.instance.pk and not self._user.has_perm('cae_web_core.add_roomevent'):
+            self.add_error(None, "You don't have permission to create Room Events")
+
+        if self.instance and self.instance.pk and not self._user.has_perm('cae_web_core.change_roomevent'):
+            self.add_error(None, "You don't have permission to change Room Events")
+
 
     @transaction.atomic
     def save(self, *args, **kwargs):
@@ -277,8 +292,22 @@ class AvailabilityEventForm(forms.ModelForm, RRuleFormMixin):
     class Media:
         js = RRuleFormMixin.RRuleMedia.js
 
+    def __init__(self, user, *args, **kwargs):
+        self._user = user
+        super().__init__(*args, **kwargs)
+
     def clean(self):
         super().rrule_clean()
+
+        delete = self.cleaned_data.get('delete')
+        if delete and not self._user.has_perm('cae_web_core.delete_availabilityevent'):
+            self.add_error(None, "You don't have permission to delete Availability Events")
+
+        if self.instance and not self.instance.pk and not self._user.has_perm('cae_web_core.add_availabilityevent'):
+            self.add_error(None, "You don't have permission to create Availability Events")
+
+        if self.instance and self.instance.pk and not self._user.has_perm('cae_web_core.change_availabilityevent'):
+            self.add_error(None, "You don't have permission to change Availability Events")
 
     @transaction.atomic
     def save(self, *args, **kwargs):
