@@ -74,7 +74,7 @@ def populate_pay_periods():
             last_pay_period = models.PayPeriod.objects.create(date_start=datetime.date(2015, 5, 25))
 
         # Continue until pay_period + 1 is created.
-        while not ((last_pay_period.date_start < plus_1_date) and (last_pay_period.date_end > plus_1_date)):
+        while last_pay_period.date_start < plus_1_date and last_pay_period.date_end < plus_1_date:
             next_start = last_pay_period.date_start + datetime.timedelta(days=14)
             last_pay_period = models.PayPeriod.objects.create(date_start=next_start)
 
