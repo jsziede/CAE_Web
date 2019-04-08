@@ -131,7 +131,7 @@ class MyHoursConsumer(AsyncJsonWebsocketConsumer):
 
         # Validate passed pk.
         if pay_period_pk is None or not isinstance(pay_period_pk, int):
-            current_date = timezone.now().date() # Assuming settings.TIME_ZONE is America/Detroit
+            current_date = timezone.localdate() # Assuming settings.TIME_ZONE is America/Detroit
             pay_period_pk = await self._get_current_pay_period_model_pk(current_date)
 
         # Validation for pk going below 0 or above model count.
@@ -189,7 +189,7 @@ class MyHoursConsumer(AsyncJsonWebsocketConsumer):
         Submits shift for user at current time.
         """
         # Update current shift.
-        current_date = timezone.now().date() # Assuming settings.TIME_ZONE is America/Detroit
+        current_date = timezone.localdate() # Assuming settings.TIME_ZONE is America/Detroit
         pay_period = await self._get_current_pay_period_model(current_date)
         await self._update_employee_shift_model(pay_period, timezone.now())
 

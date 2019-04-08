@@ -80,7 +80,7 @@ class RRuleFormMixin(forms.Form):
         label="End")
     rrule_end_after = forms.IntegerField(min_value=1, initial=1, label="After")
     rrule_end_on = forms.DateField(
-        label="On", initial=lambda: timezone.now().date())
+        label="On", initial=lambda: timezone.localdate())
     pk = forms.IntegerField(widget=forms.HiddenInput, required=False)
     parent_pk = forms.IntegerField(widget=forms.HiddenInput, required=False)
     exclusion = forms.DateTimeField(widget=forms.HiddenInput, required=False)
@@ -200,7 +200,7 @@ class RRuleFormMixin(forms.Form):
         }[rule._freq]
 
         end = cls.END_NEVER
-        end_on = timezone.now().date()
+        end_on = timezone.localdate()
         end_after = 1
         if rule._until:
             end = cls.END_ON

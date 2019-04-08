@@ -20,7 +20,7 @@ class PayPeriodTests(TestCase):
     def setUpTestData(cls):
         populate_pay_periods()
 
-        cls.date_start = timezone.now().date()
+        cls.date_start = timezone.localdate()
         midnight = datetime.time(0, 0, 0, 0, pytz.timezone('America/Detroit'))
         start_datetime = datetime.datetime.combine(cls.date_start, midnight)
         cls.date_end = (start_datetime + timezone.timedelta(days=13)).date()

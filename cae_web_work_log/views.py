@@ -106,7 +106,7 @@ def modify_entry(request, pk=None):
         log_entry = None
 
     # Set initial form data.
-    entry_date = timezone.now().date()
+    entry_date = timezone.localdate()
     user = request.user
     default_group = None
     log_set = None
