@@ -33,11 +33,7 @@ class RoomCheckoutForm(ModelForm):
 
         # allows a room checkout if it is from the current day or in the future, even if the time has passed
         # simply comment out or remove this block of code if retroactive checkouts are allowed
-<<<<<<< HEAD
         if input_date.date() < timezone.localdate():
-=======
-        if input_date.date() < timezone.localdate():
->>>>>>> development
             raise ValidationError(
                 _('Invalid date %(date)s: date cannot be from the past'),
                 code='invalid',
