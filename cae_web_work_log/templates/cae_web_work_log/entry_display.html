@@ -1,4 +1,7 @@
 
+{% load cae_web_work_log_tags %}
+
+
 <div class="entry">
   <div class="entry_header">
     <span>{{ entry.entry_date }} - {{ entry.log_set.timeframe_type }}</span>
@@ -16,5 +19,9 @@
       {% endif %}
     </span>
   </div>
-  <div class="entry_body">{{ entry.description }}</div>
+  <div class="entry_body">
+    {% autoescape off %}
+      {% format_description entry.description %}
+    {% endautoescape %}
+  </div>
 </div>
