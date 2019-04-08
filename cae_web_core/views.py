@@ -251,7 +251,8 @@ def shift_manager_redirect(request):
     # Check for valid pay periods.
     populate_pay_periods()
 
-    pay_period_pk = models.PayPeriod.objects.all()[1].pk
+    current_date = timezone.localdate()
+    pay_period_pk = models.PayPeriod.objects.get(date_start__lte=current_date, date_end__gte=current_date).pk
     return redirect('cae_web_core:shift_manager', pk=pay_period_pk)
 
 
