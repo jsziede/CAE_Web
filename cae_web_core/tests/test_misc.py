@@ -23,20 +23,23 @@ class CAEWebCoreMiscTests(TestCase):
         cls.server_timezone = pytz.timezone('America/Detroit')
 
     def test_populate_pay_periods(self):
+        """
+        Test the custom populate_pay_periods method.
 
-        # Loop through twice.
-        # First test generating with clean slate.
-        # Then test generating with some periods already populated.
-        index = 0
+        Loop through twice:
+        * First test generating with clean slate.
+        * Then test generating with some periods already populated.
+        """
+        loop_counter = 0
         deletion_count = 0
-        while index < 2:
-            if index is 1:
+        while loop_counter < 2:
+            if loop_counter is 1:
                 # On second loop through, delete and recreate first 5 pay periods.
                 while deletion_count < 5:
                     last_pay_period = models.PayPeriod.objects.first()
                     last_pay_period.delete()
                     deletion_count += 1
-            index += 1
+            loop_counter += 1
 
             # Auto create pay periods.
             populate_pay_periods()
@@ -51,7 +54,7 @@ class CAEWebCoreMiscTests(TestCase):
             self.assertEqual(first_pay_period.date_end, date_end)
 
             # Test current pay period.
-            date_start = timezone.now().date()
+            date_start = timezone.localdate()
             current_pay_period = models.PayPeriod.objects.get(date_start__lte=date_start, date_end__gte=date_start)
             self.assertIsNotNone(current_pay_period)
             self.assertIsNotNone(current_pay_period.date_start)

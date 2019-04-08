@@ -45,9 +45,7 @@ def populate_pay_periods():
     the pay period changes over.
     """
     pay_period_found = True
-    local_timezone = pytz.timezone('America/Detroit')
-    # Get the current local date on campus
-    current_date = timezone.now().astimezone(local_timezone).date()
+    current_date = timezone.localdate()
     plus_1_date = current_date + datetime.timedelta(days=14)
 
     # Check for current pay period.
