@@ -4,7 +4,7 @@
     <span>{{ entry.entry_date }} - {{ entry.log_set.timeframe_type }}</span>
     <span>
       {% if edit %}
-        <a href="">edit</a>
+        <a href="{% url 'cae_web_work_log:edit_entry' pk=entry.pk %}">edit</a>
       {% else %}
 
         {% if entry.user.first_name and entry.user.last_name %}
