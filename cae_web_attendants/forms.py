@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import ugettext as _
-from django.forms import ModelForm, TextInput
+from django.forms import ModelForm, TextInput, HiddenInput
 
 from datetime import datetime
 
@@ -58,6 +58,22 @@ class RoomCheckoutForm(ModelForm):
 
         return cleaned_data
 
+class ChecklistTemplateForm(ModelForm):
+    class Meta:
+        model = models.ChecklistTemplate
+
+        fields = [
+            'title',
+            'checklist_item',
+            'room',
+        ]
+        widgets = {
+            'title': TextInput(),
+            'checklist_item': HiddenInput()
+        }
+
+    prefix = 'template'
+
 class ChecklistInstanceForm(ModelForm):
     class Meta:
         model = models.ChecklistInstance
@@ -80,3 +96,10 @@ class ChecklistItemForm(ModelForm):
             'task',
             'completed',
         ]
+
+        widgets = {
+            'completed': HiddenInput(),
+            'task':  TextInput()
+        }
+    
+    prefix = 'item'

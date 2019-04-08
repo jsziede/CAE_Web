@@ -44,7 +44,7 @@ class ChecklistTemplate(models.Model):
         null=True)
 
     # Many to many keys
-    checklist_item = models.ManyToManyField('ChecklistItem')
+    checklist_item = models.ManyToManyField('ChecklistItem', blank=True)
 
     # Fields specific to ChecklistTemplate model
     title = models.TextField()

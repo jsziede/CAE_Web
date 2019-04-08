@@ -14,6 +14,68 @@
 {% block content %}
     <h1>Welcome to the CAE Web Attendants Checklist page</h1>
     
+    {# If the form to create a new checklist template should be displayed #}
+    {% if create_template %}
+    {% if success == 1 %}
+    <div class="panel success">
+            <div class="header">Checklist Successfully Opened</div>
+    {% elif success == -1 %}
+    <div class="panel error">
+        <div class="header">Failed to Open Checklist</div>
+    {% else %}
+    <div class="panel primary">
+        <div class="header">Open a Checklist</div>
+    {% endif %}
+        {% comment %}
+            The way this works is that two forms are passed to the template,
+            one for creating a new template with no tasks and another form to
+            create the tasks for the newly created template. (Technically
+            the task form is a formset.) Both of these forms are submitted
+            using the same button. The view process each form separately.
+        {% endcomment %}
+        <form action="" class="content" method="POST" id="template" style="display: flex">
+            {% csrf_token %}
+            <div style="flex: 50%; flex-direction: column">
+                {# Template form #}
+                {{ form.as_p }}
+            </div>
+            <div style="flex: 50%; flex-direction: column">
+                {# Task forms #}
+                {{ formset.management_form }}
+                <div id="form_set">
+                    {% for form in formset.forms %}
+                        {{ form.non_field_errors }}
+                        {{ form.errors }}
+                        <table class='no_error'>
+                            {{ form }}
+                        </table>
+                    {% endfor %}
+                </div>
+                <input type="button" value="Add New Task" id="add_more">
+                <div id="empty_form" style="display:none">
+                    <table class='no_error'>
+                        {{ formset.empty_form }}
+                    </table>
+                </div>
+            </div>
+        </form>
+        <div class="footer">
+            <button type="submit" name="action" value="Template" form="template">
+                    Create <i class="fas fa-sign-in-alt"></i>
+            </button>
+        </div>
+    </div>
+
+    {# Adds a button to create more form fields #}
+    <script>
+        $('#add_more').click(function() {
+	        var form_idx = $('#id_form-TOTAL_FORMS').val();
+	        $('#form_set').append($('#empty_form').html().replace(/__prefix__/g, form_idx));
+	        $('#id_form-TOTAL_FORMS').val(parseInt(form_idx) + 1);
+        });
+    </script>
+    {% endif %}
+
     {# If user is creating a new checklist instance from an existing template #}
     {% if create_instance %}
     {% if success == 1 %}

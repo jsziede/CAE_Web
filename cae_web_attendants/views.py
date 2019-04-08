@@ -1,10 +1,9 @@
 from django.shortcuts import get_object_or_404, render
 from django.template.response import TemplateResponse
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator
 from django.db.models import Q
-from django.forms import modelformset_factory
+from django.forms import modelformset_factory, inlineformset_factory
 from django.utils import timezone
 from django.db import IntegrityError, transaction
 
@@ -83,15 +82,28 @@ def checklists(request):
             # Gets the checklist instance object
             instance = models.ChecklistInstance.objects.filter(pk=pk).first()
             # Formset of all checklist items that are being edited
-            TaskFormset = modelformset_factory(models.ChecklistItem,
-                fields=('task', 'completed'))
+            TaskFormset = modelformset_factory(
+                models.ChecklistItem,
+                fields=('task', 'completed')
+            )
             formset = TaskFormset(request.POST, queryset=instance.task.all())
             success = handle_edit_checklist_form(pk, instance, formset)
         # If create instance form
         elif request.POST['action'] == 'Instance':
-            # Gets form with filled out data from user
             form = forms.ChecklistInstanceForm(request.POST)
             success = handle_create_checklist_instance_form(form)
+        elif request.POST['action'] == 'Template':
+            # Retrieves the checklist template form from the user
+            form = forms.ChecklistTemplateForm(request.POST)
+            form.fields['room'].queryset = cae_home_models.Room.objects.filter(Q(department__name='CAE Center'))
+            # Retrieves the checklist task formset from the user
+            TaskFormset = modelformset_factory(
+                models.ChecklistItem,
+                fields=('task',),
+            )
+            formset = TaskFormset(request.POST, queryset=models.ChecklistItem.objects.none())
+            success = handle_create_checklist_template_form(form, formset)
+
 
     # The name of the checklist template that was clicked on by the user.
     checklist_template_primary = request.GET.get('template')
@@ -117,9 +129,19 @@ def checklists(request):
     # Pk of a checklist instance that is having its tasks edited
     edit_instance = request.GET.get('edit')
     formset = None
+    # If user requested the checklist template creation form
     if create_checklist == "template":
         create_template = True
-        #form = forms.RoomCheckoutForm()
+        # Get a normal form for the template and a formset for the template tasks
+        form = forms.ChecklistTemplateForm()
+        form.fields['room'].queryset = cae_home_models.Room.objects.filter(Q(department__name='CAE Center'))
+        TaskFormset = modelformset_factory(
+            models.ChecklistItem,
+            fields=('task',),
+            extra=1
+        )
+        # Make the new template task list be empty
+        formset = TaskFormset(queryset=models.ChecklistItem.objects.none())
     elif create_checklist == "checklist":
         create_instance = True
         # Defaults the template option to the template the user is creating the checklist from
@@ -133,7 +155,8 @@ def checklists(request):
         instance = models.ChecklistInstance.objects.filter(pk=edit_instance).first()
         if instance:
             # Gets all the checklist items from the instance and puts them into a formset
-            TaskFormset = modelformset_factory(models.ChecklistItem,
+            TaskFormset = modelformset_factory(
+                models.ChecklistItem,
                 fields=('task', 'completed'),
                 extra=0)
             formset = TaskFormset(queryset=instance.task.all())
@@ -246,6 +269,35 @@ def handle_create_checklist_instance_form(form):
             success = -1
     # If form failed to validate then the form becomes red
     else:
+        success = -1
+    return success
+
+def handle_create_checklist_template_form(form, formset):
+    """
+    Creates a new checklist instance based on a checklist
+    template that was selected by the user from the web page.
+    """
+    try:
+        with transaction.atomic():
+            if form.is_valid():
+                # Save the new base template, but not the tasks
+                template = form.save()
+                if formset.is_valid():
+                    #TODO: Disallow empty formset.
+                    for form in formset:
+                        if form.is_valid() and form.has_changed():
+                            # Save all the new tasks and add them to the newly created template
+                            #TODO: Maybe allow user to select from existing tasks as well
+                            new_task = models.ChecklistItem(task = form.cleaned_data['task'])
+                            new_task.save()
+                            template.checklist_item.add(new_task.pk)
+                    success = 1
+                else:
+                    success = -1
+            else:
+                success = -1
+    # If the transaction failed
+    except IntegrityError:
         success = -1
     return success
 
