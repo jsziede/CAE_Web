@@ -3,16 +3,16 @@ Views for CAE_Web Core App.
 """
 
 # System Imports.
-import datetime, dateutil.parser, json, pytz
+import datetime, json, pytz
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist
-from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Q, Count
-from django.http.response import JsonResponse, HttpResponseRedirect
+from django.http.response import HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
@@ -215,11 +215,10 @@ def my_hours(request):
     return TemplateResponse(request, 'cae_web_core/employee/my_hours.html', {})
 
 
+@login_required
 def shift_edit(request, pk):
     """
     Edit view for a single shift.
-    :param request:
-    :return:
     """
     # Pull models from database.
     shift = get_object_or_404(models.EmployeeShift, id=pk)
@@ -243,6 +242,8 @@ def shift_edit(request, pk):
         'shift': shift,
     })
 
+
+@login_required
 def shift_manager_redirect(request):
     """
     Redirects to shift of current date. Used in app nav.
