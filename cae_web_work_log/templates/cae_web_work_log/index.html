@@ -11,22 +11,47 @@
     <div class="header">
       <h1>Filter Logs</h1>
     </div>
-
-
     <div class="body">
-
       {% include 'cae_home/include/form.html' with button_text="Filter" form_cols=True %}
-
     </div>
   </div>
 
-  <div class="entries">
-    <a href="{% url 'cae_web_work_log:create' %}">New</a>
-    {% for entry in log_entries %}
-      <div class="entry">
-        <div class="entry_header"><span>{{ entry.entry_date }}</span><span>{{ entry.user }}</span></div>
-        <div class="entry_body">{{ entry.description }}</div>
+  <div class="panel tabs">
+    <div class="header">
+      <h2>{{ group_display_name }}</h2>
+      <a href="{% url 'cae_web_work_log:create_entry' %}">New</a>
+    </div>
+    <div class="body">
+      <div class="tab">
+        <h3>All</h3>
+        {% for entry in log_entries %}
+          {% if request.user == entry.user %}
+            {% include 'cae_web_work_log/entry_display.html' with entry=entry edit=True %}
+          {% else %}
+            {% include 'cae_web_work_log/entry_display.html' with entry=entry %}
+          {% endif %}
+        {% endfor %}
       </div>
-    {% endfor %}
+
+      {% for user in user_list %}
+        <div class="tab">
+          {% if user.first_name and user.last_name %}
+            <h3>{{ user.first_name }} {{ user.last_name|first }}</h3>
+          {% else %}
+            <h3>{{ user.username }}</h3>
+          {% endif %}
+
+          {% for entry in log_entries %}
+            {% if entry.user == user %}
+              {% if request.user == entry.user %}
+                {% include 'cae_web_work_log/entry_display.html' with entry=entry edit=True %}
+              {% else %}
+                {% include 'cae_web_work_log/entry_display.html' with entry=entry %}
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+        </div>
+      {% endfor %}
+    </div>
   </div>
 {% endblock content %}

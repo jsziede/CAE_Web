@@ -86,7 +86,7 @@ class WorkLogEntryAdmin(admin.ModelAdmin):
 
     # Fields to search in admin list view.
     search_fields = [
-        'user',
+        'user__username', 'user__first_name', 'user__last_name',
     ]
 
     # Fields to filter by in admin list view.

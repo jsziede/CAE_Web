@@ -21,10 +21,15 @@ class EmployeeShiftTests(TestCase):
         cls.user_1 = get_user_model().objects.create_user('temporary_1', 'temporary@gmail.com', 'temporary')
         cls.user_2 = get_user_model().objects.create_user('temporary_2', 'temporary@gmail.com', 'temporary')
         populate_pay_periods()
-        cls.current_pay_period = models.PayPeriod.objects.get(pk=(models.PayPeriod.objects.all().count() - 1))
+        current_date = timezone.localdate()
+        cls.current_time = timezone.localtime()
+        cls.current_pay_period = models.PayPeriod.objects.get(
+            date_start__lte=current_date,
+            date_end__gte=current_date,
+        )
 
     def setUp(self):
-        self.clock_in = timezone.now()
+        self.clock_in = self.current_time
         self.clock_out = self.clock_in + timezone.timedelta(hours=5, minutes=30)
 
         # Check if clock out is too close to (or past) pay period end time.

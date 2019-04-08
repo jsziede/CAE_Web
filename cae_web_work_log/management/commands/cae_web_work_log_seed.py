@@ -2,6 +2,7 @@
 Seeder command that initializes user models.
 """
 
+from django.contrib.auth.models import Group
 from django.core.management import call_command
 from django.core.exceptions import ValidationError
 from django.core.management.base import BaseCommand
@@ -37,8 +38,6 @@ class Command(BaseCommand):
         model_count = kwargs['model_count']
         if model_count < 1:
             model_count = 100
-        elif model_count > 10000:
-            model_count = 100
 
         self.stdout.write(self.style.HTTP_INFO('CAE_WEB_WORK_LOG: Seed command has been called.'))
         self.create_timeframe_types()
@@ -73,9 +72,10 @@ class Command(BaseCommand):
         pre_initialized_count = len(models.WorkLogEntry.objects.all())
 
         # Get all related models.
+        admin_group = Group.objects.get(name='CAE Admin')
+        prog_group = Group.objects.get(name='CAE Programmer')
         complex_query = (
-            Q(groups__name='CAE Admin') | Q(groups__name='CAE Programmer') |
-            Q(groups__name='CAE Admin GA') | Q(groups__name='CAE Programmer GA')
+            Q(groups=admin_group) | Q(groups=prog_group)
         )
         users = cae_home_models.User.objects.filter(complex_query)
 
@@ -88,9 +88,27 @@ class Command(BaseCommand):
             # Loop attempt until 3 fails or model is created.
             # Model creation may fail due to randomness of log dates and overlapping logs per user being invalid.
             while try_create_model:
+                # Generate timeframe.
+                time_int = randint(0, 365)
+                if time_int < 1:
+                    timeframe_int = models.TimeFrameType.get_int_from_name('Yearly')
+                elif time_int < 12:
+                    timeframe_int = models.TimeFrameType.get_int_from_name('Monthly')
+                elif time_int < 52:
+                    timeframe_int = models.TimeFrameType.get_int_from_name('Weekly')
+                else:
+                    timeframe_int = models.TimeFrameType.get_int_from_name('Daily')
+                timeframe = models.TimeFrameType.objects.get(name=timeframe_int)
+
                 # Get User.
                 index = randint(0, len(users) - 1)
                 user = users[index]
+
+                # Get log set.
+                if admin_group in user.groups.all():
+                    log_set = models.WorkLogSet.objects.get(timeframe_type=timeframe, group=admin_group)
+                elif prog_group in user.groups.all():
+                    log_set = models.WorkLogSet.objects.get(timeframe_type=timeframe, group=prog_group)
 
                 # Get date.
                 entry_date = faker_factory.past_datetime(start_date='-{0}d'.format(randint(0, 735)))
@@ -103,6 +121,7 @@ class Command(BaseCommand):
                 try:
                     models.WorkLogEntry.objects.create(
                         user=user,
+                        log_set=log_set,
                         entry_date=entry_date,
                         description=description,
                     )

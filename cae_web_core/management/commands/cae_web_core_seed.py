@@ -41,8 +41,6 @@ class Command(BaseCommand):
         model_count = kwargs['model_count']
         if model_count < 1:
             model_count = 100
-        elif model_count > 10000:
-            model_count = 100
 
         self.stdout.write(self.style.HTTP_INFO('CAE_WEB_CORE: Seed command has been called.'))
         self.create_pay_periods()
@@ -73,7 +71,7 @@ class Command(BaseCommand):
         pre_initialized_count = len(models.EmployeeShift.objects.all())
 
         # Get all related models.
-        date_holder = timezone.now().date()
+        date_holder = timezone.localdate()
         complex_query = (
             (
                 Q(groups__name='CAE Attendant') | Q(groups__name='CAE Admin') | Q(groups__name='CAE Programmer')

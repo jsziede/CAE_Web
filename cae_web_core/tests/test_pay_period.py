@@ -3,6 +3,7 @@ Test for CAE Web Core app.
 """
 import datetime
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.test import TestCase
 from django.utils import timezone
 import pytz
@@ -19,15 +20,21 @@ class PayPeriodTests(TestCase):
     def setUpTestData(cls):
         populate_pay_periods()
 
-        cls.date_start = timezone.now().date()
+        cls.date_start = timezone.localdate()
         midnight = datetime.time(0, 0, 0, 0, pytz.timezone('America/Detroit'))
         start_datetime = datetime.datetime.combine(cls.date_start, midnight)
         cls.date_end = (start_datetime + timezone.timedelta(days=13)).date()
 
     def setUp(self):
-        self.test_pay_period = models.PayPeriod.objects.create(
-            date_start=self.date_start,
-        )
+        try:
+            self.test_pay_period = models.PayPeriod.objects.get(
+                date_start__lte=self.date_start,
+                date_end__gte=self.date_start,
+            )
+        except ObjectDoesNotExist:
+            self.test_pay_period = models.PayPeriod.objects.create(
+                date_start=self.date_start,
+            )
 
     def test_model_creation(self):
         self.assertEqual(self.test_pay_period.date_start, self.date_start)
