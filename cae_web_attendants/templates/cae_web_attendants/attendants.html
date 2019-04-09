@@ -18,22 +18,18 @@
 
 	{% if success == 1 %}
     <div class="panel success">
-            <div class="header">Checklist Successfully Opened</div>
+            <div class="header">Room Checkout Successfully Created</div>
     {% elif success == -1 %}
     <div class="panel error">
-        <div class="header">Failed to Open Checklist</div>
+        <div class="header">Failed to Create Room Checkout</div>
     {% else %}
     <div class="panel primary">
-        <div class="header">Open a Checklist</div>
+        <div class="header">Create Room Checkout</div>
     {% endif %}
         <div class="content">
         {% include 'cae_home/include/form.html' %}
         </div>
-        <div class="footer">
-                <button type="submit">
-                        Submit <i class="fas fa-sign-in-alt"></i>
-                </button>
-        </div>
+        <div class="footer"></div>
     </div>
 	
 	{% if room_checkouts %}

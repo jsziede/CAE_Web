@@ -18,13 +18,13 @@
     {% if create_template %}
     {% if success == 1 %}
     <div class="panel success">
-            <div class="header">Checklist Successfully Opened</div>
+            <div class="header">Template Successfully Created</div>
     {% elif success == -1 %}
     <div class="panel error">
-        <div class="header">Failed to Open Checklist</div>
+        <div class="header">Failed to Create Template</div>
     {% else %}
     <div class="panel primary">
-        <div class="header">Open a Checklist</div>
+        <div class="header">Create a Template</div>
     {% endif %}
         {% comment %}
             The way this works is that two forms are passed to the template,
@@ -40,22 +40,22 @@
                 {{ form.as_p }}
             </div>
             <div style="flex: 50%; flex-direction: column">
+                <input type="button" value="Add New Task" id="add_more">
                 {# Task forms #}
                 {{ formset.management_form }}
                 <div id="form_set">
                     {% for form in formset.forms %}
                         {{ form.non_field_errors }}
                         {{ form.errors }}
-                        <table class='no_error'>
+                        <div class='no_error'>
                             {{ form }}
-                        </table>
+                        </div>
                     {% endfor %}
                 </div>
-                <input type="button" value="Add New Task" id="add_more">
                 <div id="empty_form" style="display:none">
-                    <table class='no_error'>
+                    <div class='no_error'>
                         {{ formset.empty_form }}
-                    </table>
+                    </div>
                 </div>
             </div>
         </form>
@@ -67,6 +67,7 @@
     </div>
 
     {# Adds a button to create more form fields #}
+    {# TODO: Add method to remove a task #}
     <script>
         $('#add_more').click(function() {
 	        var form_idx = $('#id_form-TOTAL_FORMS').val();
