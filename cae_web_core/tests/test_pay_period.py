@@ -31,6 +31,12 @@ class PayPeriodTests(TestCase):
                 date_start__lte=self.date_start,
                 date_end__gte=self.date_start,
             )
+            # Since we did not make a new pay period, we must make sure our "date_start" and the found period's
+            # "date_start" values match up.
+            if self.date_start != self.test_pay_period.date_start:
+                self.date_start = self.test_pay_period.date_start
+                self.date_end = self.date_start + datetime.timedelta(days=13)
+
         except ObjectDoesNotExist:
             self.test_pay_period = models.PayPeriod.objects.create(
                 date_start=self.date_start,
