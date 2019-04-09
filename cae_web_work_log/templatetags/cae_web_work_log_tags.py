@@ -18,7 +18,6 @@ def format_description(entry_description):
     prev_line = None
 
     # Iterate through each line of description.
-    print('\n\n{0}'.format(lines))
     for line in lines:
         index = 0
         indentation = 0
@@ -52,7 +51,6 @@ def format_description(entry_description):
 
             # Handle if any css styles were created.
             if len(style_css) > 0:
-                print(style_css)
                 formatted_line = '<p style="{0}">{1}</p>'.format(style_css, line)
             else:
                 formatted_line = '<p>{0}</p>'.format(line)
