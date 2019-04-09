@@ -32,6 +32,9 @@ class RoomCheckout(models.Model):
         ordering = ('-checkout_date',)
         unique_together = ('room', 'checkout_date',)
 
+    def __str__(self):
+        return self.room + " " + self.checkout_date
+
 
 class ChecklistTemplate(models.Model):
     """
@@ -58,6 +61,9 @@ class ChecklistTemplate(models.Model):
         verbose_name_plural = "Checklist Templates"
         ordering = ('title',)
 
+    def __str__(self):
+        return self.title
+
 
 class ChecklistItem(models.Model):
     """
@@ -75,6 +81,9 @@ class ChecklistItem(models.Model):
         verbose_name = "Checklist Item"
         verbose_name_plural = "Checklist Items"
         ordering = ('task',)
+
+    def __str__(self):
+        return self.task
 
 
 class ChecklistInstance(models.Model):
@@ -102,3 +111,6 @@ class ChecklistInstance(models.Model):
         verbose_name = "Checklist Instance"
         verbose_name_plural = "Checklist Instances"
         ordering = [F('date_completed').desc(nulls_first=True), ('-date_created')]
+
+    def __str__(self):
+        return self.title + " " + self.date_created
