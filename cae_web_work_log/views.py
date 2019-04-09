@@ -15,6 +15,7 @@ from django.utils import timezone
 from . import forms, models
 
 
+@login_required
 def index(request):
     """
     Work log index view.

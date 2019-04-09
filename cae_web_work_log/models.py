@@ -160,8 +160,8 @@ class WorkLogEntry(models.Model):
                 self.log_set = WorkLogSet.objects.filter(timeframe_type=timeframe_type).filter(group=user_log_group).first()
             else:
                 raise ValidationError(
-                    'User group not set to one of {0}. Could not automatically assign log set. Please manually select a'
-                    'log set.'.format(valid_log_groups)
+                    'User group not set to one of {0}. Could not automatically assign log set. Please manually select '
+                    'a log set.'.format(valid_log_groups)
                 )
 
         # Check that passed date is valid.
