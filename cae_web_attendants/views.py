@@ -47,6 +47,8 @@ def attendants(request):
         & Q(department__name='CAE Center')
     )
     form.fields['room'].queryset = cae_home_models.Room.objects.filter(complex_query)
+    # Set initial selected user to be the currently logged in employee, else will default to "------"
+    form.fields['employee'].initial = request.user.id
 
     # TODO: Set current employee as the default employee using the view rather than a script 
 
@@ -147,9 +149,12 @@ def checklists(request):
         # Defaults the template option to the template the user is creating the checklist from
         form = forms.ChecklistInstanceForm(initial={'template': checklist_template_primary})
         form.fields['template'].queryset = models.ChecklistTemplate.objects.filter(pk=checklist_template_primary)
+        # Template should be read only since the instance form is spawned from a selected template
         form.fields['template'].disabled = True
         # Only show CAE Rooms
         form.fields['room'].queryset = cae_home_models.Room.objects.filter(Q(department__name='CAE Center'))
+        # Set initial selected user to be the currently logged in employee, else will default to "------"
+        form.fields['employee'].initial = request.user.id
     # If user is marking checklist instance tasks as complete or not
     elif edit_instance:
         # Gets the checklist instance requested by the user

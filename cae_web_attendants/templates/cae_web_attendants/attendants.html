@@ -131,9 +131,3 @@
 	<p>No rooms have been checked out.</p>
 	{% endif %}
 {% endblock content %}
-
-{% block extra_scripts_body %}
-{{ block.super }}
-<script src="{% static 'cae_web_attendants/js/select_default_user.js' %}"></script>
-<script>selectDefaultUser(userId)</script>
-{% endblock extra_scripts_body %}
