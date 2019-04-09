@@ -146,7 +146,8 @@ def checklists(request):
         create_instance = True
         # Defaults the template option to the template the user is creating the checklist from
         form = forms.ChecklistInstanceForm(initial={'template': checklist_template_primary})
-        form.fields["template"].queryset = models.ChecklistTemplate.objects.filter(pk=checklist_template_primary)
+        form.fields['template'].queryset = models.ChecklistTemplate.objects.filter(pk=checklist_template_primary)
+        form.fields['template'].disabled = True
         # Only show CAE Rooms
         form.fields['room'].queryset = cae_home_models.Room.objects.filter(Q(department__name='CAE Center'))
     # If user is marking checklist instance tasks as complete or not
