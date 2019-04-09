@@ -33,7 +33,7 @@ class RoomCheckout(models.Model):
         unique_together = ('room', 'checkout_date',)
 
     def __str__(self):
-        return self.room + " " + self.checkout_date
+        return self.room.name + " " + self.checkout_date.strftime('%Y-%m-%d')
 
 
 class ChecklistTemplate(models.Model):
@@ -113,4 +113,4 @@ class ChecklistInstance(models.Model):
         ordering = [F('date_completed').desc(nulls_first=True), ('-date_created')]
 
     def __str__(self):
-        return self.title + " " + self.date_created
+        return self.title + " " + self.date_created.strftime('%Y-%m-%d %H:%M')
