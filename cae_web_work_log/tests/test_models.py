@@ -1,5 +1,5 @@
 """
-Tests for CAE Work Log app.
+Tests for CAE Work Log app models.
 """
 
 from django.contrib.auth import get_user_model
@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils import timezone
 
-from . import models
+from .. import models
 from cae_home.management.commands.seeders.user import create_permission_groups, create_permission_group_users
 
 
