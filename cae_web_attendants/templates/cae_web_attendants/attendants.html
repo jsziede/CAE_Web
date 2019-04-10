@@ -1,5 +1,6 @@
 {% extends 'cae_web_core/main.html' %}
-{% load staticfiles%}
+{% load staticfiles %}
+{% load attendant_template_tags %}
 
 {% block title_page_name %}Attendant Checkouts |{% endblock title_page_name %}
 
@@ -36,7 +37,7 @@
 	<table>
 		<thead>
 			<tr>
-				<th colspan="2" class="table-caption-left">
+				<th colspan="3" class="table-caption-left">
 					Room Checkouts
 				</th>
 				<th class="table-caption-right">
@@ -105,6 +106,19 @@
 						<a href="?order_by=checkout_date&direction=desc"><h4>Date</h4></a>
 					{% endif %}
 				</th>
+				<th>
+					{% if order_by == "phone" %}
+						{% if direction == "asc" %}
+							<a href="?order_by=phone&direction=desc"><i class="fas fa-arrow-circle-up"></i> <h4>Phone</h4></a>
+						{% elif direction == "desc" %}
+							<a href="?order_by=phone&direction=asc"><i class="fas fa-arrow-circle-down"></i> <h4>Phone</h4></a>
+						{% else %}
+							<a href="?order_by=phone&direction=desc"><h4>Phone</h4></a>
+						{% endif %}
+					{% else %}
+						<a href="?order_by=phone&direction=desc"><h4>Phone</h4></a>
+					{% endif %}
+				</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -118,6 +132,9 @@
 				</td>
 				<td>
 					<p>{{ checkout.checkout_date | date:"F jS, Y" }}</p>
+				</td>
+				<td>
+					<a href="tel: {{ phones|phone_number:forloop.counter0 }}">{{ phones|phone_number:forloop.counter0 }}</a>
 				</td>
 			</tr>
 			{% endfor %}

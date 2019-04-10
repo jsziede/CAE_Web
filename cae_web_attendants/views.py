@@ -25,7 +25,15 @@ def attendants(request):
     direction = request.GET.get('direction')
     ordering = order_by
     page = request.GET.get('page')
-    room_checkouts = get_paginated_models(direction, ordering, order_by, page, 50, models.RoomCheckout)
+    page_size = 50
+    room_checkouts = get_paginated_models(direction, ordering, order_by, page, page_size, models.RoomCheckout)
+
+    phones = [None] * len(room_checkouts)
+    index = 0
+    for checkout in room_checkouts:
+        user = getattr(checkout, 'student')
+        phones[index] = cae_home_models.Profile.get_profile(user.bronco_net).phone_number
+        index += 1
 
     form = forms.RoomCheckoutForm()
 
@@ -54,6 +62,7 @@ def attendants(request):
 
     return TemplateResponse(request, 'cae_web_attendants/attendants.html', {
         'room_checkouts': room_checkouts,
+        'phones': phones,
         'form': form,
         'order_by': order_by,
         'direction': direction,
