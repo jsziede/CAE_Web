@@ -257,6 +257,9 @@ def handle_submit_room_checkout(request):
                 success = -1
         else:
             success = -1
+    # User did not submit a form
+    else:
+        success = 0
     return success
 
 def handle_edit_checklist_form(pk, instance, formset):
