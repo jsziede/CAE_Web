@@ -7,28 +7,38 @@ from cae_home.tests import utils
 
 
 class TestRoomSchedules(utils.LiveServerTestCase):
-    """Test with Selenium to verify things like javascript and sockets"""
-    # This test requires some fixture models
+    """
+    Selenium Tests to verify things like javascript and sockets.
+    """
+    # Import fixtures.
     fixtures = [
         'full_models/room_types',
         'full_models/departments',
         'full_models/rooms',
         'room_event_types',
     ]
-    NUM_DRIVERS = 2 # Two browswer windows, each with a different user
+
+    # Two browser windows, each with a different user.
+    NUM_DRIVERS = 2
 
     def test_live_update(self):
-        """Test that one user creating an event, is immediately seen by another user in the Room Schedule"""
+        """
+        Test that one user creating an event, is immediately seen by another user in the Room Schedule.
+        """
+        # Create two users.
+        self.user_1 = self.create_user('user_1')
+        self.user_2 = self.create_user('user_2')
+
         # Log in the second user first, to ensure socket connects before event is created
-        self._login(self.driver2, self.user2.username, self.password2)
+        self._login(self.driver2, self.user_2.username, self.user_2.password_string)
         self.driver2.get(self.live_server_url + reverse('cae_web_core:room_schedule', args=['classroom']))
 
         # Wait for js to initialize the schedule
         self._wait_for_css(self.driver2, '.schedule-grid-line')
 
         # Log in the first user
-        self.addPermission(self.user1, "add_roomevent")
-        self._login(self.driver1, self.user1.username, self.password1)
+        self.add_permission(self.user_1, "add_roomevent")
+        self._login(self.driver1, self.user_1.username, self.user_1.password_string)
         self.driver1.get(self.live_server_url + reverse('cae_web_core:room_schedule', args=['classroom']))
 
         event_title = "Test Event"
