@@ -23,6 +23,9 @@ class TestRoomSchedules(utils.LiveServerTestCase):
         self._login(self.driver2, self.user2.username, self.password2)
         self.driver2.get(self.live_server_url + reverse('cae_web_core:room_schedule', args=['classroom']))
 
+        # Wait for js to initialize the schedule
+        self._wait_for_css(self.driver2, '.schedule-grid-line')
+
         # Log in the first user
         self.addPermission(self.user1, "add_roomevent")
         self._login(self.driver1, self.user1.username, self.password1)
