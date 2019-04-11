@@ -18,39 +18,7 @@ def attendants(request):
     """
     # Determines whether or not a new checkout submission was successful.
     # This variable is checked in the template language to determine the color of the panel heading.
-    success = 0
-
-    # If user has submitted a room checkout form
-    if request.method == 'POST':
-        # Split the two forms
-        form = forms.RoomCheckoutForm(request.POST)
-        phone_no = cae_home_forms.ProfileForm_OnlyPhone(request.POST)
-        # If user provided a legitimate phone number
-        if phone_no.is_valid():
-            # If the room checkout is valid
-            if form.is_valid():
-                # Get the student profile so we can see if it has a phone number
-                student_profile = cae_home_models.Profile.get_profile(form.cleaned_data["student"].bronco_net)
-                # If the attendant provided a phone number in the form
-                if phone_no.cleaned_data["phone_number"] is not None:
-                    # Replace the existing student profile phone number with the new number provided from the form
-                    student_profile.phone_number = phone_no.cleaned_data["phone_number"]
-                    student_profile.save()
-                    # Add room checkout
-                    form.save()
-                    success = 1
-                else:
-                    # If student profile doesn't have a phone number and the form did not provide a phone number
-                    if student_profile.phone_number is None:
-                        success = -1
-                    # Else if student profile already had a phone number, then the form did not need to provide one
-                    else:
-                        form.save()
-                        success = 1
-            else:
-                success = -1
-        else:
-            success = -1
+    success = handle_submit_room_checkout(request)
 
     # Allows user to change the sorting of the room checkout table.
     # Default is by date from newest checkout to oldest.
@@ -245,6 +213,51 @@ def checklists(request):
         'success': success,
     })
 
+def handle_submit_room_checkout(request):
+    """
+    Checks if the room checkout form fields are valid and
+    attempts to save the checkout to the database.
+    Also ensures that the checkout has a phone number
+    contact for the student.
+    """
+    # If user has submitted a room checkout form
+    success = -1
+    if request.method == 'POST':
+        # Split the two forms
+        form = forms.RoomCheckoutForm(request.POST)
+        phone_no = cae_home_forms.ProfileForm_OnlyPhone(request.POST)
+        # If user provided a legitimate phone number
+        if phone_no.is_valid():
+            # If the room checkout is valid
+            if form.is_valid():
+                # Get the student profile so we can see if it has a phone number
+                student_profile = cae_home_models.Profile.get_profile(form.cleaned_data["student"].bronco_net)
+                try:
+                    with transaction.atomic():
+                        # If the attendant provided a phone number in the form
+                        if phone_no.cleaned_data["phone_number"] is not None:
+                            # Replace the existing student profile phone number with the new number provided from the form
+                            student_profile.phone_number = phone_no.cleaned_data["phone_number"]
+                            student_profile.save()
+                            # Add room checkout
+                            form.save()
+                            success = 1
+                        else:
+                            # If student profile doesn't have a phone number and the form did not provide a phone number
+                            if student_profile.phone_number is None:
+                                success = -1
+                            # Else if student profile already had a phone number, then the form did not need to provide one
+                            else:
+                                form.save()
+                                success = 1
+                # If the transaction failed
+                except IntegrityError:
+                    success = -1
+            else:
+                success = -1
+        else:
+            success = -1
+    return success
 
 def handle_edit_checklist_form(pk, instance, formset):
     """
@@ -252,6 +265,7 @@ def handle_edit_checklist_form(pk, instance, formset):
     be set as either completed or not based on user input from the
     edit checklist form.
     """
+    success = -1
     for form in formset:
         form.fields['task'].disabled = True
     if formset.is_valid():
@@ -289,6 +303,7 @@ def handle_create_checklist_instance_form(form):
     Creates a new checklist instance based on a checklist
     template that was selected by the user from the web page.
     """
+    success = -1
     # If all form fields are valid
     if form.is_valid():
         # Gets the title of the template that the checklist was made from
@@ -328,6 +343,7 @@ def handle_create_checklist_template_form(form, formset):
     Creates a new checklist instance based on a checklist
     template that was selected by the user from the web page.
     """
+    success = -1
     try:
         with transaction.atomic():
             if form.is_valid():
