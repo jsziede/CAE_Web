@@ -15,7 +15,7 @@
         <p>Contact for help with IT, A/V, or other building issues on WMU's Engineering Campus.</p>
         <br>
         <p>Room: C-225</p>
-        <p>Phone: <a href="tel:{{ cae_center.phone_number.display_int }}">{{ cae_center.phone_number.display }}</a></p>
+        <p>Phone: <a href="tel:{{ cae_center.phone_number }}">{{ cae_center.phone_number.as_national }}</a></p>
         <p>Email: <a href="mailto:{{ cae_center.get_official_email }}">{{ cae_center.get_official_email }}</a></p>
       </div>
     </div>
@@ -44,8 +44,8 @@
         <div class="content">
           {% if cae_directors.first.profile.phone_number %}
             <p>Phone:
-              <a href="tel:{{ cae_directors.first.profile.phone_number.display_int }}">
-                {{ cae_directors.first.profile.phone_number.display }}
+              <a href="tel:{{ cae_directors.first.profile.phone_number }}">
+                {{ cae_directors.first.profile.phone_number.as_national }}
               </a>
             </p>
           {% else %}
@@ -74,8 +74,8 @@
             <div class="content">
               {% if director.profile.phone_number %}
                 <p>Phone:
-                  <a href="tel:{{ director.profile.phone_number.display_int }}">
-                    {{ director.profile.phone_number.display }}
+                  <a href="tel:{{ director.profile.phone_number }}">
+                    {{ director.profile.phone_number.as_national }}
                   </a>
                 </p>
               {% else %}
@@ -116,8 +116,8 @@
         <div class="content">
           {% if cae_coordinators.first.profile.phone_number %}
             <p>Phone:
-              <a href="tel:{{ cae_coordinators.first.profile.phone_number.display_int }}">
-                {{ cae_coordinators.first.profile.phone_number.display }}
+              <a href="tel:{{ cae_coordinators.first.profile.phone_number }}">
+                {{ cae_coordinators.first.profile.phone_number.as_national }}
               </a>
             </p>
           {% else %}
@@ -145,8 +145,8 @@
           <div class="content">
             {% if coordinator.profile.phone_number %}
               <p>Phone:
-                <a href="tel:{{ coordinator.profile.phone_number.display_int }}">
-                  {{ coordinator.profile.phone_number.display }}
+                <a href="tel:{{ coordinator.profile.phone_number }}">
+                  {{ coordinator.profile.phone_number.as_national }}
                 </a>
               </p>
             {% else %}
@@ -179,8 +179,8 @@
           <div class="content">
             {% if admin.profile.phone_number %}
               <p>Phone:
-                <a href="tel:{{ admin.profile.phone_number.display_int }}">
-                  {{ admin.profile.phone_number.display }}
+                <a href="tel:{{ admin.profile.phone_number }}">
+                  {{ admin.profile.phone_number.as_national }}
                 </a>
               </p>
             {% else %}
@@ -215,8 +215,8 @@
           <div class="content">
             {% if attendant.profile.phone_number %}
               <p>Phone:
-                <a href="tel:{{ attendant.profile.phone_number.display_int }}">
-                  {{ attendant.profile.phone_number.display }}
+                <a href="tel:{{ attendant.profile.phone_number }}">
+                  {{ attendant.profile.phone_number.as_national }}
                 </a>
               </p>
             {% else %}
@@ -251,8 +251,8 @@
           <div class="content">
             {% if programmer.profile.phone_number %}
               <p>Phone:
-                <a href="tel:{{ programmer.profile.phone_number.display_int }}">
-                  {{ programmer.profile.phone_number.display }}
+                <a href="tel:{{ programmer.profile.phone_number }}">
+                  {{ programmer.profile.phone_number.as_national }}
                 </a>
               </p>
             {% else %}
