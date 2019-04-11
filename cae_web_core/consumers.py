@@ -36,17 +36,18 @@ class MyHoursConsumer(AsyncJsonWebsocketConsumer):
         """
         # Check if user is logged in. Reject if not.
         if self.scope['user'].is_anonymous:
-            print('Rejected {0}.'.format(self.scope['user']))
+            # print('Rejected {0}.'.format(self.scope['user']))
             await self.close()
         else:
-            print('Connected - {0}.'.format(self.scope['user']))
+            # print('Connected - {0}.'.format(self.scope['user']))
             await self.accept()
 
     async def disconnect(self, code):
         """
         Handling for socket disconnect.
         """
-        print('Disconnected with code {0} - {1}.'.format(code, self.scope['user']))
+        # print('Disconnected with code {0} - {1}.'.format(code, self.scope['user']))
+        pass
 
     async def receive_json(self, content, **kwargs):
         """
@@ -54,26 +55,27 @@ class MyHoursConsumer(AsyncJsonWebsocketConsumer):
         """
         import traceback
         try:
-            print('\n\nReceiving JSON from {0}: {1}'.format(self.scope['user'], content))
+            # print('\n\nReceiving JSON from {0}: {1}'.format(self.scope['user'], content))
 
             # Check for valid pay periods.
             populate_pay_periods()
 
-            print('Action is {0}'.format(content['action']))
+            # print('Action is {0}'.format(content['action']))
 
             # Attempt given action.
             if content['action'] == ACTION_GET_EVENTS:
                 await self._get_pay_period_data(content)
-                print('Action "{0}" done.'.format(ACTION_GET_EVENTS))
+                # print('Action "{0}" done.'.format(ACTION_GET_EVENTS))
             elif content['action'] == ACTION_SEND_EVENTS:
                 # Check for shift submission.
                 if 'submit_shift' in content:
                     await self._submit_shift(content)
                 else:
                     await self._get_pay_period_data(content)
-                print('Action "{0}" done.'.format(ACTION_SEND_EVENTS))
+                # print('Action "{0}" done.'.format(ACTION_SEND_EVENTS))
             else:
-                print('Unexpected action.')
+                # print('Unexpected action.')
+                pass
         except:
             traceback.print_exc()
             await self.disconnect(-1)
