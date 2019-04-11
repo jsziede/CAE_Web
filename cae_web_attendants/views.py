@@ -19,6 +19,29 @@ def attendants(request):
     # This variable is checked in the template language to determine the color of the panel heading.
     success = 0
 
+    # If user has submitted a room checkout form
+    if request.method == 'POST':
+        form = forms.RoomCheckoutForm(request.POST)
+        phone_no = forms.PhoneNumberForm(request.POST)
+        if phone_no.is_valid():
+            if form.is_valid():
+                student_profile = cae_home_models.Profile.get_profile(form.cleaned_data["student"].bronco_net)
+                if phone_no.cleaned_data["phone_number"] is not None:
+                    student_profile.phone_number = phone_no.cleaned_data["phone_number"]
+                    student_profile.save()
+                    form.save()
+                    success = 1
+                else:
+                    if student_profile.phone_number is None:
+                        success = -1
+                    else:
+                        form.save()
+                        success = 1
+            else:
+                success = -1
+        else:
+            success = -1
+
     # Allows user to change the sorting of the room checkout table.
     # Default is by date from newest checkout to oldest.
     order_by = request.GET.get('order_by')
@@ -43,17 +66,9 @@ def attendants(request):
             phones[index] = (None, None)
         index += 1
 
-    form = forms.RoomCheckoutForm()
-
-    # If user has submitted a room checkout form
-    if request.method == 'POST':
-        form = forms.RoomCheckoutForm(request.POST)
-
-        if form.is_valid():
-            form.save()
-            success = 1
-        else:
-            success = -1
+    template_forms = [None] * 2
+    template_forms[0] = forms.RoomCheckoutForm()
+    template_forms[1] = forms.PhoneNumberForm()
 
     # Gets all computer classrooms at the CAE Center that are valid for checking out
     complex_query = (
@@ -62,16 +77,16 @@ def attendants(request):
         )
         & Q(department__name='CAE Center')
     )
-    form.fields['room'].queryset = cae_home_models.Room.objects.filter(complex_query)
+    template_forms[0].fields['room'].queryset = cae_home_models.Room.objects.filter(complex_query)
     # Set initial selected user to be the currently logged in employee, else will default to "------"
-    form.fields['employee'].initial = request.user.id
+    template_forms[0].fields['employee'].initial = request.user.id
 
     # TODO: Set current employee as the default employee using the view rather than a script 
 
     return TemplateResponse(request, 'cae_web_attendants/attendants.html', {
         'room_checkouts': room_checkouts,
         'phones': phones,
-        'form': form,
+        'forms': template_forms,
         'order_by': order_by,
         'direction': direction,
         'success': success,
