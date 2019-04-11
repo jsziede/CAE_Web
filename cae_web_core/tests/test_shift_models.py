@@ -4,7 +4,6 @@ Test for CAE Web Core app shift models.
 
 import datetime
 import pytz
-from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.utils import timezone
@@ -112,8 +111,8 @@ class EmployeeShiftTests(IntegrationTestCase):
     """
     @classmethod
     def setUpTestData(cls):
-        cls.user_1 = get_user_model().objects.create_user('temporary_1', 'temporary@gmail.com', 'temporary')
-        cls.user_2 = get_user_model().objects.create_user('temporary_2', 'temporary@gmail.com', 'temporary')
+        cls.user_1 = cls.create_user(cls, 'test_1')
+        cls.user_2 = cls.create_user(cls, 'test_2')
         populate_pay_periods()
         current_date = timezone.localdate()
         cls.current_time = timezone.localtime()

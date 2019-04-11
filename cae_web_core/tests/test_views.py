@@ -2,7 +2,6 @@
 Test for CAE Web Core app views.
 """
 
-from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.utils import timezone
 
@@ -17,7 +16,7 @@ class CAEWebCoreViewTests(IntegrationTestCase):
     """
     @classmethod
     def setUpTestData(cls):
-        cls.user = get_user_model().objects.create_user('test', '', 'test')
+        cls.user = cls.create_user(cls, 'test', password='test')
         cls.current_date = timezone.localdate()
         populate_pay_periods()
         cls.pay_period = models.PayPeriod.objects.get(date_start__lte=cls.current_date, date_end__gte=cls.current_date)

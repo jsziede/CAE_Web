@@ -2,7 +2,6 @@
 Tests for CAE Work Log app models.
 """
 
-from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from django.utils import timezone
@@ -85,8 +84,8 @@ class WorkLogEntryTests(IntegrationTestCase):
         cls.groups = create_permission_groups()
         cls.test_group = Group.objects.create(name='Test Group')
         cls.users = create_permission_group_users()
-        cls.test_user_1 = get_user_model().objects.create_user('temporary_1', 'temporary_1@gmail.com', 'temporary_1')
-        cls.test_user_2 = get_user_model().objects.create_user('temporary_2', 'temporary_2@gmail.com', 'temporary_2')
+        cls.test_user_1 = cls.create_user(cls, 'test_1')
+        cls.test_user_2 = cls.create_user(cls, 'test_2')
 
         cls.timeframe_type_daily = models.TimeFrameType.objects.create(name=models.TimeFrameType.DAILY)
         cls.timeframe_type_weekly = models.TimeFrameType.objects.create(name=models.TimeFrameType.WEEKLY)

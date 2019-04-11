@@ -2,7 +2,6 @@
 Tests for CAE Work Log app views.
 """
 
-from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.core.management import call_command
 from django.urls import reverse
@@ -25,7 +24,7 @@ class CAEWebWorkLogViewTests(IntegrationTestCase):
             call_command('loaddata', 'full_models/work_log_sets', stdout=null)
 
         # Create models.
-        cls.user = get_user_model().objects.create_user('test', '', 'test')
+        cls.user = cls.create_user(cls, 'test', password='test')
         cls.user.groups.add(Group.objects.get(name='CAE Admin'))
         cls.log = models.WorkLogEntry.objects.create(user=cls.user, description='test', entry_date=timezone.localdate())
 
