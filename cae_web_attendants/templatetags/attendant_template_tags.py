@@ -11,7 +11,7 @@ def phone_number(list, index):
     if(number == "None"):
         return "No phone number provided"
     else:
-        first = number[0:3]
-        second = number[3:6]
-        third = number[6:10]
+        first = number[2:5]
+        second = number[5:8]
+        third = number[8:12]
     return '(' + first + ')' + ' ' + second + '-' + third
