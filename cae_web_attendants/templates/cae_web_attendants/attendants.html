@@ -107,17 +107,7 @@
 					{% endif %}
 				</th>
 				<th>
-					{% if order_by == "phone" %}
-						{% if direction == "asc" %}
-							<a href="?order_by=phone&direction=desc"><i class="fas fa-arrow-circle-up"></i> <h4>Phone</h4></a>
-						{% elif direction == "desc" %}
-							<a href="?order_by=phone&direction=asc"><i class="fas fa-arrow-circle-down"></i> <h4>Phone</h4></a>
-						{% else %}
-							<a href="?order_by=phone&direction=desc"><h4>Phone</h4></a>
-						{% endif %}
-					{% else %}
-						<a href="?order_by=phone&direction=desc"><h4>Phone</h4></a>
-					{% endif %}
+					<h4>Phone</h4>
 				</th>
 			</tr>
 		</thead>
