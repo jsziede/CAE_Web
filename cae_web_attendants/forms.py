@@ -103,13 +103,3 @@ class ChecklistItemForm(ModelForm):
         }
     
     prefix = 'item'
-
-class PhoneNumberForm(ModelForm):
-    class Meta:
-        model = cae_home_models.Profile
-
-        fields = [
-            'phone_number',
-        ]
-    
-    prefix = 'phone_form'

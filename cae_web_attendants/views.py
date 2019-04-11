@@ -9,6 +9,7 @@ from django.db import IntegrityError, transaction
 
 from . import forms, models
 from cae_home import models as cae_home_models
+from cae_home import forms as cae_home_forms
 
 @login_required
 def attendants(request):
@@ -21,19 +22,28 @@ def attendants(request):
 
     # If user has submitted a room checkout form
     if request.method == 'POST':
+        # Split the two forms
         form = forms.RoomCheckoutForm(request.POST)
-        phone_no = forms.PhoneNumberForm(request.POST)
+        phone_no = cae_home_forms.ProfileForm_OnlyPhone(request.POST)
+        # If user provided a legitimate phone number
         if phone_no.is_valid():
+            # If the room checkout is valid
             if form.is_valid():
+                # Get the student profile so we can see if it has a phone number
                 student_profile = cae_home_models.Profile.get_profile(form.cleaned_data["student"].bronco_net)
+                # If the attendant provided a phone number in the form
                 if phone_no.cleaned_data["phone_number"] is not None:
+                    # Replace the existing student profile phone number with the new number provided from the form
                     student_profile.phone_number = phone_no.cleaned_data["phone_number"]
                     student_profile.save()
+                    # Add room checkout
                     form.save()
                     success = 1
                 else:
+                    # If student profile doesn't have a phone number and the form did not provide a phone number
                     if student_profile.phone_number is None:
                         success = -1
+                    # Else if student profile already had a phone number, then the form did not need to provide one
                     else:
                         form.save()
                         success = 1
@@ -51,7 +61,7 @@ def attendants(request):
     page_size = 50
     room_checkouts = get_paginated_models(direction, ordering, order_by, page, page_size, models.RoomCheckout)
 
-    # Gets all phone numbers from the WMU users found in the checkout list
+    # Gets all phone numbers for the WMU users found in the checkout list
     phones = [None] * len(room_checkouts)
     index = 0
     for checkout in room_checkouts:
@@ -59,6 +69,7 @@ def attendants(request):
         profile = cae_home_models.Profile.get_profile(user.bronco_net)
         if profile:
             if profile.phone_number:
+                # Store the phone number in raw format and in more human readable format
                 phones[index] = (str(profile.phone_number), profile.phone_number.as_national)
             else:
                 phones[index] = (None, None)
@@ -68,7 +79,7 @@ def attendants(request):
 
     template_forms = [None] * 2
     template_forms[0] = forms.RoomCheckoutForm()
-    template_forms[1] = forms.PhoneNumberForm()
+    template_forms[1] = cae_home_forms.ProfileForm_OnlyPhone()
 
     # Gets all computer classrooms at the CAE Center that are valid for checking out
     complex_query = (
