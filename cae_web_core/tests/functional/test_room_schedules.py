@@ -1,4 +1,7 @@
-"""CAE Web Core - Room Scheduling - Selenium Tests"""
+"""
+CAE Web Core - Selenium Tests for Room Schedule views.
+"""
+
 from django.urls import reverse
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import Select
@@ -64,4 +67,3 @@ class TestRoomSchedules(utils.LiveServerTestCase):
         self._wait_for_css(self.driver2, '.schedule-event', "Second user can't find created event!")
         # Assert second user CAN see the test event
         self.assertTrue(event_title in self.driver2.page_source, "Second user can't find created event!")
-
