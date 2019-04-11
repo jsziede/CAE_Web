@@ -28,11 +28,19 @@ def attendants(request):
     page_size = 50
     room_checkouts = get_paginated_models(direction, ordering, order_by, page, page_size, models.RoomCheckout)
 
+    # Gets all phone numbers from the WMU users found in the checkout list
     phones = [None] * len(room_checkouts)
     index = 0
     for checkout in room_checkouts:
         user = getattr(checkout, 'student')
-        phones[index] = cae_home_models.Profile.get_profile(user.bronco_net).phone_number
+        profile = cae_home_models.Profile.get_profile(user.bronco_net)
+        if profile:
+            if profile.phone_number:
+                phones[index] = (str(profile.phone_number), profile.phone_number.as_national)
+            else:
+                phones[index] = (None, None)
+        else:
+            phones[index] = (None, None)
         index += 1
 
     form = forms.RoomCheckoutForm()

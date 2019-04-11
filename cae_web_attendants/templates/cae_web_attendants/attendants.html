@@ -123,9 +123,15 @@
 				<td>
 					<p>{{ checkout.checkout_date | date:"F jS, Y" }}</p>
 				</td>
+				{% if phones|get_num:forloop.counter0 %}
 				<td>
-					<a href="tel: {{ phones|phone_number:forloop.counter0 }}">{{ phones|phone_number:forloop.counter0 }}</a>
+					<a href="tel: {{ phones|get_tel:forloop.counter0 }}">{{ phones|get_num:forloop.counter0 }}</a>
 				</td>
+				{% else %}
+				<td>
+					<p>No phone number provided</p>
+				</td>
+				{% endif %}
 			</tr>
 			{% endfor %}
 		</tbody>
