@@ -6,10 +6,10 @@ from django.urls import reverse
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import Select
 
-from cae_home.tests import utils
+from cae_home.tests.utils import LiveServerTestCase
 
 
-class TestRoomSchedules(utils.LiveServerTestCase):
+class TestRoomSchedules(LiveServerTestCase):
     """
     Selenium Tests to verify things like javascript and sockets.
     """

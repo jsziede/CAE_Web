@@ -5,16 +5,16 @@ Tests for CAE Work Log app views.
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.core.management import call_command
-from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 from os import devnull
 
 from .. import models
 from cae_home.management.commands.seeders.user import create_groups
+from cae_home.tests.utils import IntegrationTestCase
 
 
-class CAEWebWorkLogViewTests(TestCase):
+class CAEWebWorkLogViewTests(IntegrationTestCase):
     @classmethod
     def setUpTestData(cls):
         # Load all relevant fixtures.

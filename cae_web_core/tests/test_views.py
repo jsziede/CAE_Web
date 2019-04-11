@@ -2,18 +2,16 @@
 Test for CAE Web Core app views.
 """
 
-import datetime
 from django.contrib.auth import get_user_model
-from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-
 from .. import models
 from ..views import populate_pay_periods
+from cae_home.tests.utils import IntegrationTestCase
 
 
-class CAEWebCoreViewTests(TestCase):
+class CAEWebCoreViewTests(IntegrationTestCase):
     """
     Tests to ensure valid CAEWeb Core views.
     """

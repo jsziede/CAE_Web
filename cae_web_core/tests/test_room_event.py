@@ -2,14 +2,14 @@
 Test for CAE Web Core app.
 """
 
-from django.test import TestCase
 from django.utils import timezone
 
-from cae_home import models as cae_home_models
 from .. import models
+from cae_home import models as cae_home_models
+from cae_home.tests.utils import IntegrationTestCase
 
 
-class RoomEventModelTests(TestCase):
+class RoomEventModelTests(IntegrationTestCase):
     """
     Tests to ensure valid Room model creation/logic.
     """

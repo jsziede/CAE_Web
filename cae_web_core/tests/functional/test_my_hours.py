@@ -1,13 +1,13 @@
 """
-CAE Web Core Selenium Tests for the MyHours view.
+CAE Web Core - Selenium Tests for the MyHours view.
 """
 
 from django.urls import reverse
 
-from cae_home.tests import utils
+from cae_home.tests.utils import LiveServerTestCase
 
 
-class TestMyHoursView(utils.LiveServerTestCase):
+class TestMyHoursView(LiveServerTestCase):
     """
     Selenium Tests to verify things like javascript and sockets.
     """
@@ -22,11 +22,18 @@ class TestMyHoursView(utils.LiveServerTestCase):
     # Two browswer windows, each with a different user
     NUM_DRIVERS = 1
 
+    def setUp(self):
+        """
+        Logic to reset state before each individual test.
+        """
+        self.create_default_users_and_groups(password='test')
+        super().setUp()
+
     def test_clock_in_out(self):
         """
         Test that a user can clock in and out.
         """
-        user_1 = self.get_user('cae_admin')
+        user_1 = self.get_user('cae_admin', password='test')
 
         # Login user.
         self._login(self.driver1, user_1.username, user_1.password_string)

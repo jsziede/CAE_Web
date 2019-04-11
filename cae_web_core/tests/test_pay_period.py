@@ -1,18 +1,18 @@
 """
 Test for CAE Web Core app.
 """
-import datetime
 
-from django.core.exceptions import ObjectDoesNotExist
-from django.test import TestCase
-from django.utils import timezone
+import datetime
 import pytz
+from django.core.exceptions import ObjectDoesNotExist
+from django.utils import timezone
 
 from .. import models
 from ..views import populate_pay_periods
+from cae_home.tests.utils import IntegrationTestCase
 
 
-class PayPeriodTests(TestCase):
+class PayPeriodTests(IntegrationTestCase):
     """
     Tests to ensure valid Pay Period model creation/logic.
     """

@@ -5,14 +5,14 @@ Test for CAE Web Core app.
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.test import TestCase
 from django.utils import timezone
 
 from .. import models
 from ..views import populate_pay_periods
+from cae_home.tests.utils import IntegrationTestCase
 
 
-class EmployeeShiftTests(TestCase):
+class EmployeeShiftTests(IntegrationTestCase):
     """
     Tests to ensure valid Employee Shift model creation/logic.
     """

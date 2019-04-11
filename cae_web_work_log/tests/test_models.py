@@ -5,14 +5,14 @@ Tests for CAE Work Log app models.
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
-from django.test import TestCase
 from django.utils import timezone
 
 from .. import models
 from cae_home.management.commands.seeders.user import create_permission_groups, create_permission_group_users
+from cae_home.tests.utils import IntegrationTestCase
 
 
-class TimeFrameTypeModelTests(TestCase):
+class TimeFrameTypeModelTests(IntegrationTestCase):
     """
     Tests to ensure valid Timeframe Type Model creation/logic.
     """
@@ -46,7 +46,7 @@ class TimeFrameTypeModelTests(TestCase):
         self.assertEqual(models.TimeFrameType.get_int_from_name('Yearly'), 3)
 
 
-class WorkLogSetModelTests(TestCase):
+class WorkLogSetModelTests(IntegrationTestCase):
     """
     Tests to ensure valid Work Log Set Model creation/logic.
     """
@@ -76,7 +76,7 @@ class WorkLogSetModelTests(TestCase):
         self.assertEqual(str(self.test_log_set._meta.verbose_name_plural), 'Log Sets')
 
 
-class WorkLogEntryTests(TestCase):
+class WorkLogEntryTests(IntegrationTestCase):
     """
     Tests to ensure valid Work Log Entry Model creation/logic.
     """
