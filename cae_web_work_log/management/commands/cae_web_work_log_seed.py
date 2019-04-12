@@ -138,8 +138,19 @@ class Command(BaseCommand):
 
         # Output if model instances failed to generate.
         if total_fail_count > 0:
-            self.stdout.write(self.style.WARNING(
-                'Failed to generate {0}/{1} Log Entry seed instances.'.format(total_fail_count, model_count)
-            ))
+            # Handle for all models failing to seed.
+            if total_fail_count == model_count:
+                raise ValidationError('Failed to generate any Log Entry seed instances.')
+
+            if total_fail_count >= (model_count / 2):
+                # Handle for a majority of models failing to seed (at least half).
+                self.stdout.write(self.style.ERROR(
+                    'Failed to generate {0}/{1} Log Entry seed instances.'.format(total_fail_count, model_count)
+                ))
+            else:
+                # Handle for some models failing to seed (less than half, more than 0).
+                self.stdout.write(self.style.WARNING(
+                    'Failed to generate {0}/{1} Log Entry seed instances.'.format(total_fail_count, model_count)
+                ))
 
         self.stdout.write('Populated ' + self.style.SQL_FIELD('Log Entry') + ' models.\n')
