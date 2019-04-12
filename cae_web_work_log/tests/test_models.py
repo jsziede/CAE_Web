@@ -13,7 +13,7 @@ from cae_home.tests.utils import IntegrationTestCase
 
 class TimeFrameTypeModelTests(IntegrationTestCase):
     """
-    Tests to ensure valid Timeframe Type Model creation/logic.
+    Tests to ensure valid Timeframe Type model creation/logic.
     """
     def setUp(self):
         self.test_timeframe = models.TimeFrameType.objects.create(name=models.TimeFrameType.DAILY)
@@ -28,6 +28,20 @@ class TimeFrameTypeModelTests(IntegrationTestCase):
     def test_plural_representation(self):
         self.assertEqual(str(self.test_timeframe._meta.verbose_name), 'Timeframe Type')
         self.assertEqual(str(self.test_timeframe._meta.verbose_name_plural), 'Timeframe Types')
+
+    def test_dummy_creation(self):
+        # Test create.
+        dummy_model_1 = models.TimeFrameType.create_dummy_model()
+        self.assertIsNotNone(dummy_model_1)
+        self.assertTrue(isinstance(dummy_model_1, models.TimeFrameType))
+
+        # Test get.
+        dummy_model_2 = models.TimeFrameType.create_dummy_model()
+        self.assertIsNotNone(dummy_model_2)
+        self.assertTrue(isinstance(dummy_model_2, models.TimeFrameType))
+
+        # Test both are the same model instance.
+        self.assertEqual(dummy_model_1, dummy_model_2)
 
     def test_full_name(self):
         self.assertEqual(self.test_timeframe.full_name(), 'Daily')
@@ -47,7 +61,7 @@ class TimeFrameTypeModelTests(IntegrationTestCase):
 
 class WorkLogSetModelTests(IntegrationTestCase):
     """
-    Tests to ensure valid Work Log Set Model creation/logic.
+    Tests to ensure valid Work Log Set model creation/logic.
     """
     @classmethod
     def setUpTestData(cls):
@@ -74,10 +88,24 @@ class WorkLogSetModelTests(IntegrationTestCase):
         self.assertEqual(str(self.test_log_set._meta.verbose_name), 'Log Set')
         self.assertEqual(str(self.test_log_set._meta.verbose_name_plural), 'Log Sets')
 
+    def test_dummy_creation(self):
+        # Test create.
+        dummy_model_1 = models.WorkLogSet.create_dummy_model()
+        self.assertIsNotNone(dummy_model_1)
+        self.assertTrue(isinstance(dummy_model_1, models.WorkLogSet))
 
-class WorkLogEntryTests(IntegrationTestCase):
+        # Test get.
+        dummy_model_2 = models.WorkLogSet.create_dummy_model()
+        self.assertIsNotNone(dummy_model_2)
+        self.assertTrue(isinstance(dummy_model_2, models.WorkLogSet))
+
+        # Test both are the same model instance.
+        self.assertEqual(dummy_model_1, dummy_model_2)
+
+
+class WorkLogEntryModelTests(IntegrationTestCase):
     """
-    Tests to ensure valid Work Log Entry Model creation/logic.
+    Tests to ensure valid Work Log Entry model creation/logic.
     """
     @classmethod
     def setUpTestData(cls):
@@ -125,6 +153,20 @@ class WorkLogEntryTests(IntegrationTestCase):
     def test_plural_representation(self):
         self.assertEqual(str(self.test_entry._meta.verbose_name), 'Log Entry')
         self.assertEqual(str(self.test_entry._meta.verbose_name_plural), 'Log Entries')
+
+    def test_dummy_creation(self):
+        # Test create.
+        dummy_model_1 = models.WorkLogEntry.create_dummy_model()
+        self.assertIsNotNone(dummy_model_1)
+        self.assertTrue(isinstance(dummy_model_1, models.WorkLogEntry))
+
+        # Test get.
+        dummy_model_2 = models.WorkLogEntry.create_dummy_model()
+        self.assertIsNotNone(dummy_model_2)
+        self.assertTrue(isinstance(dummy_model_2, models.WorkLogEntry))
+
+        # Test both are the same model instance.
+        self.assertEqual(dummy_model_1, dummy_model_2)
 
     #region Group Permission Default Testing
 

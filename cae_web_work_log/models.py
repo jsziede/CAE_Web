@@ -2,11 +2,15 @@
 Models for CAE Work Log app.
 """
 
+import datetime
 from django.contrib.auth.models import Group
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import ObjectDoesNotExist
 from django.utils import timezone
+
+from cae_home import models as cae_home_models
 
 
 MAX_LENGTH = 255
@@ -74,6 +78,17 @@ class TimeFrameType(models.Model):
                 return_value = timeframe[0]
         return return_value
 
+    @staticmethod
+    def create_dummy_model():
+        """
+        Attempts to get or create a dummy model.
+        Used for testing.
+        """
+        try:
+            return TimeFrameType.objects.get(name=0)
+        except ObjectDoesNotExist:
+            return TimeFrameType.objects.create(name=0)
+
 
 class WorkLogSet(models.Model):
     """
@@ -111,6 +126,29 @@ class WorkLogSet(models.Model):
         # Save model.
         self.full_clean()
         super(WorkLogSet, self).save(*args, **kwargs)
+
+    @staticmethod
+    def create_dummy_model():
+        """
+        Attempts to get or create a dummy model.
+        Used for testing.
+        """
+        try:
+            group = Group.objects.get(name='Dummy Group')
+        except ObjectDoesNotExist:
+            group = Group.objects.create(name='Dummy Group')
+
+        timeframe_type = TimeFrameType.create_dummy_model()
+        try:
+            return WorkLogSet.objects.get(
+                group=group,
+                timeframe_type=timeframe_type
+            )
+        except ObjectDoesNotExist:
+            return WorkLogSet.objects.create(
+                group=group,
+                timeframe_type=timeframe_type,
+            )
 
 
 class WorkLogEntry(models.Model):
@@ -185,3 +223,28 @@ class WorkLogEntry(models.Model):
         # Save model.
         self.full_clean()
         super(WorkLogEntry, self).save(*args, **kwargs)
+
+    @staticmethod
+    def create_dummy_model():
+        """
+        Attempts to get or create a dummy model.
+        Used for testing.
+        """
+        user = cae_home_models.User.create_dummy_model()
+        log_set = WorkLogSet.create_dummy_model()
+        entry_date = datetime.datetime.strptime('2010 01 01', '%Y %m %d')
+        description = 'Dummy Work Log entry'
+        try:
+            return WorkLogEntry.objects.get(
+                user=user,
+                log_set=log_set,
+                entry_date=entry_date,
+                description=description,
+            )
+        except ObjectDoesNotExist:
+            return WorkLogEntry.objects.create(
+                user=user,
+                log_set=log_set,
+                entry_date=entry_date,
+                description=description,
+            )

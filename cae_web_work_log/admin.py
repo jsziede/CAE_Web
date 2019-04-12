@@ -3,8 +3,6 @@ Admin views for CAE Work Log app.
 """
 
 from django.contrib import admin
-from django.contrib.auth.models import Group
-from django.db.models import Q
 
 from . import models
 
