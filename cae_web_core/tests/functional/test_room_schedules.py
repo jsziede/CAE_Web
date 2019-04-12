@@ -1,6 +1,7 @@
 """
 CAE Web Core - Selenium Tests for Room Schedule views.
 """
+import time
 
 from django.urls import reverse
 from selenium.webdriver.common.action_chains import ActionChains
@@ -35,6 +36,8 @@ class TestRoomSchedules(LiveServerTestCase):
         # Log in the second user first, to ensure socket connects before event is created
         self._login(self.driver2, self.user_2.username, self.user_2.password_string)
         self.driver2.get(self.live_server_url + reverse('cae_web_core:room_schedule', args=['classroom']))
+
+        time.sleep(1) # GAH!!? Hopefully this gives enough time for test to always pass
 
         # Wait for js to initialize the schedule
         self._wait_for_css(self.driver2, '.schedule-grid-line')
