@@ -54,6 +54,20 @@ class PayPeriodTests(IntegrationTestCase):
         self.assertEqual(str(self.test_pay_period._meta.verbose_name), 'Pay Period')
         self.assertEqual(str(self.test_pay_period._meta.verbose_name_plural), 'Pay Periods')
 
+    def test_dummy_creation(self):
+        # Test create.
+        dummy_model_1 = models.PayPeriod.create_dummy_model()
+        self.assertIsNotNone(dummy_model_1)
+        self.assertTrue(isinstance(dummy_model_1, models.PayPeriod))
+
+        # Test get.
+        dummy_model_2 = models.PayPeriod.create_dummy_model()
+        self.assertIsNotNone(dummy_model_2)
+        self.assertTrue(isinstance(dummy_model_2, models.PayPeriod))
+
+        # Test both are the same model instance.
+        self.assertEqual(dummy_model_1, dummy_model_2)
+
     def test_known_daylight_savings_change(self):
         before_start_date = datetime.datetime.strptime('2019-02-25', '%Y-%m-%d').date()
         before_end_date = datetime.datetime.strptime('2019-03-10', '%Y-%m-%d').date()
@@ -153,6 +167,20 @@ class EmployeeShiftTests(IntegrationTestCase):
     def test_plural_representation(self):
         self.assertEqual(str(self.test_employee_shift._meta.verbose_name), 'Employee Shift')
         self.assertEqual(str(self.test_employee_shift._meta.verbose_name_plural), 'Employee Shifts')
+
+    def test_dummy_creation(self):
+        # Test create.
+        dummy_model_1 = models.EmployeeShift.create_dummy_model()
+        self.assertIsNotNone(dummy_model_1)
+        self.assertTrue(isinstance(dummy_model_1, models.EmployeeShift))
+
+        # Test get.
+        dummy_model_2 = models.EmployeeShift.create_dummy_model()
+        self.assertIsNotNone(dummy_model_2)
+        self.assertTrue(isinstance(dummy_model_2, models.EmployeeShift))
+
+        # Test both are the same model instance.
+        self.assertEqual(dummy_model_1, dummy_model_2)
 
     def test_clock_in_equal_to_clock_out(self):
         # Test clock in equal to clock out.

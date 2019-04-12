@@ -6,10 +6,12 @@ import datetime, math, pytz
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import ObjectDoesNotExist
 from django.urls import reverse
 from django.utils import timezone
 
 from .fields import DatetimeListField
+from cae_home import models as cae_home_models
 
 
 MAX_LENGTH = 255
@@ -67,6 +69,25 @@ class PayPeriod(models.Model):
         day_end = datetime.time(23, 59, 59)
         end_datetime = pytz.timezone('America/Detroit').localize(datetime.datetime.combine(self.date_end, day_end))
         return end_datetime
+
+    @staticmethod
+    def create_dummy_model():
+        """
+        Attempts to get or create a dummy model.
+        Used for testing.
+        """
+        date_start = datetime.datetime.strptime('2019 01 01', '%Y %m %d')
+        date_end = datetime.datetime.strptime('2019 01 14', '%Y %m %d')
+        try:
+            return PayPeriod.objects.get(
+                date_start=date_start,
+                date_end=date_end,
+            )
+        except ObjectDoesNotExist:
+            return PayPeriod.objects.create(
+                date_start=date_start,
+                date_end=date_end,
+            )
 
 
 class EmployeeShift(models.Model):
@@ -199,6 +220,32 @@ class EmployeeShift(models.Model):
         seconds = math.trunc(total_seconds - (minutes * 60) - (hours * 60 * 60))
 
         return (hours, minutes, seconds)
+
+    @staticmethod
+    def create_dummy_model():
+        """
+        Attempts to get or create a dummy model.
+        Used for testing.
+        """
+        employee = cae_home_models.User.create_dummy_model()
+        pay_period = PayPeriod.create_dummy_model()
+        pay_period_start = pay_period.get_start_as_datetime()
+        clock_in = pay_period_start + timezone.timedelta(hours=12)
+        clock_out = clock_in + timezone.timedelta(hours=4)
+        try:
+            return EmployeeShift.objects.get(
+                employee=employee,
+                pay_period=pay_period,
+                clock_in=clock_in,
+                clock_out=clock_out,
+            )
+        except ObjectDoesNotExist:
+            return EmployeeShift.objects.create(
+                employee=employee,
+                pay_period=pay_period,
+                clock_in=clock_in,
+                clock_out=clock_out,
+            )
 
 
 class AbstractEvent(models.Model):
