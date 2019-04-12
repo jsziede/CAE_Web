@@ -80,6 +80,8 @@ class Command(BaseCommand):
         )
         users = get_user_model().objects.filter(complex_query)
         pay_periods = models.PayPeriod.objects.filter(date_start__lte=date_holder)[:model_count/20]
+        if len(pay_periods) < 3:
+            pay_periods = models.PayPeriod.objects.filter(date_start__lte=date_holder)[:3]
 
         # Generate models equal to model count.
         total_fail_count = 0
