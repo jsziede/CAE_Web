@@ -33,19 +33,17 @@ class TestRoomSchedules(LiveServerTestCase):
         self.user_1 = self.create_user('user_1')
         self.user_2 = self.create_user('user_2')
 
-        # Log in the second user first, to ensure socket connects before event is created
-        self._login(self.driver2, self.user_2.username, self.user_2.password_string)
-        self.driver2.get(self.live_server_url + reverse('cae_web_core:room_schedule', args=['classroom']))
-
-        time.sleep(1) # GAH!!? Hopefully this gives enough time for test to always pass
-
-        # Wait for js to initialize the schedule
-        self._wait_for_css(self.driver2, '.schedule-grid-line')
-
         # Log in the first user
         self.add_permission(self.user_1, "add_roomevent")
         self._login(self.driver1, self.user_1.username, self.user_1.password_string)
         self.driver1.get(self.live_server_url + reverse('cae_web_core:room_schedule', args=['classroom']))
+
+        # Log in the second user
+        self._login(self.driver2, self.user_2.username, self.user_2.password_string)
+        self.driver2.get(self.live_server_url + reverse('cae_web_core:room_schedule', args=['classroom']))
+
+        # Wait for js to initialize the schedule
+        self._wait_for_css(self.driver2, '.schedule-grid-line')
 
         event_title = "Test Event"
 

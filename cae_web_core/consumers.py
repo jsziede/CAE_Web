@@ -304,7 +304,21 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
         room_type_slug = content.get('resource_identifier')
         notify = content.get('notify')
 
+        # Notify first, to prevent race condition of events between first set,
+        # and when notifiying starts.
+        if notify:
+            self.scope['session']['start'] = start.isoformat() if start else None
+            self.scope['session']['end'] = end.isoformat() if end else None
+            self.scope['session']['room'] = room
+            self.scope['session']['resource_identifier'] = room_type_slug
+            await self.channel_layer.group_add(
+                GROUP_UPDATE_ROOM_EVENT, self.channel_name)
+
         events = await self._get_room_events(start, end, room, room_type_slug)
+
+        if notify:
+            # We want to be notified for these first set of events
+            self.scope['session']['pks'] = [x['id'] for x in events]
 
         await self.send_json({
             'action': self.ACTION_SEND_EVENTS,
@@ -314,21 +328,26 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
             'events': events,
         })
 
-        if notify:
-            self.scope['session']['start'] = start.isoformat() if start else None
-            self.scope['session']['end'] = end.isoformat() if end else None
-            self.scope['session']['room'] = room
-            self.scope['session']['resource_identifier'] = room_type_slug
-            self.scope['session']['pks'] = [x['id'] for x in events]
-            await self.channel_layer.group_add(
-                GROUP_UPDATE_ROOM_EVENT, self.channel_name)
-
     async def _handle_get_availability_events(self, content, start, end):
         employee = content.get('employee')
         employee_type_pk = content.get('resource_identifier')
         notify = content.get('notify')
 
+        # Notify first, to prevent race condition of events between first set,
+        # and when notifiying starts.
+        if notify:
+            self.scope['session']['start'] = start.isoformat() if start else None
+            self.scope['session']['end'] = end.isoformat() if end else None
+            self.scope['session']['employee'] = employee
+            self.scope['session']['resource_identifier'] = employee_type_pk
+            await self.channel_layer.group_add(
+                GROUP_UPDATE_AVAILABILITY_EVENT, self.channel_name)
+
         events = await self._get_availability_events(start, end, employee, employee_type_pk)
+
+        if notify:
+            # We want to be notified for these first set of events
+            self.scope['session']['pks'] = [x['id'] for x in events]
 
         await self.send_json({
             'action': self.ACTION_SEND_EVENTS,
@@ -337,15 +356,6 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
             'resource_identifier': employee_type_pk,
             'events': events,
         })
-
-        if notify:
-            self.scope['session']['start'] = start.isoformat() if start else None
-            self.scope['session']['end'] = end.isoformat() if end else None
-            self.scope['session']['employee'] = employee
-            self.scope['session']['resource_identifier'] = employee_type_pk
-            self.scope['session']['pks'] = [x['id'] for x in events]
-            await self.channel_layer.group_add(
-                GROUP_UPDATE_AVAILABILITY_EVENT, self.channel_name)
 
     async def on_update_room_event(self, content):
         room = self.scope['session'].get('room')
