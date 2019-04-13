@@ -90,11 +90,15 @@ class Command(BaseCommand):
             while try_create_model:
                 # Generate timeframe.
                 time_int = randint(0, 365)
-                if time_int < 1:
+                if time_int <= 1:
                     timeframe_int = models.TimeFrameType.get_int_from_name('Yearly')
-                elif time_int < 12:
+                elif time_int <= 4:
+                    timeframe_int = models.TimeFrameType.get_int_from_name('Quarterly')
+                elif time_int <= 12:
                     timeframe_int = models.TimeFrameType.get_int_from_name('Monthly')
-                elif time_int < 52:
+                elif time_int <= 26:
+                    timeframe_int = models.TimeFrameType.get_int_from_name('Bi-Weekly')
+                elif time_int <= 52:
                     timeframe_int = models.TimeFrameType.get_int_from_name('Weekly')
                 else:
                     timeframe_int = models.TimeFrameType.get_int_from_name('Daily')
@@ -114,8 +118,28 @@ class Command(BaseCommand):
                 entry_date = faker_factory.past_datetime(start_date='-{0}d'.format(randint(0, 735)))
 
                 # Generate description.
-                sentence_count = randint(1, 5)
-                description = faker_factory.paragraph(nb_sentences=sentence_count)
+                description_type = randint(0, 2)
+                if description_type is 0:
+                    sentence_count = randint(1, 5)
+                    description = faker_factory.paragraph(nb_sentences=sentence_count)
+
+                elif description_type is 1:
+                    description = '{0}:\n'.format(faker_factory.sentences(nb=1)[0][:-1])
+                    bullet_count = randint(1, 5)
+                    index = 0
+                    while index < bullet_count:
+                        description += '* {0}\n'.format(faker_factory.sentences(nb=1)[0])
+                        index += 1
+
+                else:
+                    sentence_count = randint(1, 5)
+                    description = faker_factory.paragraph(nb_sentences=sentence_count)
+                    description += '\n\n{0}:\n'.format(faker_factory.sentences(nb=1)[0][:-1])
+                    bullet_count = randint(1, 5)
+                    index = 0
+                    while index < bullet_count:
+                        description += '* {0}\n'.format(faker_factory.sentences(nb=1)[0])
+                        index += 1
 
                 # Attempt to create model seed.
                 try:

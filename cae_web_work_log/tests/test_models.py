@@ -49,14 +49,18 @@ class TimeFrameTypeModelTests(IntegrationTestCase):
     def test_name_from_int(self):
         self.assertEqual(models.TimeFrameType.get_name_from_int(0), 'Daily')
         self.assertEqual(models.TimeFrameType.get_name_from_int(1), 'Weekly')
-        self.assertEqual(models.TimeFrameType.get_name_from_int(2), 'Monthly')
-        self.assertEqual(models.TimeFrameType.get_name_from_int(3), 'Yearly')
+        self.assertEqual(models.TimeFrameType.get_name_from_int(2), 'Bi-Weekly')
+        self.assertEqual(models.TimeFrameType.get_name_from_int(3), 'Monthly')
+        self.assertEqual(models.TimeFrameType.get_name_from_int(4), 'Quarterly')
+        self.assertEqual(models.TimeFrameType.get_name_from_int(5), 'Yearly')
 
     def test_int_from_name(self):
         self.assertEqual(models.TimeFrameType.get_int_from_name('Daily'), 0)
         self.assertEqual(models.TimeFrameType.get_int_from_name('Weekly'), 1)
-        self.assertEqual(models.TimeFrameType.get_int_from_name('Monthly'), 2)
-        self.assertEqual(models.TimeFrameType.get_int_from_name('Yearly'), 3)
+        self.assertEqual(models.TimeFrameType.get_int_from_name('Bi-Weekly'), 2)
+        self.assertEqual(models.TimeFrameType.get_int_from_name('Monthly'), 3)
+        self.assertEqual(models.TimeFrameType.get_int_from_name('Quarterly'), 4)
+        self.assertEqual(models.TimeFrameType.get_int_from_name('Yearly'), 5)
 
 
 class WorkLogSetModelTests(IntegrationTestCase):

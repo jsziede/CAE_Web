@@ -11,6 +11,7 @@ from django.db.models import ObjectDoesNotExist
 from django.utils import timezone
 
 from cae_home import models as cae_home_models
+from apps.CAE_Web.cae_web_core import models as cae_web_core_models
 
 
 MAX_LENGTH = 255
@@ -23,12 +24,16 @@ class TimeFrameType(models.Model):
     # Preset field choices.
     DAILY = 0
     WEEKLY = 1
-    MONTHLY = 2
-    YEARLY = 3
+    BIWEEKLY = 2
+    MONTHLY = 3
+    QUARTERLY = 4
+    YEARLY = 5
     TIMEFRAME_CHOICES = (
         (DAILY, 'Daily'),
         (WEEKLY, 'Weekly'),
+        (BIWEEKLY, 'Bi-Weekly'),
         (MONTHLY, 'Monthly'),
+        (QUARTERLY, 'Quarterly'),
         (YEARLY, 'Yearly'),
     )
 
@@ -209,10 +214,30 @@ class WorkLogEntry(models.Model):
             log_type = str(self.log_set.timeframe_type.full_name())
 
             # Don't modify log date on daily. On all others, set date to start of given timeframe period.
-            if log_type == 'Weekly':  # Note: Start of week is considered Monday.
+            if log_type == 'Weekly':
+                # Note: Start of week is considered Monday.
                 self.entry_date = self.entry_date - timezone.timedelta(days=self.entry_date.weekday())
+
+            elif log_type == 'Bi-Weekly':
+                pay_period = cae_web_core_models.PayPeriod.objects.get(
+                    date_start__lte=self.entry_date,
+                    date_end__gte=self.entry_date,
+                )
+                self.entry_date = pay_period.date_start
+
             elif log_type == 'Monthly':
                 self.entry_date = self.entry_date.replace(day=1)
+
+            elif log_type == 'Quarterly':
+                if self.entry_date.month <= 3:
+                    self.entry_date = self.entry_date.replace(month=1, day=1)
+                elif self.entry_date.month <= 6:
+                    self.entry_date = self.entry_date.replace(month=4, day=1)
+                elif self.entry_date.month <= 9:
+                    self.entry_date = self.entry_date.replace(month=7, day=1)
+                else:
+                    self.entry_date = self.entry_date.replace(month=10, day=1)
+
             elif log_type == 'Yearly':
                 self.entry_date = self.entry_date.replace(month=1, day=1)
 

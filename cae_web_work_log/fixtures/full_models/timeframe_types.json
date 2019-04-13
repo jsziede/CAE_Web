@@ -34,5 +34,23 @@
         "date_created": "2018-01-01T08:00:00.000Z",
         "date_modified": "2018-01-01T08:00:00.000Z"
     }
+},
+{
+    "model": "cae_web_work_log.timeframetype",
+    "pk": 5,
+    "fields": {
+        "name": 4,
+        "date_created": "2018-01-01T08:00:00.000Z",
+        "date_modified": "2018-01-01T08:00:00.000Z"
+    }
+},
+{
+    "model": "cae_web_work_log.timeframetype",
+    "pk": 6,
+    "fields": {
+        "name": 5,
+        "date_created": "2018-01-01T08:00:00.000Z",
+        "date_modified": "2018-01-01T08:00:00.000Z"
+    }
 }
 ]
