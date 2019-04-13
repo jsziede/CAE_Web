@@ -252,6 +252,7 @@ class AbstractEvent(models.Model):
     """
     Abstract Model for Events. Models that inherit this class will also have these fields.
     """
+    # Model fields.
     start_time = models.DateTimeField()
     end_time = models.DateTimeField(blank=True, null=True)
     # rrule means Recurrence rule
@@ -261,9 +262,11 @@ class AbstractEvent(models.Model):
         help_text="Note: DTSTART and UNTIL will be replaced by Start Time and End Time, respectively."
     )
     duration = models.DurationField(
-        blank=True, null=True, help_text="Used only with rrules.")
+        blank=True, null=True, help_text="Used only with rrules."
+    )
     exclusions = DatetimeListField(
-        blank=True, help_text="Newline separated list of isoformat datetimes to exclude.")
+        blank=True, help_text="Newline separated list of isoformat datetimes to exclude."
+    )
 
     class Meta:
         abstract = True
@@ -279,15 +282,18 @@ class RoomEventType(models.Model):
     """
     A type for a Room Event. Used to specify the event colors.
     """
+    # Model fields.
     name = models.CharField(max_length=MAX_LENGTH, unique=True)
     fg_color = models.CharField(
         default='black',
         help_text="Foreground css color. E.g. 'red' or '#FF0000'",
-        max_length=30)
+        max_length=30,
+    )
     bg_color = models.CharField(
         default='lightgoldenrodyellow',
         help_text="Foreground css color. E.g. 'red' or '#FF0000'",
-        max_length=30)
+        max_length=30,
+    )
 
     objects = RoomEventTypeManager()
 
@@ -296,7 +302,37 @@ class RoomEventType(models.Model):
         verbose_name_plural = "Room Event Types"
 
     def __str__(self):
-        return self.name
+        return '{0}'.format(self.name)
+
+    def save(self, *args, **kwargs):
+        """
+        Modify model save behavior.
+        """
+        # Save model.
+        self.full_clean()
+        super(RoomEventType, self).save(*args, **kwargs)
+
+    @staticmethod
+    def create_dummy_model():
+        """
+        Attempts to get or create a dummy model.
+        Used for testing.
+        """
+        name = 'Dummy Name'
+        fg_color = '#000000'
+        bg_color = '#ffffff'
+        try:
+            return RoomEventType.objects.get(
+                name=name,
+                fg_color=fg_color,
+                bg_color=bg_color,
+            )
+        except ObjectDoesNotExist:
+            return RoomEventType.objects.create(
+                name=name,
+                fg_color=fg_color,
+                bg_color=bg_color,
+            )
 
 
 class RoomEvent(AbstractEvent):
@@ -336,8 +372,14 @@ class RoomEvent(AbstractEvent):
         """
         Verify there are no overlapping events.
         """
+        # Check for recurrence rule.
         if not self.rrule:
-            # Verify no event is within start and end
+
+            # Check that end_time exists or rrule check will error.
+            if not self.end_time:
+                raise ValidationError('Must have rrule or event_end time.')
+
+            # Verify no event is within start and end.
             non_rrule_events = RoomEvent.objects.filter(
                 room=self.room,
                 start_time__lt=self.end_time,
@@ -360,7 +402,35 @@ class RoomEvent(AbstractEvent):
         """
         # Save model.
         self.full_clean()
-        super().save(*args, **kwargs)
+        super(RoomEvent, self).save(*args, **kwargs)
+
+    @staticmethod
+    def create_dummy_model():
+        """
+        Attempts to get or create a dummy model.
+        Used for testing.
+        """
+        title = 'Dummy Title'
+        room = cae_home_models.Room.create_dummy_model()
+        event_type = RoomEventType.create_dummy_model()
+        start_time = timezone.datetime.strptime('2010-01-01 T12:01:01 -0400', '%Y-%m-%d T%H:%M:%S %z')
+        end_time = start_time + timezone.timedelta(hours=2)
+        try:
+            return RoomEvent.objects.get(
+                title=title,
+                room=room,
+                event_type=event_type,
+                start_time=start_time,
+                end_time=end_time,
+            )
+        except ObjectDoesNotExist:
+            return RoomEvent.objects.create(
+                title=title,
+                room=room,
+                event_type=event_type,
+                start_time=start_time,
+                end_time=end_time,
+            )
 
 
 class AvailabilityEventTypeManager(models.Manager):
@@ -373,15 +443,18 @@ class AvailabilityEventType(models.Model):
     """
     A type for a Availability Event. Used to specify the event colors.
     """
+    # Model fields.
     name = models.CharField(max_length=MAX_LENGTH, unique=True)
     fg_color = models.CharField(
         blank=True,
         help_text="Foreground css color. E.g. 'red' or '#FF0000'",
-        max_length=30)
+        max_length=30,
+    )
     bg_color = models.CharField(
         blank=True,
         help_text="Foreground css color. E.g. 'red' or '#FF0000'",
-        max_length=30)
+        max_length=30,
+    )
 
     objects = AvailabilityEventTypeManager()
 
@@ -390,7 +463,37 @@ class AvailabilityEventType(models.Model):
         verbose_name_plural = "Availability Event Types"
 
     def __str__(self):
-        return self.name
+        return '{0}'.format(self.name)
+
+    def save(self, *args, **kwargs):
+        """
+        Modify model save behavior.
+        """
+        # Save model.
+        self.full_clean()
+        super(AvailabilityEventType, self).save(*args, **kwargs)
+
+    @staticmethod
+    def create_dummy_model():
+        """
+        Attempts to get or create a dummy model.
+        Used for testing.
+        """
+        name = 'Dummy Name'
+        fg_color = '#000000'
+        bg_color = '#ffffff'
+        try:
+            return AvailabilityEventType.objects.get(
+                name=name,
+                fg_color=fg_color,
+                bg_color=bg_color,
+            )
+        except ObjectDoesNotExist:
+            return AvailabilityEventType.objects.create(
+                name=name,
+                fg_color=fg_color,
+                bg_color=bg_color,
+            )
 
 
 class AvailabilityEvent(AbstractEvent):
@@ -417,11 +520,22 @@ class AvailabilityEvent(AbstractEvent):
             ('employee', 'end_time', 'rrule'),
         )
 
+    def __str__(self):
+        return '{0} {1}: {2} - {3}'.format(
+            self.employee, self.event_type, self.start_time, self.end_time,
+        )
+
     def clean(self, *args, **kwargs):
         """
         Verify there are no overlapping events.
         """
+        # Check for recurrence rule.
         if not self.rrule:
+
+            # Check that end_time exists or rrule check will error.
+            if not self.end_time:
+                raise ValidationError('Must have rrule or event_end time.')
+
             # Verify no event is within start and end
             non_rrule_events = AvailabilityEvent.objects.filter(
                 employee=self.employee,
@@ -445,7 +559,32 @@ class AvailabilityEvent(AbstractEvent):
         """
         # Save model.
         self.full_clean()
-        super().save(*args, **kwargs)
+        super(AvailabilityEvent, self).save(*args, **kwargs)
+
+    @staticmethod
+    def create_dummy_model():
+        """
+        Attempts to get or create a dummy model.
+        Used for testing.
+        """
+        employee = cae_home_models.User.create_dummy_model()
+        event_type = AvailabilityEventType.create_dummy_model()
+        start_time = timezone.datetime.strptime('2010-01-01 T12:01:01 -0400', '%Y-%m-%d T%H:%M:%S %z')
+        end_time = start_time + timezone.timedelta(hours=2)
+        try:
+            return AvailabilityEvent.objects.get(
+                employee=employee,
+                event_type=event_type,
+                start_time=start_time,
+                end_time=end_time,
+            )
+        except ObjectDoesNotExist:
+            return AvailabilityEvent.objects.create(
+                employee=employee,
+                event_type=event_type,
+                start_time=start_time,
+                end_time=end_time,
+            )
 
 
 class UploadedSchedule(models.Model):
@@ -454,12 +593,48 @@ class UploadedSchedule(models.Model):
 
     Used to delete all events associated with a schedule.
     """
-    name = models.CharField(max_length=MAX_LENGTH, unique=True)
+    # Relationship keys.
     events = models.ManyToManyField(RoomEvent, related_name='+')
+
+    # Model fields.
+    name = models.CharField(max_length=MAX_LENGTH, unique=True)
 
     # Self-setting/Non-user-editable fields.
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        verbose_name = "Uploaded Schedule"
+        verbose_name_plural = "Uploaded Schedules"
+
     def __str__(self):
-        return self.name
+        return '{0}'.format(self.name)
+
+    def save(self, *args, **kwargs):
+        """
+        Modify model save behavior.
+        """
+        # Save model.
+        self.full_clean()
+        super(UploadedSchedule, self).save(*args, **kwargs)
+
+    @staticmethod
+    def create_dummy_model():
+        """
+        Attempts to get or create a dummy model.
+        Used for testing.
+        """
+        name = 'Dummy Name'
+        events = RoomEvent.create_dummy_model()
+        try:
+            return UploadedSchedule.objects.get(
+                name=name,
+                events=events,
+            )
+        except ObjectDoesNotExist:
+            schedule = UploadedSchedule.objects.create(
+                name=name
+            )
+            schedule.events.add(events)
+            schedule.save()
+            return schedule
