@@ -358,10 +358,6 @@ class RoomEvent(AbstractEvent):
         verbose_name = "Room Event"
         verbose_name_plural = "Room Events"
         ordering = ('room', 'event_type', 'start_time', 'end_time')
-        unique_together = (
-            ('room', 'start_time', 'rrule'),
-            ('room', 'end_time', 'rrule'),
-        )
 
     def __str__(self):
         return '{0} {1}: {2} - {3}, {4}'.format(
@@ -515,10 +511,6 @@ class AvailabilityEvent(AbstractEvent):
         verbose_name = "Availability Event"
         verbose_name_plural = "Availability Events"
         ordering = ('employee', 'event_type', 'start_time', 'end_time')
-        unique_together = (
-            ('employee', 'start_time', 'rrule'),
-            ('employee', 'end_time', 'rrule'),
-        )
 
     def __str__(self):
         return '{0} {1}: {2} - {3}'.format(
