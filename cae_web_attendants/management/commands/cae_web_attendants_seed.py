@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from django.core.management.base import BaseCommand
 from django.core.management import call_command
 from django.db import IntegrityError
+from django.db.models import Q
 from random import randint
 
 from apps.CAE_Web.cae_web_attendants import models
@@ -77,8 +78,14 @@ class Command(BaseCommand):
         pre_initialized_count = len(models.RoomCheckout.objects.all())
 
         # Get all related models.
+        complex_query = (
+            (
+                Q(room_type__slug='classroom') | Q(room_type__slug='computer-classroom')
+            )
+            & Q(department__name='CAE Center')
+        )
         employees = cae_home_models.User.objects.all()
-        rooms = cae_home_models.Room.objects.all()
+        rooms = cae_home_models.Room.objects.filter(complex_query)
         students = cae_home_models.WmuUser.objects.all()
 
         # Generate models equal to model count.

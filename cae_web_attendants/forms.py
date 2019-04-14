@@ -21,8 +21,9 @@ class RoomCheckoutForm(ModelForm):
             'checkout_date'
         ]
         widgets = {
-            'student': cae_home_forms.Select2Widget(),
-            'room': cae_home_forms.SelectButtonsSideWidget(),
+            'student': cae_home_forms.Select2Widget,
+            'room': cae_home_forms.SelectButtonsSideWidget,
+            'checkout_date': forms.SelectDateWidget,
         }
 
     # checks if room is checked out for a past date and that the room has not already been checked out for that day
@@ -101,5 +102,5 @@ class ChecklistItemForm(ModelForm):
             'completed': HiddenInput(),
             'task':  TextInput()
         }
-    
+
     prefix = 'item'
