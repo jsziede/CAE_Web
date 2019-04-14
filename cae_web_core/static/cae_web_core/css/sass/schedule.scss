@@ -176,7 +176,7 @@ $light-border-color: $color-grey-70;
         }
         .schedule-resource {
             grid-row: 2;
-            top: 15px; // Height of first row (.schedule-weekday)
+            top: 1.5em; // Height of first row (.schedule-weekday)
             border-top-color: $light-border-color;
             border-left-color: $light-border-color;
             overflow: hidden; // Prevent vertical text from causing a right margin
