@@ -131,6 +131,7 @@ def checklists(request):
     checklist_template_primary = request.GET.get('template')
     # Checks get request for a checklist instance based on its pk
     checklist_instance_primary = request.GET.get('checklist')
+
     # Checks get request for all checklist instances from a certain month
     # TODO: add button on page to filter by month
     # checklist_instance_month = request.GET.get('month')
@@ -166,10 +167,21 @@ def checklists(request):
         formset = TaskFormset(queryset=models.ChecklistItem.objects.none())
     elif create_checklist == "checklist":
         create_instance = True
+
+        # Get template instance.
+        template = get_object_or_404(models.ChecklistTemplate, pk=checklist_template_primary)
+
+        initial_data = {
+            'template': template.pk,
+            'room': template.room.pk,
+            'title': template.title,
+        }
+
         # Defaults the template option to the template the user is creating the checklist from
-        form = forms.ChecklistInstanceForm()
+        form = forms.ChecklistInstanceForm(initial=initial_data)
+
         form.fields['template'].queryset = models.ChecklistTemplate.objects.filter(pk=checklist_template_primary)
-        form.fields['template'].initial = checklist_template_primary
+
         # TODO: Fix template field to be disabled.
         # Template should be read only since the instance form is spawned from a selected template
         # form.fields['template'].disabled = True
