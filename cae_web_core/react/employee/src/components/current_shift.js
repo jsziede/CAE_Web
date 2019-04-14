@@ -47,6 +47,7 @@ class CurrentShift extends React.Component {
                     { time_display }
                     <input
                         id="shift-submit"
+                        className='button primary'
                         type="button"
                         value={ submit_value }
                         onClick={() => this.props.onClick() }

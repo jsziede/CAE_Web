@@ -417,23 +417,25 @@ class MyHoursManager extends React.Component {
                             { pay_period_end_display.toLocaleDateString('en-US', pay_period_string_options) }
                         </h2>
                         <div>
-                            <input
+                            <button
                                 id="prev_pay_period_button"
-                                type="button"
-                                value="&#9204;"
+                                className='primary'
                                 onClick={() => this.handlePrevPeriodClick() }
-                            />
-                            <input
+                            >
+                                <i className='fa fa-arrow-left'/>
+                            </button>
+                            <button
                                 id="curr_pay_period_button"
-                                type="button"
-                                value="Current Pay Period"
+                                className='primary'
                                 onClick={() => this.handleCurrPeriodClick() }
-                            />
-                            <input
+                            >Current Pay Period</button>
+                            <button
                                 id="next_pay_period_button" type="button"
-                                value="&#9205;"
+                                className='primary'
                                 onClick={() => this.handleNextPeriodClick() }
-                            />
+                            >
+                                <i className='fa fa-arrow-right'/>
+                            </button>
                         </div>
                         <p>Total Pay Period Hours: { total_hours } Hours { total_minutes } Minutes</p>
                         <PayPeriod

@@ -91,6 +91,7 @@ var CurrentShift = function (_React$Component) {
                     time_display,
                     React.createElement("input", {
                         id: "shift-submit",
+                        className: "button primary",
                         type: "button",
                         value: submit_value,
                         onClick: function onClick() {
@@ -892,29 +893,39 @@ var MyHoursManager = function (_React$Component) {
                         React.createElement(
                             'div',
                             null,
-                            React.createElement('input', {
-                                id: 'prev_pay_period_button',
-                                type: 'button',
-                                value: '\u23F4',
-                                onClick: function onClick() {
-                                    return _this5.handlePrevPeriodClick();
-                                }
-                            }),
-                            React.createElement('input', {
-                                id: 'curr_pay_period_button',
-                                type: 'button',
-                                value: 'Current Pay Period',
-                                onClick: function onClick() {
-                                    return _this5.handleCurrPeriodClick();
-                                }
-                            }),
-                            React.createElement('input', {
-                                id: 'next_pay_period_button', type: 'button',
-                                value: '\u23F5',
-                                onClick: function onClick() {
-                                    return _this5.handleNextPeriodClick();
-                                }
-                            })
+                            React.createElement(
+                                'button',
+                                {
+                                    id: 'prev_pay_period_button',
+                                    className: 'primary',
+                                    onClick: function onClick() {
+                                        return _this5.handlePrevPeriodClick();
+                                    }
+                                },
+                                React.createElement('i', { className: 'fa fa-arrow-left' })
+                            ),
+                            React.createElement(
+                                'button',
+                                {
+                                    id: 'curr_pay_period_button',
+                                    className: 'primary',
+                                    onClick: function onClick() {
+                                        return _this5.handleCurrPeriodClick();
+                                    }
+                                },
+                                'Current Pay Period'
+                            ),
+                            React.createElement(
+                                'button',
+                                {
+                                    id: 'next_pay_period_button', type: 'button',
+                                    className: 'primary',
+                                    onClick: function onClick() {
+                                        return _this5.handleNextPeriodClick();
+                                    }
+                                },
+                                React.createElement('i', { className: 'fa fa-arrow-right' })
+                            )
                         ),
                         React.createElement(
                             'p',
