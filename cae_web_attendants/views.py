@@ -11,6 +11,7 @@ from . import forms, models
 from cae_home import models as cae_home_models
 from cae_home import forms as cae_home_forms
 
+
 @login_required
 def attendants(request):
     """
@@ -18,7 +19,7 @@ def attendants(request):
     """
     # Determines whether or not a new checkout submission was successful.
     # This variable is checked in the template language to determine the color of the panel heading.
-    success = handle_submit_room_checkout(request)
+    form_tuple_return = handle_submit_room_checkout(request)
 
     # Allows user to change the sorting of the room checkout table.
     # Default is by date from newest checkout to oldest.
@@ -46,8 +47,15 @@ def attendants(request):
         index += 1
 
     template_forms = [None] * 2
-    template_forms[0] = forms.RoomCheckoutForm()
-    template_forms[1] = cae_home_forms.ProfileForm_OnlyPhone()
+    if form_tuple_return[1]:
+        template_forms[0] = form_tuple_return[1]
+    else:
+        template_forms[0] = forms.RoomCheckoutForm()
+
+    if form_tuple_return[2]:
+        template_forms[1] = form_tuple_return[2]
+    else:
+        template_forms[1] = cae_home_forms.ProfileForm_OnlyPhone()
 
     # Gets all computer classrooms at the CAE Center that are valid for checking out
     complex_query = (
@@ -60,7 +68,7 @@ def attendants(request):
     # Set initial selected user to be the currently logged in employee, else will default to "------"
     template_forms[0].fields['employee'].initial = request.user.id
 
-    # TODO: Set current employee as the default employee using the view rather than a script 
+    # TODO: Set current employee as the default employee using the view rather than a script
 
     return TemplateResponse(request, 'cae_web_attendants/attendants.html', {
         'room_checkouts': room_checkouts,
@@ -68,8 +76,9 @@ def attendants(request):
         'forms': template_forms,
         'order_by': order_by,
         'direction': direction,
-        'success': success,
+        'form_tuple_return': form_tuple_return[0],
     })
+
 
 @login_required
 def checklists(request):
@@ -213,6 +222,7 @@ def checklists(request):
         'success': success,
     })
 
+
 def handle_submit_room_checkout(request):
     """
     Checks if the room checkout form fields are valid and
@@ -259,8 +269,9 @@ def handle_submit_room_checkout(request):
             success = -1
     # User did not submit a form
     else:
-        success = 0
-    return success
+        return (success, None, None)
+    return (success, form, phone_no)
+
 
 def handle_edit_checklist_form(pk, instance, formset):
     """
@@ -300,6 +311,7 @@ def handle_edit_checklist_form(pk, instance, formset):
     else:
         success = -1
     return success
+
 
 def handle_create_checklist_instance_form(form):
     """
@@ -341,6 +353,7 @@ def handle_create_checklist_instance_form(form):
         success = -1
     return success
 
+
 def handle_create_checklist_template_form(form, formset):
     """
     Creates a new checklist instance based on a checklist
@@ -371,9 +384,10 @@ def handle_create_checklist_template_form(form, formset):
         success = -1
     return success
 
+
 def get_paginated_models(direction, ordering, order_by, page, per_page, model):
     """
-    Gets a subset of consecutive models based on ordering. 
+    Gets a subset of consecutive models based on ordering.
     """
     # Outputs checkout list in descending order
     if direction == 'desc':
