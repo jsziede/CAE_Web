@@ -21,12 +21,12 @@ class EmployeeShiftForm(forms.ModelForm):
     """
     class Meta:
         model = models.EmployeeShift
-        fields = {
+        fields = [
             'employee',
             'pay_period',
             'clock_in',
             'clock_out',
-        }
+        ]
         widgets = {
             'clock_in': forms.widgets.SplitDateTimeWidget(
                 date_attrs={'type': 'date'},
