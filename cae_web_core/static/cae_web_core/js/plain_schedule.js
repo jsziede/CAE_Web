@@ -362,6 +362,10 @@ var createSchedule = function(container) {
             var title = '';
             if (data.event.title) {
                 title = `${data.event.title}<br>`
+            } else if (data.event.event_type.fg_color) {
+                title = `${data.event.event_type.name}<br>`
+            } else {
+                title = `${resource.name}<br>`;
             }
             const contents = `
                 ${eventStart}<br/>
