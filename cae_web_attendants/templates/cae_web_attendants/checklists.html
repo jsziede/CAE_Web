@@ -236,9 +236,9 @@
 				<th>
 					{% if order_by == "title" %}
 						{% if direction == "asc" %}
-							<a href="?order_by=title&direction=desc"><i class="fas fa-arrow-circle-up"> Title</i></a>
+							<a href="?order_by=title&direction=desc"><i class="fas fa-arrow-circle-up"></i> Title</a>
 						{% elif direction == "desc" %}
-							<a href="?order_by=title&direction=asc"><i class="fas fa-arrow-circle-down"> Title</i></a>
+							<a href="?order_by=title&direction=asc"><i class="fas fa-arrow-circle-down"></i> Title</a>
 						{% else %}
 							<a href="?order_by=title&direction=desc">Title</a>
 						{% endif %}
@@ -249,9 +249,9 @@
 				<th>
 					{% if order_by == "employee" %}
 						{% if direction == "asc" %}
-							<a href="?order_by=employee&direction=desc"><i class="fas fa-arrow-circle-up"> Employee</i></a>
+							<a href="?order_by=employee&direction=desc"><i class="fas fa-arrow-circle-up"></i> Employee</a>
 						{% elif direction == "desc" %}
-							<a href="?order_by=employee&direction=asc"><i class="fas fa-arrow-circle-down"> Employee</i></a>
+							<a href="?order_by=employee&direction=asc"><i class="fas fa-arrow-circle-down"></i> Employee</a>
 						{% else %}
 							<a href="?order_by=employee&direction=desc">Employee</a>
 						{% endif %}
@@ -262,9 +262,9 @@
 				<th>
                     {% if order_by == "date_created" %}
                         {% if direction == "asc" %}
-                            <a href="?order_by=date_created&direction=desc"><i class="fas fa-arrow-circle-up"> Date Created</i></a>
+                            <a href="?order_by=date_created&direction=desc"><i class="fas fa-arrow-circle-up"></i> Date Created</a>
                         {% elif direction == "desc" %}
-                            <a href="?order_by=date_created&direction=asc"><i class="fas fa-arrow-circle-down"> Date Created</i></a>
+                            <a href="?order_by=date_created&direction=asc"><i class="fas fa-arrow-circle-down"></i> Date Created</a>
                         {% else %}
                             <a href="?order_by=date_created&direction=desc">Date Created</a>
                         {% endif %}
@@ -275,14 +275,14 @@
                 <th>
                     {% if order_by == "date_completed" %}
                         {% if direction == "asc" %}
-                            <a href="?order_by=date_completed&direction=desc"><i class="fas fa-arrow-circle-up"> Date Completed</i></a>
+                            <a href="?order_by=date_completed&direction=desc"><i class="fas fa-arrow-circle-up"></i> Date Completed</a>
                         {% elif direction == "desc" %}
-                            <a href="?order_by=date_completed&direction=asc"><i class="fas fa-arrow-circle-down"> Date Completed</i></a>
+                            <a href="?order_by=date_completed&direction=asc"><i class="fas fa-arrow-circle-down"></i> Date Completed</a>
                         {% else %}
                             <a href="?order_by=date_completed&direction=asc">Date Completed</a>
                         {% endif %}
                     {% elif not order_by and not direction  %}
-                        <a href="?order_by=date_completed&direction=asc"><i class="fas fa-arrow-circle-down"> Date Completed</i></a>
+                        <a href="?order_by=date_completed&direction=asc"><i class="fas fa-arrow-circle-down"></i> Date Completed</a>
                     {% else %}
                         <a href="?order_by=date_completed&direction=desc">Date Completed</a>
                     {% endif %}
