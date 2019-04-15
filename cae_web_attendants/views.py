@@ -19,7 +19,7 @@ def attendants(request):
     """
     # Determines whether or not a new checkout submission was successful.
     # This variable is checked in the template language to determine the color of the panel heading.
-    success, forms = handle_submit_room_checkout(request)
+    success, form_list = handle_submit_room_checkout(request)
 
     # Allows user to change the sorting of the room checkout table.
     # Default is by date from newest checkout to oldest.
@@ -47,13 +47,13 @@ def attendants(request):
         index += 1
 
     template_forms = [None] * 2
-    if forms[0]:
-        template_forms[0] = forms[0]
+    if form_list[0]:
+        template_forms[0] = form_list[0]
     else:
         template_forms[0] = forms.RoomCheckoutForm()
 
-    if forms[1]:
-        template_forms[1] = forms[1]
+    if form_list[1]:
+        template_forms[1] = form_list[1]
     else:
         template_forms[1] = cae_home_forms.ProfileForm_OnlyPhone()
 
@@ -73,10 +73,9 @@ def attendants(request):
     return TemplateResponse(request, 'cae_web_attendants/attendants.html', {
         'room_checkouts': room_checkouts,
         'phones': phones,
-        'forms': template_forms,
         'order_by': order_by,
         'direction': direction,
-        'forms': forms,
+        'forms': form_list,
         'success': success,
     })
 
@@ -250,46 +249,46 @@ def handle_submit_room_checkout(request):
     contact for the student.
     """
     # If user has submitted a room checkout form
-    success = -1
+    status_return = -1
     if request.method == 'POST':
         # Split the two forms
-        form = forms.RoomCheckoutForm(request.POST)
-        phone_no = cae_home_forms.ProfileForm_OnlyPhone(request.POST)
+        room_form = forms.RoomCheckoutForm(request.POST)
+        phone_form = cae_home_forms.ProfileForm_OnlyPhone(request.POST)
         # If user provided a legitimate phone number
-        if phone_no.is_valid():
+        if phone_form.is_valid():
             # If the room checkout is valid
-            if form.is_valid():
+            if room_form.is_valid():
                 # Get the student profile so we can see if it has a phone number
-                student_profile = cae_home_models.Profile.get_profile(form.cleaned_data["student"].bronco_net)
+                student_profile = cae_home_models.Profile.get_profile(room_form.cleaned_data["student"].bronco_net)
                 try:
                     with transaction.atomic():
                         # If the attendant provided a phone number in the form
-                        if phone_no.cleaned_data["phone_number"] is not None:
+                        if phone_form.cleaned_data["phone_number"] is not None:
                             # Replace the existing student profile phone number with the new number provided from the form
-                            student_profile.phone_number = phone_no.cleaned_data["phone_number"]
+                            student_profile.phone_number = phone_form.cleaned_data["phone_number"]
                             student_profile.save()
                             # Add room checkout
-                            form.save()
-                            success = 1
+                            room_form.save()
+                            status_return = 1
                         else:
                             # If student profile doesn't have a phone number and the form did not provide a phone number
                             if student_profile.phone_number is None:
-                                success = -1
+                                status_return = -1
                             # Else if student profile already had a phone number, then the form did not need to provide one
                             else:
-                                form.save()
-                                success = 1
+                                room_form.save()
+                                status_return = 1
                 # If the transaction failed
                 except IntegrityError:
-                    success = -1
+                    status_return = -1
             else:
-                success = -1
+                status_return = -1
         else:
-            success = -1
+            status_return = -1
     # User did not submit a form
     else:
-        return success, (None, None)
-    return success, (form, phone_no)
+        return status_return, (None, None)
+    return status_return, (room_form, phone_form)
 
 
 def handle_edit_checklist_form(pk, instance, formset):
