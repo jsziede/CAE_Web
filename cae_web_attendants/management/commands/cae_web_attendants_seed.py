@@ -8,6 +8,7 @@ from django.core.management.base import BaseCommand
 from django.core.management import call_command
 from django.db import IntegrityError
 from django.db.models import Q
+from django.utils import timezone
 from random import randint
 
 from apps.CAE_Web.cae_web_attendants import models
@@ -109,13 +110,12 @@ class Command(BaseCommand):
                 index = randint(0, len(students) - 1)
                 student = students[index]
 
-                # Generate random date.
-                day = randint(1, 25)
-                month = randint(1, 12)
-                year = randint(2015, 2019)
-                random_date = datetime.date(year, month, day)
+                # Generate random date. Can be any date in the last 2 years.
+                current_date = timezone.localdate()
+                days = randint(1, 730)
+                random_date = current_date - datetime.timedelta(days=days)
 
-                # Push
+                # Attempt to create model seed.
                 try:
                     models.RoomCheckout.objects.create(
                         employee=employee,

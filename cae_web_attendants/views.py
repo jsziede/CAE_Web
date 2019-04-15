@@ -75,7 +75,7 @@ def attendants(request):
         'phones': phones,
         'order_by': order_by,
         'direction': direction,
-        'forms': form_list,
+        'forms': template_forms,
         'success': success,
     })
 
@@ -287,7 +287,7 @@ def handle_submit_room_checkout(request):
             status_return = -1
     # User did not submit a form
     else:
-        return status_return, (None, None)
+        return 0, (None, None)
     return status_return, (room_form, phone_form)
 
 

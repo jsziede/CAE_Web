@@ -11,6 +11,7 @@ from . import models
 from cae_home import forms as cae_home_forms
 from cae_home import models as cae_home_models
 
+
 class RoomCheckoutForm(ModelForm):
     class Meta:
         model = models.RoomCheckout
@@ -23,7 +24,7 @@ class RoomCheckoutForm(ModelForm):
         widgets = {
             'student': cae_home_forms.Select2Widget,
             'room': cae_home_forms.SelectButtonsSideWidget,
-            'checkout_date': forms.SelectDateWidget,
+            'checkout_date': cae_home_forms.DatePickerWidget,
         }
 
     # checks if room is checked out for a past date and that the room has not already been checked out for that day
@@ -43,6 +44,7 @@ class RoomCheckoutForm(ModelForm):
 
         return cleaned_data
 
+
 class ChecklistTemplateForm(ModelForm):
     class Meta:
         model = models.ChecklistTemplate
@@ -59,6 +61,7 @@ class ChecklistTemplateForm(ModelForm):
 
     prefix = 'template'
 
+
 class ChecklistInstanceForm(ModelForm):
     class Meta:
         model = models.ChecklistInstance
@@ -72,6 +75,7 @@ class ChecklistInstanceForm(ModelForm):
         widgets = {
             'title': TextInput(),
         }
+
 
 class ChecklistItemForm(ModelForm):
     class Meta:
