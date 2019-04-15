@@ -171,11 +171,17 @@ def checklists(request):
         # Get template instance.
         template = get_object_or_404(models.ChecklistTemplate, pk=checklist_template_primary)
 
-        initial_data = {
-            'template': template.pk,
-            'room': template.room.pk,
-            'title': template.title,
-        }
+        if template.room:
+            initial_data = {
+                'template': template.pk,
+                'room': template.room.pk,
+                'title': template.title,
+            }
+        else:
+            initial_data = {
+                'template': template.pk,
+                'title': template.title,
+            }
 
         # Defaults the template option to the template the user is creating the checklist from
         form = forms.ChecklistInstanceForm(initial=initial_data)
