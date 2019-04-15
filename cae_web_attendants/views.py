@@ -19,7 +19,7 @@ def attendants(request):
     """
     # Determines whether or not a new checkout submission was successful.
     # This variable is checked in the template language to determine the color of the panel heading.
-    form_tuple_return = handle_submit_room_checkout(request)
+    success, forms = handle_submit_room_checkout(request)
 
     # Allows user to change the sorting of the room checkout table.
     # Default is by date from newest checkout to oldest.
@@ -47,13 +47,13 @@ def attendants(request):
         index += 1
 
     template_forms = [None] * 2
-    if form_tuple_return[1]:
-        template_forms[0] = form_tuple_return[1]
+    if forms[0]:
+        template_forms[0] = forms[0]
     else:
         template_forms[0] = forms.RoomCheckoutForm()
 
-    if form_tuple_return[2]:
-        template_forms[1] = form_tuple_return[2]
+    if forms[1]:
+        template_forms[1] = forms[1]
     else:
         template_forms[1] = cae_home_forms.ProfileForm_OnlyPhone()
 
@@ -76,7 +76,8 @@ def attendants(request):
         'forms': template_forms,
         'order_by': order_by,
         'direction': direction,
-        'form_tuple_return': form_tuple_return[0],
+        'forms': forms,
+        'success': success,
     })
 
 
@@ -287,8 +288,8 @@ def handle_submit_room_checkout(request):
             success = -1
     # User did not submit a form
     else:
-        return (success, None, None)
-    return (success, form, phone_no)
+        return success, (None, None)
+    return success, (form, phone_no)
 
 
 def handle_edit_checklist_form(pk, instance, formset):

@@ -41,22 +41,6 @@ class RoomCheckoutForm(ModelForm):
                 params={'date': input_date},
             )
 
-        current_room_checkouts = models.RoomCheckout.objects.filter(
-            Q(room__exact=input_room) &
-            Q(checkout_date__year=input_date.year) &
-            Q(checkout_date__month=input_date.month) &
-            Q(checkout_date__day=input_date.day))
-
-        if current_room_checkouts:
-            raise ValidationError(
-                _('Invalid room: %(room_name)s has already been checked out on %(month)s/%(day)s/%(year)s'),
-                code='invalid',
-                params={'room_name': input_room,
-                'month': input_date.month,
-                'day': input_date.day,
-                'year': input_date.year}
-            )
-
         return cleaned_data
 
 class ChecklistTemplateForm(ModelForm):
