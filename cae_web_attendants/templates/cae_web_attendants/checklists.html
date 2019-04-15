@@ -13,7 +13,7 @@
 
 {% block content %}
     <h1>Welcome to the CAE Web Attendants Checklist page</h1>
-    
+
     {# If the form to create a new checklist template should be displayed #}
     {% if create_template %}
     {% if success == 1 %}
@@ -61,7 +61,7 @@
         </form>
         <div class="footer">
             <button type="submit" name="action" value="Template" form="template">
-                    Create <i class="fas fa-sign-in-alt"></i>
+                    <i class="fas fa-plus"></i> Create
             </button>
         </div>
     </div>
@@ -97,7 +97,7 @@
         </div>
         <div class="footer">
             <button type="submit" name="action" value="Instance" form="checklist">
-                    Create <i class="fas fa-sign-in-alt"></i>
+                    <i class="fas fa-plus"></i> Create
             </button>
         </div>
     </div>
@@ -193,13 +193,13 @@
             </div>
             <div class="footer">
                 <button type="submit" name="action" value="Edit" form="instance">
-                        Save <i class="fas fa-sign-in-alt"></i>
+                        Save
                 </button>
             </div>
         </div>
     </div>
     {% endif %}
-    
+
     {# If there are checklists instances in the database, show them on a table #}
     {% if checklist_instances %}
 	<table>
