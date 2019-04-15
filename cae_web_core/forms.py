@@ -1,6 +1,7 @@
 """
 Form views for CAE Web Core app.
 """
+
 import datetime
 
 from dateutil import rrule
@@ -10,9 +11,10 @@ from django.db import transaction
 from django.utils import timezone
 import pytz
 
-from cae_home.models.wmu import SemesterDate, Room
 from . import models
 from .utils import excel
+from cae_home import forms as cae_home_forms
+from cae_home.models.wmu import SemesterDate, Room
 
 
 class EmployeeShiftForm(forms.ModelForm):
@@ -28,14 +30,8 @@ class EmployeeShiftForm(forms.ModelForm):
             'clock_out',
         ]
         widgets = {
-            'clock_in': forms.widgets.SplitDateTimeWidget(
-                date_attrs={'type': 'date'},
-                time_attrs={'type': 'time'},
-            ),
-            'clock_out': forms.widgets.SplitDateTimeWidget(
-                date_attrs={'type': 'date'},
-                time_attrs={'type': 'time'},
-            ),
+            'clock_in': cae_home_forms.DateTimePickerWidget,
+            'clock_out': cae_home_forms.DateTimePickerWidget,
         }
         field_classes = {
             'clock_in': forms.SplitDateTimeField,
