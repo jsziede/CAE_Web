@@ -3,8 +3,9 @@ Consumers for CAE Web Core app.
 """
 
 # System Imports.
+import asyncio
 import dateutil.parser, pytz
-from asgiref.sync import async_to_sync
+
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from channels.layers import get_channel_layer
@@ -358,6 +359,12 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
         })
 
     async def on_update_room_event(self, content):
+        """Called when redis notifies us a room changed"""
+        # NOTE: We need to sleep for a bit to allow the original transaction
+        # to actually be committed. The transaction is probably in another
+        # process (uwsgi instead of daphne) so we won't see it if we query the
+        # DB too early.
+        await asyncio.sleep(1)
         room = self.scope['session'].get('room')
         room_type_slug = self.scope['session'].get('resource_identifier')
         event_start = dateutil.parser.parse(content['start_time'])
@@ -519,20 +526,3 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
 
         return event_dicts
 
-def on_room_event_changed(sender, **kwargs):
-    instance = kwargs.get('instance')
-    if instance:
-        # NOTE: if deleted, insance is no longer in database
-        async_to_sync(channel_layer.group_send)(
-            GROUP_UPDATE_ROOM_EVENT,
-            {
-                "type": "on_update_room_event",
-                "pk": instance.pk,
-                "start_time": instance.start_time.isoformat(),
-                "end_time": instance.end_time.isoformat(),
-                "room": instance.room_id,
-            },
-        )
-
-post_save.connect(on_room_event_changed, sender=models.RoomEvent)
-post_delete.connect(on_room_event_changed, sender=models.RoomEvent)
