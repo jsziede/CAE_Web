@@ -19,8 +19,11 @@ class TestMyHoursView(LiveServerTestCase):
         'room_event_types',
     ]
 
-    # Two browswer windows, each with a different user
-    NUM_DRIVERS = 1
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        cls.driver1 = cls.create_driver()
 
     def setUp(self):
         """

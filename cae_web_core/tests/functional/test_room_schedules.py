@@ -22,8 +22,13 @@ class TestRoomSchedules(LiveServerTestCase):
         'room_event_types',
     ]
 
-    # Two browser windows, each with a different user.
-    NUM_DRIVERS = 2
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        # Two browser windows, each with a different user.
+        cls.driver1 = cls.create_driver()
+        cls.driver2 = cls.create_driver()
 
     def test_live_update(self):
         """
