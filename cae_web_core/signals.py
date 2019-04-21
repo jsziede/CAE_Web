@@ -23,7 +23,7 @@ def on_room_event_changed(sender, **kwargs):
                 "type": "on_update_room_event",
                 "pk": instance.pk,
                 "start_time": instance.start_time.isoformat(),
-                "end_time": instance.end_time.isoformat(),
+                "end_time": instance.end_time.isoformat() if instance.end_time else None,
                 "room": instance.room_id,
             },
         )
@@ -41,7 +41,7 @@ def on_availability_event_changed(sender, **kwargs):
                 "type": "on_update_availability_event",
                 "pk": instance.pk,
                 "start_time": instance.start_time.isoformat(),
-                "end_time": instance.end_time.isoformat(),
+                "end_time": instance.end_time.isoformat() if instance.end_time else None,
                 "employee": instance.employee_id,
             },
         )

@@ -12,6 +12,7 @@ from channels.layers import get_channel_layer
 from dateutil import rrule
 from django.core import serializers
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Q
 from django.db.models.signals import post_save, post_delete
 from django.utils import timezone
 
@@ -368,21 +369,20 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
         room = self.scope['session'].get('room')
         room_type_slug = self.scope['session'].get('resource_identifier')
         event_start = dateutil.parser.parse(content['start_time'])
-        event_end = dateutil.parser.parse(content['end_time'])
+        event_end = dateutil.parser.parse(content['end_time']) if content['end_time'] else None
+        start = self.scope['session'].get('start')
+        if start:
+            start = dateutil.parser.parse(start)
+        end = self.scope['session'].get('end')
+        if end:
+            end = dateutil.parser.parse(end)
 
         notify_user = False
         if content['pk'] in self.scope['session'].get('pks', []):
             notify_user = True
         else:
             # Check if new event within time frame
-            start = self.scope['session'].get('start')
-            if start:
-                start = dateutil.parser.parse(start)
-            end = self.scope['session'].get('end')
-            if end:
-                end = dateutil.parser.parse(end)
-
-            if start and event_end < start:
+            if start and event_end and event_end < start:
                 # ignore
                 #print("end was before start")
                 pass
@@ -404,7 +404,7 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
                 'room': room,
                 'resource_identifier': room_type_slug,
                 'notify': True,
-            }, event_start, event_end)
+            }, start, end)
 
     async def on_update_availability_event(self, content):
         """Called when redis notifies us an availability event changed"""
@@ -416,21 +416,20 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
         employee = self.scope['session'].get('employee')
         employee_type_pk = self.scope['session'].get('resource_identifier')
         event_start = dateutil.parser.parse(content['start_time'])
-        event_end = dateutil.parser.parse(content['end_time'])
+        event_end = dateutil.parser.parse(content['end_time']) if content['end_time'] else None
+        start = self.scope['session'].get('start')
+        if start:
+            start = dateutil.parser.parse(start)
+        end = self.scope['session'].get('end')
+        if end:
+            end = dateutil.parser.parse(end)
 
         notify_user = False
         if content['pk'] in self.scope['session'].get('pks', []):
             notify_user = True
         else:
             # Check if new event within time frame
-            start = self.scope['session'].get('start')
-            if start:
-                start = dateutil.parser.parse(start)
-            end = self.scope['session'].get('end')
-            if end:
-                end = dateutil.parser.parse(end)
-
-            if start and event_end < start:
+            if start and event_end and event_end < start:
                 # ignore
                 #print("end was before start")
                 pass
@@ -452,7 +451,7 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
                 'employee': employee,
                 'resource_identifier': employee_type_pk,
                 'notify': True,
-            }, event_start, event_end)
+            }, start, end)
 
     @database_sync_to_async
     def _get_room_events(self, start, end, room, room_type_slug):
@@ -466,7 +465,7 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
             events = events.filter(room__room_type__slug=room_type_slug)
 
         if start:
-            events = events.filter(end_time__gte=start)
+            events = events.filter(Q(end_time__gte=start) | Q(end_time=None))
 
         if end:
             events = events.filter(start_time__lte=end)
@@ -501,7 +500,7 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
             events = events.filter(employee__groups=employee_type_pk)
 
         if start:
-            events = events.filter(end_time__gte=start)
+            events = events.filter(Q(end_time__gte=start) | Q(end_time=None))
 
         if end:
             events = events.filter(start_time__lte=end)
@@ -543,7 +542,14 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
                 # Need to generate events using rrule, within start and end
                 # Convert time to EST and make naive to prevent DST from affecting event times
                 dtstart = timezone.make_naive(event['start_time'], timezone=pytz.timezone("America/Detroit"))
-                until = timezone.make_naive(event['end_time'], timezone=pytz.timezone("America/Detroit"))
+                until = None
+                if event['end_time']:
+                    until = timezone.make_naive(event['end_time'], timezone=pytz.timezone("America/Detroit"))
+                else:
+                    if not end:
+                        raise ValueError("end must be specified")
+                    # Only generate events up to what the user is looking at (end)
+                    until = timezone.make_naive(end, timezone=pytz.timezone("America/Detroit"))
                 # Override 'dtstart' and 'until' in case event model was changed but rrule was not.
                 new_starts = rrule.rrulestr(event['rrule']).replace(dtstart=dtstart, until=until)
 

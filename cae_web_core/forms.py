@@ -394,9 +394,6 @@ class UploadRoomScheduleForm(forms.Form):
             start_time = timezone.make_aware(start_time, timezone=pytz.timezone("America/Detroit")).astimezone(pytz.utc)
             end_time = timezone.make_aware(end_time, timezone=pytz.timezone("America/Detroit")).astimezone(pytz.utc)
 
-            # TODO: The socket controller needs to read rrules and generate 'events' for the client js to use.
-            # This also means that editing an event will be a little more complicated if it's from an rrule.
-
             rrule_weekdays = [None, rrule.MO, rrule.TU, rrule.WE, rrule.TH, rrule.FR, rrule.SA, rrule.SU]
 
             converted_days = [rrule_weekdays[x] for x in weekdays]

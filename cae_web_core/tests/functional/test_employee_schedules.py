@@ -32,8 +32,8 @@ class TestEmployeeSchedules(LiveServerTestCase):
         super().setUp()
 
         # Create two users.
-        self.user_1 = self.create_user('user_1', first_name='Bob')
-        self.user_2 = self.create_user('user_2', first_name='Linda')
+        self.user_1 = self.create_user('user_1', permissions=['add_availabilityevent'], first_name='Bob')
+        self.user_2 = self.create_user('user_2', permissions=['add_availabilityevent'], first_name='Linda')
 
         # View is hardcoded to use 'CAE Admin' as default
         admin_group = Group.objects.create(name='CAE Admin')
@@ -45,12 +45,10 @@ class TestEmployeeSchedules(LiveServerTestCase):
         """
 
         # Log in the first user
-        self.add_permission(self.user_1, "add_availabilityevent")
         self._login(self.driver1, self.user_1.username, self.user_1.password_string)
         self.driver1.get(self.live_server_url + reverse('cae_web_core:employee_schedule'))
 
         # Log in the second user
-        self.add_permission(self.user_2, "add_availabilityevent")
         self._login(self.driver2, self.user_2.username, self.user_2.password_string)
         self.driver2.get(self.live_server_url + reverse('cae_web_core:employee_schedule'))
 
@@ -72,3 +70,35 @@ class TestEmployeeSchedules(LiveServerTestCase):
 
         # Wait for second user to see the test event
         self._wait_for_css(self.driver2, '.schedule-event', "Second user can't find created event!")
+
+    def test_repeat_weekly_never(self):
+        """
+        Test that an availabilitiy event can be made weekly with Never End date.
+        """
+        # Log in the first user
+        self._login(self.driver1, self.user_1.username, self.user_1.password_string)
+        self.driver1.get(self.live_server_url + reverse('cae_web_core:employee_schedule'))
+
+        # Wait for js to initialize the schedule
+        self._wait_for_css(self.driver1, '.schedule-grid-line')
+
+        # Have first user create an event
+        grid_line = self.driver1.find_element_by_css_selector('.schedule-grid-line[data-resource-index="0"][data-time-offset="4"]')
+        # Double click to open create event dialog
+        ActionChains(self.driver1).double_click(grid_line).perform()
+        # Change Repeat
+        select = Select(self.driver1.find_element_by_id('id_rrule_repeat'))
+        select.select_by_visible_text('Weekly')
+        # Repeat every day to prevent test from having to pick a specific day
+        for index in range(7):
+            self.driver1.find_element_by_id('id_rrule_weekly_on_{}'.format(index)).click()
+        # End Never
+        self.driver1.find_element_by_id('id_rrule_end_0').click()
+        # Change Event Type
+        select = Select(self.driver1.find_element_by_id('id_event_type'))
+        select.select_by_visible_text('Scheduled')
+        # Click the save button
+        self.driver1.find_element_by_css_selector('#div_event_dialog button.success').click()
+
+        # Check event was created
+        self._wait_for_css(self.driver1, '.schedule-event', "Event wasn't created!")
