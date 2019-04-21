@@ -359,7 +359,7 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
         })
 
     async def on_update_room_event(self, content):
-        """Called when redis notifies us a room changed"""
+        """Called when redis notifies us a room event changed"""
         # NOTE: We need to sleep for a bit to allow the original transaction
         # to actually be committed. The transaction is probably in another
         # process (uwsgi instead of daphne) so we won't see it if we query the
@@ -403,6 +403,54 @@ class ScheduleConsumer(AsyncJsonWebsocketConsumer):
                 'end_time': self.scope['session'].get('end'),
                 'room': room,
                 'resource_identifier': room_type_slug,
+                'notify': True,
+            }, event_start, event_end)
+
+    async def on_update_availability_event(self, content):
+        """Called when redis notifies us an availability event changed"""
+        # NOTE: We need to sleep for a bit to allow the original transaction
+        # to actually be committed. The transaction is probably in another
+        # process (uwsgi instead of daphne) so we won't see it if we query the
+        # DB too early.
+        await asyncio.sleep(1)
+        employee = self.scope['session'].get('employee')
+        employee_type_pk = self.scope['session'].get('resource_identifier')
+        event_start = dateutil.parser.parse(content['start_time'])
+        event_end = dateutil.parser.parse(content['end_time'])
+
+        notify_user = False
+        if content['pk'] in self.scope['session'].get('pks', []):
+            notify_user = True
+        else:
+            # Check if new event within time frame
+            start = self.scope['session'].get('start')
+            if start:
+                start = dateutil.parser.parse(start)
+            end = self.scope['session'].get('end')
+            if end:
+                end = dateutil.parser.parse(end)
+
+            if start and event_end < start:
+                # ignore
+                #print("end was before start")
+                pass
+            elif end and event_start > end:
+                # ignore
+                #print("start was after end")
+                pass
+            elif employee and content['employee'] != employee:
+                # ignore
+                #print("Employee not equal")
+                pass
+            else:
+                notify_user = True
+
+        if notify_user:
+            await self._handle_get_availability_events({
+                'start_time': self.scope['session'].get('start'),
+                'end_time': self.scope['session'].get('end'),
+                'employee': employee,
+                'resource_identifier': employee_type_pk,
                 'notify': True,
             }, event_start, event_end)
 
