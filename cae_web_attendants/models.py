@@ -5,7 +5,10 @@ Models for CAE Web Attendants app.
 from django.utils import timezone
 from django.db import models
 from django.db.models import F
+from django.db.models import ObjectDoesNotExist
+from random import randint
 
+from cae_home import models as cae_home_models
 
 MAX_LENGTH = 255
 
@@ -33,7 +36,27 @@ class RoomCheckout(models.Model):
         unique_together = ('room', 'checkout_date',)
 
     def __str__(self):
-        return self.room.name + " " + self.checkout_date.strftime('%Y-%m-%d')
+        return self.room.name + " " + self.checkout_date
+
+    @staticmethod
+    def create_dummy_model():
+        """
+        Attempts to get or create a dummy model.
+        Used for testing.
+        """
+        try:
+            return RoomCheckout.objects.get(id=1)
+        except ObjectDoesNotExist:
+            employee = cae_home_models.User.create_dummy_model()
+            student = cae_home_models.WmuUser.create_dummy_model()
+            room = cae_home_models.Room.create_dummy_model()
+
+            return RoomCheckout.objects.create(
+                employee=employee,
+                student=student,
+                room=room,
+                checkout_date=timezone.localdate(),
+            )
 
 
 class ChecklistTemplate(models.Model):
@@ -64,6 +87,25 @@ class ChecklistTemplate(models.Model):
     def __str__(self):
         return self.title
 
+    @staticmethod
+    def create_dummy_model():
+        """
+        Attempts to get or create a dummy model.
+        Used for testing.
+        """
+        try:
+            return ChecklistTemplate.objects.get(id=1)
+        except ObjectDoesNotExist:
+            room = cae_home_models.Room.create_dummy_model()
+            tasks = ChecklistItem.create_dummy_tasks()
+            new_template = ChecklistTemplate.objects.create(
+                title="Dummy Checklist Template",
+                room=room,
+            )
+            for task in tasks:
+                new_template.checklist_item.add(task.pk)
+            return new_template
+
 
 class ChecklistItem(models.Model):
     """
@@ -85,12 +127,47 @@ class ChecklistItem(models.Model):
     def __str__(self):
         return self.task
 
+    @staticmethod
+    def create_dummy_tasks():
+        """
+        Inserts two dummy tasks into the ChecklistItem table
+        and returns them as a list.
+        Should only be used for testing, attendants probably
+        wouldn't find these tasks useful ;P
+        """
+        new_tasks = [None] * 2
+        new_tasks[0] = ChecklistItem.objects.create(
+            task="Break the things",
+            completed=True
+        )
+        new_tasks[1] = ChecklistItem.objects.create(
+            task="Fix the things",
+            completed=False
+        )
+        return new_tasks
+
+    @staticmethod
+    def create_dummy_model():
+        """
+        Attempts to get or create a dummy model.
+        Used for testing.
+        """
+        try:
+            return ChecklistItem.objects.get(id=1)
+        except ObjectDoesNotExist:
+            return ChecklistItem.objects.create(
+            task="Dummy task",
+            completed=False
+        )
 
 class ChecklistInstance(models.Model):
     """
     An instance of an attendant checklist that inherits from a checklist template.
     This is what the attendants fill out and submit on a daily basis.
     """
+
+    #TODO: It would probably be beneficial to add a function to automatically insert tasks for the new checklist instance based on the template that it inherits from. Currently this is done from the view when creating a checklist instance from a form but now I think it would make more sense to have it happen from the model.
+
     # Foreign keys
     template = models.ForeignKey('ChecklistTemplate', on_delete=models.CASCADE)
     room = models.ForeignKey('cae_home.Room', on_delete=models.CASCADE)
@@ -114,3 +191,25 @@ class ChecklistInstance(models.Model):
 
     def __str__(self):
         return self.title + " " + self.date_created.strftime('%Y-%m-%d %H:%M')
+
+    @staticmethod
+    def create_dummy_model():
+        """
+        Attempts to get or create a dummy model.
+        Used for testing.
+        """
+        try:
+            return ChecklistInstance.objects.get(id=1)
+        except ObjectDoesNotExist:
+            template = models.ChecklistTemplate.create_dummy_model()
+            employee = cae_home_models.User.create_dummy_model()
+            tasks = models.ChecklistItem.create_dummy_tasks()
+            new_instance = ChecklistInstance.objects.create(
+                template=template,
+                room=template.room,
+                employee=employee,
+                title="Dummy Checklist Instance",
+            )
+            for task in tasks:
+                new_instance.task.add(task.pk)
+            return new_instance
