@@ -31,7 +31,6 @@ class RoomCheckoutForm(ModelForm):
     def clean(self):
         cleaned_data = super(RoomCheckoutForm, self).clean()
         input_date = cleaned_data['checkout_date']
-        input_room = cleaned_data['room']
 
         # allows a room checkout if it is from the current day or in the future, even if the time has passed
         # simply comment out or remove this block of code if retroactive checkouts are allowed
