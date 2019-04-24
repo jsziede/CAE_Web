@@ -1,5 +1,5 @@
 """
-Seeder command that initializes user models.
+Seeder command that initializes CaeWeb WorkLog models.
 """
 
 from django.contrib.auth.models import Group
