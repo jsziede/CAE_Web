@@ -53,15 +53,15 @@ class RoomCheckoutFormTests(IntegrationTestCase):
         form = forms.RoomCheckoutForm()
         self.assertFalse(form.is_valid())
 
-"""
+
 class ChecklistItemFormTests(IntegrationTestCase):
-    
+
     # Tests to ensure valid Checklist Item Form validation.
 
     def test_valid_data(self):
         form = forms.ChecklistItemForm({
-            'task': 'Test Task',
-            'completed': False,
+            'item-task': 'Test Task',
+            'item-completed': False,
         })
 
         self.assertTrue(form.is_valid())
@@ -72,4 +72,3 @@ class ChecklistItemFormTests(IntegrationTestCase):
     def test_blank_data(self):
         form = forms.ChecklistItemForm()
         self.assertFalse(form.is_valid())
-"""
