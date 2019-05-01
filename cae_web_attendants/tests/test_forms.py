@@ -2,9 +2,6 @@
 Tests for CAE Web Attendant app forms.
 """
 
-#TODO: Having issues with validating forms with many to many fields, which is why there are no tests for checklist templates and instances.
-#BUG: Having issues getting checklist item form to validate but not sure why.
-
 from django.utils import timezone
 
 from .. import forms
@@ -55,9 +52,9 @@ class RoomCheckoutFormTests(IntegrationTestCase):
 
 
 class ChecklistItemFormTests(IntegrationTestCase):
-
-    # Tests to ensure valid Checklist Item Form validation.
-
+    """
+    Tests to ensure valid Checklist Item Form validation.
+    """
     def test_valid_data(self):
         form = forms.ChecklistItemForm({
             'item-task': 'Test Task',
@@ -71,4 +68,50 @@ class ChecklistItemFormTests(IntegrationTestCase):
 
     def test_blank_data(self):
         form = forms.ChecklistItemForm()
+        self.assertFalse(form.is_valid())
+
+class ChecklistTemplateFormTests(IntegrationTestCase):
+    """
+    Tests to ensure valid Checklist Template Form validation.
+    """
+    def test_valid_data(self):
+        item = models.ChecklistItem.create_dummy_model()
+        room = cae_home_models.Room.create_dummy_model()
+        form = forms.ChecklistTemplateForm({
+            'template-checklist_item': [item,],
+            'template-title': 'Test Template',
+            'template-room': room.id,
+        })
+        self.assertTrue(form.is_valid())
+        template = form.save()
+        self.assertEqual(template.title, 'Test Template')
+        self.assertEqual(template.checklist_item.get(pk=item.id), item)
+        self.assertEqual(template.room, room)
+
+    def test_blank_data(self):
+        form = forms.ChecklistTemplateForm()
+        self.assertFalse(form.is_valid())
+
+class ChecklistInstanceFormTests(IntegrationTestCase):
+    """
+    Tests to ensure valid Checklist Instance Form validation.
+    """
+    def test_valid_data(self):
+        template = models.ChecklistTemplate.create_dummy_model()
+        employee = cae_home_models.User.create_dummy_model()
+        form = forms.ChecklistInstanceForm({
+            'title': template.title,
+            'employee': employee.id,
+            'room': template.room.id,
+            'template': template.id,
+        })
+        self.assertTrue(form.is_valid())
+        instance = form.save()
+        self.assertEqual(instance.title, template.title)
+        self.assertEqual(instance.room, template.room)
+        self.assertEqual(instance.employee, employee)
+        self.assertEqual(instance.template, template)
+
+    def test_blank_data(self):
+        form = forms.ChecklistInstanceForm()
         self.assertFalse(form.is_valid())
