@@ -17,10 +17,10 @@
 
     {# If the form to create a new checklist template should be displayed #}
     {% if create_template %}
-    {% if success == 1 %}
+    {% if form_submit_status == 1 %}
     <div class="panel success">
             <div class="header">Template Successfully Created</div>
-    {% elif success == -1 %}
+    {% elif form_submit_status == -1 %}
     <div class="panel error">
         <div class="header">Failed to Create Template</div>
     {% else %}
@@ -80,10 +80,10 @@
 
     {# If user is creating a new checklist instance from an existing template #}
     {% if create_instance %}
-    {% if success == 1 %}
+    {% if form_submit_status == 1 %}
     <div class="panel success">
             <div class="header">Checklist Successfully Opened</div>
-    {% elif success == -1 %}
+    {% elif form_submit_status == -1 %}
     <div class="panel error">
         <div class="header">Failed to Open Checklist</div>
     {% else %}
@@ -162,10 +162,10 @@
         <div class="footer"></div>
     </div>
     {% elif edit_instance %}
-    {% if success == 1 %}
+    {% if form_submit_status == 1 %}
     <div class="panel success">
         <div class="header">Checklist Successfully Updated</div>
-    {% elif success == -1 %}
+    {% elif form_submit_status == -1 %}
     <div class="panel error">
         <div class="header">Failed to Update Checklist</div>
     {% else %}

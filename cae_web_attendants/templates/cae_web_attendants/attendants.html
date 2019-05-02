@@ -17,10 +17,10 @@
 {% block content %}
 	<h1>Room Checkouts</h1>
 
-	{% if success == 1 %}
+	{% if form_submit_status == 1 %}
     <div class="panel success">
             <div class="header">Room Checkout Successfully Created</div>
-    {% elif success == -1 %}
+    {% elif form_submit_status == -1 %}
     <div class="panel error">
         <div class="header">Failed to Create Room Checkout</div>
     {% else %}

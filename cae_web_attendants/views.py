@@ -11,6 +11,9 @@ from . import forms, models
 from cae_home import models as cae_home_models
 from cae_home import forms as cae_home_forms
 
+FORM_ERROR = -1
+FORM_DEFAULT = 0
+FORM_SUCCESS = 1
 
 @login_required
 def attendants(request):
@@ -19,7 +22,7 @@ def attendants(request):
     """
     # Determines whether or not a new checkout submission was successful.
     # This variable is checked in the template language to determine the color of the panel heading.
-    success, form_list = handle_submit_room_checkout(request)
+    form_submit_status, form_list = handle_submit_room_checkout(request)
 
     # Allows user to change the sorting of the room checkout table.
     # Default is by date from newest checkout to oldest.
@@ -76,7 +79,7 @@ def attendants(request):
         'order_by': order_by,
         'direction': direction,
         'forms': template_forms,
-        'success': success,
+        'form_submit_status': form_submit_status,
     })
 
 
@@ -87,7 +90,7 @@ def checklists(request):
     """
     # Determines whether or not a new checklist submission was successful.
     # This variable is checked in the template language to determine the color of the panel heading.
-    success = 0
+    form_submit_status = FORM_DEFAULT
 
     """
     If user submitted a form.
@@ -109,11 +112,11 @@ def checklists(request):
                 fields=('task', 'completed')
             )
             formset = TaskFormset(request.POST, queryset=instance.task.all())
-            success = handle_edit_checklist_form(pk, instance, formset)
+            form_submit_status = handle_edit_checklist_form(pk, instance, formset)
         # If create instance form
         elif request.POST['action'] == 'Instance':
             form = forms.ChecklistInstanceForm(request.POST)
-            success = handle_create_checklist_instance_form(form)
+            form_submit_status = handle_create_checklist_instance_form(form)
         elif request.POST['action'] == 'Template':
             # Retrieves the checklist template form from the user
             form = forms.ChecklistTemplateForm(request.POST)
@@ -124,7 +127,7 @@ def checklists(request):
                 fields=('task',),
             )
             formset = TaskFormset(request.POST, queryset=models.ChecklistItem.objects.none())
-            success = handle_create_checklist_template_form(form, formset)
+            form_submit_status = handle_create_checklist_template_form(form, formset)
 
 
     # The name of the checklist template that was clicked on by the user.
@@ -237,7 +240,7 @@ def checklists(request):
         'direction': direction,
         'form': form,
         'formset': formset,
-        'success': success,
+        'form_submit_status': form_submit_status,
     })
 
 
@@ -297,7 +300,7 @@ def handle_edit_checklist_form(pk, instance, formset):
     be set as either completed or not based on user input from the
     edit checklist form.
     """
-    success = -1
+    form_submit_status = FORM_ERROR
     for form in formset:
         form.fields['task'].disabled = True
     if formset.is_valid():
@@ -322,13 +325,13 @@ def handle_edit_checklist_form(pk, instance, formset):
                     if completed == False:
                         instance.date_completed = None
                         instance.save()
-                success = 1
+                form_submit_status = FORM_SUCCESS
         # If the transaction failed
         except IntegrityError:
-            success = -1
+            form_submit_status = FORM_ERROR
     else:
-        success = -1
-    return success
+        form_submit_status = FORM_ERROR
+    return form_submit_status
 
 
 def handle_create_checklist_instance_form(form):
@@ -336,7 +339,7 @@ def handle_create_checklist_instance_form(form):
     Creates a new checklist instance based on a checklist
     template that was selected by the user from the web page.
     """
-    success = -1
+    form_submit_status = FORM_ERROR
     # If all form fields are valid
     if form.is_valid():
         # Gets the title of the template that the checklist was made from
@@ -362,14 +365,14 @@ def handle_create_checklist_instance_form(form):
                     # Add new task to the checklist instance
                     checklist.task.add(new_task.pk)
                 # Make the form become green
-                success = 1
+                form_submit_status = FORM_SUCCESS
         # If the transaction failed
         except IntegrityError:
-            success = -1
+            form_submit_status = FORM_ERROR
     # If form failed to validate then the form becomes red
     else:
-        success = -1
-    return success
+        form_submit_status = FORM_ERROR
+    return form_submit_status
 
 
 def handle_create_checklist_template_form(form, formset):
@@ -377,7 +380,7 @@ def handle_create_checklist_template_form(form, formset):
     Creates a new checklist instance based on a checklist
     template that was selected by the user from the web page.
     """
-    success = -1
+    form_submit_status = FORM_ERROR
     try:
         with transaction.atomic():
             if form.is_valid():
@@ -392,15 +395,15 @@ def handle_create_checklist_template_form(form, formset):
                             new_task = models.ChecklistItem(task = form.cleaned_data['task'])
                             new_task.save()
                             template.checklist_item.add(new_task.pk)
-                    success = 1
+                    form_submit_status = FORM_SUCCESS
                 else:
-                    success = -1
+                    form_submit_status = FORM_ERROR
             else:
-                success = -1
+                form_submit_status = FORM_ERROR
     # If the transaction failed
     except IntegrityError:
-        success = -1
-    return success
+        form_submit_status = FORM_ERROR
+    return form_submit_status
 
 
 def get_paginated_models(direction, ordering, order_by, page, per_page, model):
