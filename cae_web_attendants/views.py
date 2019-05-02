@@ -83,6 +83,7 @@ def attendants(request):
     })
 
 
+# BUG: After submitting a form, the form that renders on the web page won't have a queried room set for CAE rooms and will instead show all rooms. This applies to the checklist instance form as well, where additionally the template option will show all templates rather than the template that the instance was created from.
 @login_required
 def checklists(request):
     """
@@ -91,44 +92,8 @@ def checklists(request):
     # Determines whether or not a new checklist submission was successful.
     # This variable is checked in the template language to determine the color of the panel heading.
     form_submit_status = FORM_DEFAULT
-
-    """
-    If user submitted a form.
-
-    Each form on the checklist web page has a separate action
-    value to differentiate themselves from the other forms that
-    can be submitted via post request.
-    """
-    if request.method == 'POST':
-        # If edit checklist form
-        if request.POST['action'] == 'Edit':
-            # Gets the instance pk
-            pk = request.GET.get('edit')
-            # Gets the checklist instance object
-            instance = models.ChecklistInstance.objects.filter(pk=pk).first()
-            # Formset of all checklist items that are being edited
-            TaskFormset = modelformset_factory(
-                models.ChecklistItem,
-                fields=('task', 'completed')
-            )
-            formset = TaskFormset(request.POST, queryset=instance.task.all())
-            form_submit_status = handle_edit_checklist_form(pk, instance, formset)
-        # If create instance form
-        elif request.POST['action'] == 'Instance':
-            form = forms.ChecklistInstanceForm(request.POST)
-            form_submit_status = handle_create_checklist_instance_form(form)
-        elif request.POST['action'] == 'Template':
-            # Retrieves the checklist template form from the user
-            form = forms.ChecklistTemplateForm(request.POST)
-            form.fields['room'].queryset = cae_home_models.Room.objects.filter(Q(department__name='CAE Center'))
-            # Retrieves the checklist task formset from the user
-            TaskFormset = modelformset_factory(
-                models.ChecklistItem,
-                fields=('task',),
-            )
-            formset = TaskFormset(request.POST, queryset=models.ChecklistItem.objects.none())
-            form_submit_status = handle_create_checklist_template_form(form, formset)
-
+    formset = None
+    form = None
 
     # The name of the checklist template that was clicked on by the user.
     checklist_template_primary = request.GET.get('template')
@@ -227,6 +192,43 @@ def checklists(request):
         # .filter().first() will return object or None if doesn't exist
         focused_template = models.ChecklistTemplate.objects.filter(pk=checklist_template_primary).first()
         focused_instance = models.ChecklistInstance.objects.filter(pk=checklist_instance_primary).first()
+
+    """
+    If user submitted a form.
+
+    Each form on the checklist web page has a separate action
+    value to differentiate themselves from the other forms that
+    can be submitted via post request.
+    """
+    if request.method == 'POST':
+        # If edit checklist form
+        if request.POST['action'] == 'Edit':
+            # Gets the instance pk
+            pk = request.GET.get('edit')
+            # Gets the checklist instance object
+            instance = models.ChecklistInstance.objects.filter(pk=pk).first()
+            # Formset of all checklist items that are being edited
+            TaskFormset = modelformset_factory(
+                models.ChecklistItem,
+                fields=('task', 'completed')
+            )
+            formset = TaskFormset(request.POST, queryset=instance.task.all())
+            form_submit_status = handle_edit_checklist_form(pk, instance, formset)
+        # If create instance form
+        elif request.POST['action'] == 'Instance':
+            form = forms.ChecklistInstanceForm(request.POST)
+            form_submit_status = handle_create_checklist_instance_form(form)
+        elif request.POST['action'] == 'Template':
+            # Retrieves the checklist template form from the user
+            form = forms.ChecklistTemplateForm(request.POST)
+            form.fields['room'].queryset = cae_home_models.Room.objects.filter(Q(department__name='CAE Center'))
+            # Retrieves the checklist task formset from the user
+            TaskFormset = modelformset_factory(
+                models.ChecklistItem,
+                fields=('task',),
+            )
+            formset = TaskFormset(request.POST, queryset=models.ChecklistItem.objects.none())
+            form_submit_status = handle_create_checklist_template_form(form, formset)
 
     return TemplateResponse(request, 'cae_web_attendants/checklists.html', {
         'checklist_templates': checklist_templates,
